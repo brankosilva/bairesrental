@@ -108,6 +108,23 @@ h1, h2, h3, h4, h5, h6, figure {
   top: 11px!important;
 }
 
+.container-nav {
+  padding-inline: 3rem;
+}
+
+.menu-nav { 
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.menu-lista {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
 
 .fh5co-nav .top {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -119,11 +136,22 @@ h1, h2, h3, h4, h5, h6, figure {
   margin: 0;
   padding: 5px 12px;
 }
+
+@media screen and (min-width: 768px) {
+  .container {
+    width: 100%!important;
+  }
+}
+
+
 @media screen and (max-width: 768px) {
   .fh5co-nav .top .num, .fh5co-nav .top .fh5co-social, .fh5co-nav .top .site {
     padding: 5px 10px;
   }
 }
+ 
+
+
 .fh5co-nav .top .site {
   float: left;
   font-weight: 300;
@@ -131,6 +159,8 @@ h1, h2, h3, h4, h5, h6, figure {
   border-left: 1px solid rgba(0, 0, 0, 0.08);
   border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
+
+
 @media screen and (max-width: 480px) {
   .fh5co-nav .top .site {
     display: none;
@@ -142,6 +172,8 @@ h1, h2, h3, h4, h5, h6, figure {
   letter-spacing: 0px;
   border-left: 1px solid rgba(0, 0, 0, 0.08);
 }
+
+
 .fh5co-nav .top .fh5co-social {
   margin: 0;
   border-left: 1px solid rgba(0, 0, 0, 0.08);
@@ -179,13 +211,15 @@ h1, h2, h3, h4, h5, h6, figure {
   top: 5px;
   left: 0;
 }
+
+
 @media screen and (max-width: 768px) {
   .fh5co-nav .menu-1 {
     display: none;
   }
 }
 .fh5co-nav ul {
-  padding: 0;
+  flex-wrap: wrap;
   margin: 5px 0 0 0;
 }
 .fh5co-nav ul li {
@@ -562,7 +596,7 @@ h1, h2, h3, h4, h5, h6, figure {
   display: inline-block;
 }
 @media screen and (max-width: 768px) {
-  .course .desc, .course .course-img {
+  .course .desc, .course .course-img  {
     width: 100%;
   }
 }
@@ -694,7 +728,7 @@ h1, h2, h3, h4, h5, h6, figure {
 }
 
 .fh5co-heading {
-  margin-bottom: 5em;
+  margin-bottom: 3em;
 }
 .fh5co-heading h2 {
   font-size: 24px;

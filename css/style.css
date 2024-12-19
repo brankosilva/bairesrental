@@ -159,7 +159,7 @@ h1, h2, h3, h4, h5, h6, figure {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 
@@ -754,7 +754,7 @@ h1, h2, h3, h4, h5, h6, figure {
 
 .fh5co-heading h2 {
   font-size: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
   line-height: 1.5;
   color: #000;
   text-transform: uppercase;
@@ -1715,6 +1715,8 @@ h1, h2, h3, h4, h5, h6, figure {
   opacity: 0;
 }
 
+
+
 @media screen and (max-width: 540px) {
   #fh5co-hero .flexslider .slider-text > .slider-text-inner .btn {
     padding: 12px 24px!important;
@@ -1724,7 +1726,16 @@ h1, h2, h3, h4, h5, h6, figure {
   .fh5co-heading h2 {
     font-size: 20px;
   }
+
+  .review-text {
+    font-size: 14px;
+  }
 }
 
+@media screen and (min-width: 1150px) {
+  .review-text {
+    padding-inline: 10rem;
+  }
+}
 
 /*# sourceMappingURL=style.css.map */

@@ -46,7 +46,6 @@ body {
   content: "";
 }
 
-
 .img-logo {
   max-width: 14rem;
 }
@@ -124,8 +123,6 @@ h1, h2, h3, h4, h5, h6, figure {
     align-items: center;
 }
 
-
-
 .fh5co-nav .top {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding: 0px 0;
@@ -136,6 +133,35 @@ h1, h2, h3, h4, h5, h6, figure {
   margin: 0;
   padding: 5px 12px;
 }
+
+
+.slider-title {
+  padding-inline: 3rem!important;
+}
+
+.row .animate-box .fadeInUp .animated-fast {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.animate-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-inline: 4rem;
+
+}
+
+.fh5co-heading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
 
 @media screen and (min-width: 768px) {
   .container {
@@ -149,8 +175,6 @@ h1, h2, h3, h4, h5, h6, figure {
     padding: 5px 10px;
   }
 }
- 
-
 
 .fh5co-nav .top .site {
   float: left;
@@ -317,7 +341,7 @@ h1, h2, h3, h4, h5, h6, figure {
   display: -moz-inline-stack;
   display: inline-block;
   zoom: 1;
-  *display: inline;
+  display: inline;
   -webkit-transition: 0.3s;
   -o-transition: 0.3s;
   transition: 0.3s;
@@ -344,7 +368,7 @@ h1, h2, h3, h4, h5, h6, figure {
   font-size: 24px;
 }
 #fh5co-hero .btn.btn-primary {
-  padding: 14px 30px !important;
+  padding: 14px 30px;
 }
 #fh5co-hero .flexslider {
   border: none;
@@ -430,7 +454,7 @@ h1, h2, h3, h4, h5, h6, figure {
   color: rgba(255, 255, 255, 0.5);
 }
 #fh5co-hero .flexslider .slider-text > .slider-text-inner .btn {
-  padding: 18px 30px !important;
+  padding: 16px 26px ;
   color: #fff;
   border: none !important;
   font-size: 12px;
@@ -439,7 +463,7 @@ h1, h2, h3, h4, h5, h6, figure {
   letter-spacing: 2px;
 }
 #fh5co-hero .flexslider .slider-text > .slider-text-inner .btn:hover {
-  background: #2D6CDF !important;
+  background: #184cad !important;
   -webkit-box-shadow: 0px 14px 30px -15px rgba(0, 0, 0, 0.75) !important;
   -moz-box-shadow: 0px 14px 30px -15px rgba(0, 0, 0, 0.75) !important;
   box-shadow: 0px 14px 30px -15px rgba(0, 0, 0, 0.75) !important;
@@ -467,9 +491,10 @@ h1, h2, h3, h4, h5, h6, figure {
 #fh5co-staff,
 #fh5co-contact,
 #fh5co-footer {
-  padding: 7em 0;
+  padding: 4rem 0;
   clear: both;
 }
+
 @media screen and (max-width: 768px) {
   #fh5co-course-categories,
   #fh5co-counter,
@@ -489,7 +514,7 @@ h1, h2, h3, h4, h5, h6, figure {
 .services {
   width: 95%;
   margin: 0 auto;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   position: relative;
   -webkit-transition: 0.3s;
   -o-transition: 0.3s;
@@ -665,13 +690,13 @@ h1, h2, h3, h4, h5, h6, figure {
   display: -moz-inline-stack;
   display: inline-block;
   zoom: 1;
-  *display: inline;
+  display: inline;
 }
 .fh5co-social-icons li a {
   display: -moz-inline-stack;
   display: inline-block;
   zoom: 1;
-  *display: inline;
+  display: inline;
   color: #2D6CDF;
   padding-left: 10px;
   padding-right: 10px;
@@ -697,7 +722,6 @@ h1, h2, h3, h4, h5, h6, figure {
   left: 0;
   top: .05em;
   font-family: 'icomoon';
-  speak: none;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -727,9 +751,7 @@ h1, h2, h3, h4, h5, h6, figure {
   color: rgba(0, 0, 0, 0.8);
 }
 
-.fh5co-heading {
-  margin-bottom: 3em;
-}
+
 .fh5co-heading h2 {
   font-size: 24px;
   margin-bottom: 20px;
@@ -752,6 +774,7 @@ h1, h2, h3, h4, h5, h6, figure {
 }
 .fh5co-heading p {
   font-size: 14px;
+  padding-inline: 2rem;
 }
 
 #fh5co-testimonial {
@@ -1166,7 +1189,6 @@ h1, h2, h3, h4, h5, h6, figure {
   background: rgba(0, 0, 0, 0.1);
 }
 #fh5co-gallery h2 span:before {
-  lett: 0;
   margin-left: -125px;
 }
 #fh5co-gallery h2 span:after {
@@ -1318,7 +1340,6 @@ h1, h2, h3, h4, h5, h6, figure {
   position: absolute;
   right: 0px;
   font-family: 'icomoon';
-  speak: none;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -1509,12 +1530,7 @@ h1, h2, h3, h4, h5, h6, figure {
   transition: 0.5s;
   padding: 8px 20px;
 }
-.btn.btn-md {
-  padding: 8px 20px !important;
-}
-.btn.btn-lg {
-  padding: 18px 36px !important;
-}
+
 .btn:hover, .btn:active, .btn:focus {
   box-shadow: none !important;
   outline: none !important;
@@ -1698,5 +1714,17 @@ h1, h2, h3, h4, h5, h6, figure {
 .js .animate-box {
   opacity: 0;
 }
+
+@media screen and (max-width: 540px) {
+  #fh5co-hero .flexslider .slider-text > .slider-text-inner .btn {
+    padding: 12px 24px!important;
+    font-size: 10px;
+  }
+
+  .fh5co-heading h2 {
+    font-size: 20px;
+  }
+}
+
 
 /*# sourceMappingURL=style.css.map */

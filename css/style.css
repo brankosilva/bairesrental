@@ -773,7 +773,7 @@ h1, h2, h3, h4, h5, h6, figure {
   background: rgba(0, 0, 0, 0.08);
 }
 .fh5co-heading p {
-  font-size: 14px;
+  font-size: 16px;
   padding-inline: 2rem;
 }
 
@@ -781,6 +781,7 @@ h1, h2, h3, h4, h5, h6, figure {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  background-attachment: fixed;
   position: relative;
 }
 #fh5co-testimonial .overlay {
@@ -826,11 +827,20 @@ h1, h2, h3, h4, h5, h6, figure {
 }
 #fh5co-testimonial .testimony-slide blockquote {
   border: none;
-  margin: 30px auto;
+  margin: 20px auto;
   width: 70%;
   position: relative;
   padding: 0;
 }
+
+
+.testimony-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 @media screen and (max-width: 768px) {
   #fh5co-testimonial .testimony-slide blockquote {
     width: 85%;
@@ -856,12 +866,12 @@ h1, h2, h3, h4, h5, h6, figure {
   background: white !important;
 }
 #fh5co-testimonial .fh5co-heading {
-  margin-bottom: 3em;
+  margin-bottom: 1em;
 }
 #fh5co-testimonial .fh5co-heading h2 {
   color: #fff;
-  margin-bottom: 20px !important;
 }
+
 #fh5co-testimonial .fh5co-heading h2:after {
   background: transparent !important;
 }

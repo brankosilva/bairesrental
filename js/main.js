@@ -286,6 +286,36 @@
 
 	};
 
+	document.addEventListener("DOMContentLoaded", () => {
+		const carousels = document.querySelectorAll(".carousel"); // Selecciona todos los carruseles
+	  
+		carousels.forEach((carousel) => {
+		  const images = carousel.querySelectorAll(".carousel-image");
+		  const prevButton = carousel.querySelector(".prev");
+		  const nextButton = carousel.querySelector(".next");
+		  let currentIndex = 0;
+	  
+		  function updateCarousel() {
+			images.forEach((img, index) => {
+			  img.classList.toggle("active", index === currentIndex);
+			});
+		  }
+	  
+		  prevButton.addEventListener("click", () => {
+			currentIndex = (currentIndex - 1 + images.length) % images.length;
+			updateCarousel();
+		  });
+	  
+		  nextButton.addEventListener("click", () => {
+			currentIndex = (currentIndex + 1) % images.length;
+			updateCarousel();
+		  });
+	  
+		  // Inicializamos el carrusel mostrando la primera imagen
+		  updateCarousel();
+		});
+	  });
+
 	
 	$(function(){
 		mobileMenuOutsideClick();

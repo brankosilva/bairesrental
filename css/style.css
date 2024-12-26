@@ -833,13 +833,68 @@ h1, h2, h3, h4, h5, h6, figure {
   padding: 0;
 }
 
-
 .testimony-slide {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
+
+.carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 200px; /* Ajusta según el tamaño deseado */
+}
+
+.carousel-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-image {
+  width: 100%; /* Las imágenes ocuparán todo el contenedor */
+  height: 200px; /* Mantendrán su proporción original */
+  object-fit: cover; /* Asegura que la imagen cubra el área sin deformarse */
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.carousel-image.active,
+.carousel-image.active1 {
+  opacity: 1;
+}  /* Solo la imagen activa será visible */
+
+button.prev,
+button.next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+button.prev {
+  left: 10px;
+}
+
+button.next {
+  right: 10px;
+}
+
+.blog-descrption {
+  height: 15rem;
+  overflow-y:scroll;
+}
+
 
 @media screen and (max-width: 768px) {
   #fh5co-testimonial .testimony-slide blockquote {

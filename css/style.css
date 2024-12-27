@@ -31,6 +31,18 @@ body {
   max-width: 100%!important;
 }
 
+.row:before, .row:after {
+  content: none !important;
+}
+
+.container:before, .container:after {
+  content: none !important;
+}
+
+.carousel-inner::after {
+  content: none !important;
+}
+
 #page {
   position: relative;
   overflow-x: hidden;
@@ -1649,13 +1661,6 @@ button.next {
   padding: 0 !important;
 }
 
-/*.animate-boxes {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-}*/
 
 .js .animate-box {
   opacity: 0;
@@ -1671,6 +1676,36 @@ button.next {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.row.carousel-inner-box {
+  display: flex; /* Activa flexbox en el contenedor */
+  align-items: normal;
+  flex-wrap: wrap; /* Permite que los elementos se ajusten en varias filas si es necesario */
+  gap: 22px; /* Espaciado entre las cartas */
+}
+
+.row.carousel-inner-box .col-lg-4,
+.row.carousel-inner-box .col-md-4 {
+  flex-grow: 1; /* Permite que cada columna crezca uniformemente */
+  box-sizing: border-box; /* Asegura que padding y border estén incluidos en las dimensiones */
+}
+
+.fh5co-blog {
+  display: flex;
+  flex-direction: column; /* Permite que el contenido dentro de cada carta fluya verticalmente */
+  height: 100%; /* Asegura que todas las cartas tengan la misma altura */
+}
+
+.fh5co-blog .carousel {
+  flex-shrink: 0; /* Evita que el carrusel cambie de tamaño */
+}
+
+.fh5co-blog .blog-text {
+  flex-grow: 1; /* Hace que el texto ocupe el espacio restante */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Distribuye el contenido en el eje vertical */
 }
 
 
@@ -1759,6 +1794,7 @@ button.next {
   transition: 0.5s;
 }
 
+/***************************************** Media queryyyyyys  *******************************************/
 
 
 @media screen and (min-width: 1150px) {

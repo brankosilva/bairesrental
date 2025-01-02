@@ -1097,24 +1097,6 @@ h1, h2, h3, h4, h5, h6, figure {
   background: white;
 }
 
-.wrap-price {
-  padding: 2em 4em;
-}
-
-.pricing__feature-list {
-  width: 100%;
-  float: left;
-}
-.pricing__feature-list li {
-  margin-bottom: 10px;
-}
-
-.pricing__item {
-  width: 100%;
-  float: left;
-  clear: both;
-}
-
 
 .carousel {
   position: relative;
@@ -1678,8 +1660,19 @@ button.next {
   align-items: center;
 }
 
+
+/************  DEPARTAMENTOS **************/
+
+
+.fh5co-blog {
+  display: flex;
+  flex-direction: column; /* Permite que el contenido dentro de cada carta fluya verticalmente */
+  height: 100%; /* Asegura que todas las cartas tengan la misma altura */
+}
+
 .row.carousel-inner-box {
-  display: flex; /* Activa flexbox en el contenedor */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Activa flexbox en el contenedor */
   align-items: normal;
   flex-wrap: wrap; /* Permite que los elementos se ajusten en varias filas si es necesario */
   gap: 22px; /* Espaciado entre las cartas */
@@ -1691,11 +1684,10 @@ button.next {
   box-sizing: border-box; /* Asegura que padding y border estén incluidos en las dimensiones */
 }
 
-.fh5co-blog {
-  display: flex;
-  flex-direction: column; /* Permite que el contenido dentro de cada carta fluya verticalmente */
-  height: 100%; /* Asegura que todas las cartas tengan la misma altura */
+.department-box {
+  width: 100%!important;
 }
+
 
 .fh5co-blog .carousel {
   flex-shrink: 0; /* Evita que el carrusel cambie de tamaño */
@@ -1708,68 +1700,143 @@ button.next {
   justify-content: flex-start; /* Distribuye el contenido en el eje vertical */
 }
 
-
-#fh5co-footer {
-  background: #efefef;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  position: relative;
-  color: #fff !important;
-}
-#fh5co-footer .overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  -webkit-transition: 0.5s;
-  -o-transition: 0.5s;
-  transition: 0.5s;
-}
-#fh5co-footer .fh5co-footer-links {
-  padding: 0;
-  margin: 0;
-}
-#fh5co-footer .fh5co-footer-links li {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-#fh5co-footer .fh5co-footer-links li a {
-  color: rgba(255, 255, 255, 0.5);
-  text-decoration: none;
-}
-#fh5co-footer .fh5co-footer-links li a:hover {
-  text-decoration: underline;
-}
-#fh5co-footer .fh5co-widget {
-  margin-bottom: 30px;
-}
+/************* PRUEBA TEMPLATE  PLANES   *********************/
 
 
-#fh5co-footer .fh5co-widget h3 {
-  margin-bottom: 15px;
-  font-weight: bold;
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-family: "Source Sans Pro", Arial, sans-serif;
-  color: #fff;
-}
-#fh5co-footer .copyright .block {
-  display: block;
-}
-#fh5co-footer .copyright .block a {
-  color: rgba(255, 255, 255, 0.5);
+
+.pricing {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  .plan {
+    background-color: #fff;
+    padding: 2.5rem;
+    margin: 12px;
+    border-radius: 5px;
+    text-align: center;
+    transition: 0.3s;
+    cursor: pointer;
+    
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .price {
+      margin-bottom: 1rem;
+      font-size: 30px;
+    }
+
+    ul.features {
+      list-style-type: none;
+      text-align: left;
+      li {
+        margin: 8px;
+        .fas {
+          margin-right: 4px;
+        }
+        .fa-check-circle {
+          color: #6ab04c;
+        }
+        .fa-times-circle {
+          color: #eb4d4b;
+        }
+      }
+    }
+
+    button {
+      border: none;
+      width: 100%;
+      padding: 12px 35px;
+      margin-top: 1rem;
+      background-color: #6ab04c;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    &.popular {
+      border: 2px solid #6ab04c;
+      position: relative;
+      transform: scale(1.08);
+
+      span {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #6ab04c;
+        color: #fff;
+        padding: 4px 20px;
+        font-size: 18px;
+        border-radius: 5px;
+      }
+    }
+
+    &:hover {
+      box-shadow: 5px 7px 67px -28px rgba(0, 0, 0, 0.37);
+    }
+  }
 }
 
-#map {
+
+
+
+
+/*************   PLANES   *********************/
+
+
+
+.fh5co-pricing {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.row.pricing--rabten {
+  display: flex; /* Activa flexbox en el contenedor */
+  align-items: normal;
+  flex-wrap: wrap; /* Permite que los elementos se ajusten en varias filas si es necesario */
+  gap: 22px; /* Espaciado entre las cartas */
+}
+
+.row.pricing--rabten .col-md-4 {
+  flex-grow: 1; /* Permite que cada columna crezca uniformemente */
+  box-sizing: border-box; /* Asegura que padding y border estén incluidos en las dimensiones */
+}
+
+.fh5co-pricing .pricing__item {
+  flex-grow: 1; /* Hace que el texto ocupe el espacio restante */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Distribuye el contenido en el eje vertical */
+}
+
+.col-md-offset-3 {
+  margin-left: 0;
+}
+
+.wrap-price {
+  padding: 2em 4em;
+}
+
+.pricing__feature-list {
   width: 100%;
-  height: 500px;
-  position: relative;
+  float: left;
 }
+.pricing__feature-list li {
+  margin-bottom: 10px;
+}
+
+.pricing__item {
+  width: 100%;
+  float: left;
+  clear: both;
+}
+
 
 
 #fh5co-offcanvas {
@@ -1813,6 +1880,11 @@ button.next {
 @media screen and (max-width: 992px) {
   .services .icon {
     margin: 0 auto 30px auto;
+  }
+
+  .row.carousel-inner-box {
+    grid-template-columns: 1fr 1fr; /* Activa flexbox en el contenedor */
+
   }
 }
 
@@ -1881,6 +1953,11 @@ button.next {
     display: block;
   }
 
+  .row.carousel-inner-box {
+    grid-template-columns: 1fr; /* Activa flexbox en el contenedor */
+
+  }
+
 }
 
 @media screen and (max-width: 540px) {
@@ -1896,6 +1973,7 @@ button.next {
   .review-text {
     font-size: 14px;
   }
+
 }
 
 

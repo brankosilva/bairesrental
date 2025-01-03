@@ -56,6 +56,32 @@ body {
   overflow: hidden;
   position: absolute;
 }
+
+
+
+#fh5co-offcanvas {
+  position: absolute;
+  z-index: 1901;
+  width: 270px;
+  background: black;
+  top: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 75px 40px 40px 40px;
+  overflow-y: auto;
+  display: none;
+  -moz-transform: translateX(270px);
+  -webkit-transform: translateX(270px);
+  -ms-transform: translateX(270px);
+  -o-transform: translateX(270px);
+  transform: translateX(270px);
+  -webkit-transition: 0.5s;
+  -o-transition: 0.5s;
+  transition: 0.5s;
+}
+
+
 .offcanvas #page:after {
   -webkit-transition: 2s;
   -o-transition: 2s;
@@ -1401,53 +1427,6 @@ button.next {
   transform: translate3d(0, 0, 0);
 }
 
-#fh5co-gallery {
-  padding-top: 2.5em;
-}
-#fh5co-gallery h2 {
-  font-size: 14px;
-  text-transform: uppercase;
-  margin-bottom: 2.5em;
-  font-family: "Source Sans Pro", Arial, sans-serif;
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-#fh5co-gallery h2 span {
-  border: 2px solid rgba(0, 0, 0, 0.8);
-  padding: 10px 15px;
-  position: relative;
-}
-#fh5co-gallery h2 span:before, #fh5co-gallery h2 span:after {
-  position: absolute;
-  top: 18px;
-  bottom: 0;
-  content: '';
-  width: 100px;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.1);
-}
-#fh5co-gallery h2 span:before {
-  margin-left: -125px;
-}
-#fh5co-gallery h2 span:after {
-  right: 0;
-  margin-right: -110px;
-}
-
-.gallery {
-  display: block;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  position: relative;
-  height: 300px;
-}
-.gallery:hover {
-  -webkit-box-shadow: inset 0px 0px 124px 11px rgba(0, 0, 0, 0.74);
-  -moz-box-shadow: inset 0px 0px 124px 11px rgba(0, 0, 0, 0.74);
-  box-shadow: inset 0px 0px 124px 11px rgba(0, 0, 0, 0.74);
-}
-
 
 .btn {
   font-family: "Source Sans Pro", Arial, sans-serif;
@@ -1807,31 +1786,82 @@ button.next {
 
 
 
-/*************     *********************/
+/************* calculadora    *********************/
 
+.calculator-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: normal;
+  margin-bottom: 5rem;
+  margin-top: 1rem;
 
-
-#fh5co-offcanvas {
-  position: absolute;
-  z-index: 1901;
-  width: 270px;
-  background: black;
-  top: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  padding: 75px 40px 40px 40px;
-  overflow-y: auto;
-  display: none;
-  -moz-transform: translateX(270px);
-  -webkit-transform: translateX(270px);
-  -ms-transform: translateX(270px);
-  -o-transform: translateX(270px);
-  transform: translateX(270px);
-  -webkit-transition: 0.5s;
-  -o-transition: 0.5s;
-  transition: 0.5s;
 }
+
+.calculator {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  }
+  
+  .calculator-title {
+    font-size: 3rem;
+    color: #333;
+  }
+  
+  label {
+    display: block;
+    margin: 2px 0;
+    font-weight: bold;
+    color: #555;
+    font-size: 2.5rem;
+  }
+
+  .calculator-price,
+  .calculator-price span {
+    font-size: 8rem;
+    font-family: Circular, -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+    font-weight: 700;
+    color: #007BFF;
+    margin-bottom: 0px;
+
+  }
+
+  
+  input[type="range"] {
+    width: 75%;
+    margin: 10px 0;
+    align-items: center;
+  }
+  
+  .output {
+    margin-top: 5px;
+    font-size: 1.8rem;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .output span {
+    font-weight: bold;
+    color: #007BFF;
+  }
+
+.calculator-text-aclaracion {
+  color: #a0aec0;
+  font-size: 1.5rem;
+}
+
 
 /***************************************** Media queryyyyyys  *******************************************/
 
@@ -1877,7 +1907,12 @@ button.next {
     padding: 10px 20px!important;
     font-size: 15px!important;
   }
-  }
+
+  .calculator-section {
+    flex-direction: column;
+
+}
+}
 
 
 

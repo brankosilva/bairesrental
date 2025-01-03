@@ -334,3 +334,23 @@
 
 
 }());
+
+/* calculadora */
+
+
+// script.js
+const nightlyRate = 40; // Valor promedio por noche en USD
+
+function updateNights(nights) {
+  const nightsValue = document.getElementById('nightsValue');
+  const earningsValue = document.getElementById('earningsValue');
+
+  // Actualiza el valor de noches seleccionadas
+  nightsValue.textContent = nights;
+
+  // Calcula las ganancias
+  const earnings = nights * nightlyRate;
+
+  // Actualiza el valor de ganancias estimadas
+  earningsValue.textContent = `U$D ${earnings}`;
+}

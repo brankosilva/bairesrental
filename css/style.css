@@ -1757,6 +1757,13 @@ button.next {
       font-size: 13px;
     }
 
+    .button-plans:hover {
+      background-color:#184cad;
+      transition: .5s;
+    }
+
+
+
     &.popular {
       border: 2px solid #2D6CDF;
       position: relative;
@@ -1908,7 +1915,117 @@ button.next {
     font-family: "Roboto Slab", serif;
 }
 
+.registration-form .create-account:hover {
+  background-color:#184cad;
+  transition: .5s;
+}
 
+
+/***************************************** Footer  *******************************************/
+
+.footer {
+  background-color: #222;
+  color: #7e7e7e; /* Gris claro para el texto */
+  padding: 40px 0;
+  font-family: "Roboto Slab", serif;
+}
+
+/* Grid Layout */
+.footer-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Columna central más ancha */
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 0 auto; /* Centra el contenedor horizontalmente */
+  padding: 0 20px; /* Espaciado interno uniforme */
+  align-items: start;
+}
+
+/* Aseguramos que los elementos dentro de cada columna estén perfectamente alineados */
+.footer-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Alinea los elementos al inicio de la columna */
+}
+
+.footer-column .mail {
+  color:#4b79cd ;
+}
+
+.footer-column:hover .mail {
+  color:#c9c8c8 ;
+}
+
+/* Logo and Address */
+#footer-logo img {
+  max-width: 150px;
+  margin-bottom: 15px;
+}
+
+.footer-address {
+  margin: 0;
+  font-size: 14px;
+  color: #7e7e7e;
+}
+
+/* Links */
+.footer-title {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-list li {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #333;
+}
+
+
+.footer-link {
+  color: #7e7e7e;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  color: #2D6CDF;
+  transition: .5s;
+}
+
+.footer-link::before {
+  content: "\f105";
+  color: #7e7e7e;
+  padding-right: 10px;
+  font-family: "fontawesome";
+}
+
+.footer-link:hover::before {
+  color: #2D6CDF;
+  transition: .5s;
+
+}
+
+/* Social Media Icons */
+.footer-social {
+  display: flex;
+  gap: 15px;
+}
+
+.footer-icon-link {
+  color: #c9c8c8;
+  font-size: 24px;
+  text-decoration: none;
+}
+
+.footer-icon-link:hover {
+  color: #2D6CDF;
+}
 
 
 /***************************************** Media queryyyyyys  *******************************************/
@@ -2066,6 +2183,18 @@ label {
 }
 
 }
+
+
+@media screen and (max-width: 670px) {
+
+  .footer-container {
+    grid-template-columns: 1fr; /* Columna central más ancha */
+
+  }
+
+}
+
+
 
 @media screen and (max-width: 540px) {
   #fh5co-hero .flexslider .slider-text > .slider-text-inner .btn {

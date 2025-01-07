@@ -42,16 +42,6 @@
 
 	};
 
-	window.addEventListener("scroll",function(){
-		var nav = this.document.querySelector("nav");
-		nav.classList.toggle("abajo",window.scrollY>0);
-	})
-
-	window.addEventListener("scroll",function(){
-		var a = this.document.querySelector("a");
-		a.classList.toggle("menu-hamburguesa",window.scrollY>0);
-	})
-
 
 	var offcanvasMenu = function() {
 
@@ -94,7 +84,19 @@
 				
 	    	}
 		});
-	};
+		
+		    // Añadir efecto de scroll para cambiar la posición
+			$(window).on('scroll', function() {
+				var scrollTop = $(this).scrollTop(); // Obtiene la posición del scroll
+				var $navToggle = $('.js-fh5co-nav-toggle'); // Selecciona el elemento dinámico
+		
+				if (scrollTop > 0) {
+					$navToggle.addClass('scrolled'); // Agrega la clase
+				} else {
+					$navToggle.removeClass('scrolled'); // Elimina la clase
+				}
+			});
+		};
 
 
 	var burgerMenu = function() {
@@ -286,36 +288,6 @@
 
 	};
 
-	document.addEventListener("DOMContentLoaded", () => {
-		const carousels = document.querySelectorAll(".carousel"); // Selecciona todos los carruseles
-	  
-		carousels.forEach((carousel) => {
-		  const images = carousel.querySelectorAll(".carousel-image");
-		  const prevButton = carousel.querySelector(".prev");
-		  const nextButton = carousel.querySelector(".next");
-		  let currentIndex = 0;
-	  
-		  function updateCarousel() {
-			images.forEach((img, index) => {
-			  img.classList.toggle("active", index === currentIndex);
-			});
-		  }
-	  
-		  prevButton.addEventListener("click", () => {
-			currentIndex = (currentIndex - 1 + images.length) % images.length;
-			updateCarousel();
-		  });
-	  
-		  nextButton.addEventListener("click", () => {
-			currentIndex = (currentIndex + 1) % images.length;
-			updateCarousel();
-		  });
-	  
-		  // Inicializamos el carrusel mostrando la primera imagen
-		  updateCarousel();
-		});
-	  });
-
 	
 	$(function(){
 		mobileMenuOutsideClick();
@@ -334,6 +306,15 @@
 
 
 }());
+
+
+/* scroll nav */
+
+window.addEventListener("scroll", function(){
+	var nav = document.querySelector ("nav");
+	nav.classList.toggle("abajo",window.scrollY>0);
+})
+
 
 /* calculadora */
 

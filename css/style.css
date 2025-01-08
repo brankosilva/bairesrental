@@ -2040,7 +2040,30 @@ button.next {
 
 
 
-/*  PAGINA FAQ     */
+/***********************  PAGINA FAQ  **************/
+
+.faq {
+  margin-top: 8rem;
+  padding: 4rem;
+}
+
+.preguntas-frecuentes-title {
+  padding-block: 2rem;
+}
+
+.preguntas-frecuentes-box{
+  border-bottom: 1px solid #e1e1e1;
+  margin-bottom: 3rem;
+}
+
+.preguntas-frecuentes-box-title {
+  font-size: 18px;
+  margin-bottom: 1rem;
+}
+
+.preguntas-frecuentes-box-text {
+  margin-bottom: .8rem;
+}
 
 
 

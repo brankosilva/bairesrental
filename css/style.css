@@ -348,6 +348,7 @@ a.scrolled {
   min-height: 630px;
   height: 630px;
   background: #fff url(../images/loader.gif) no-repeat center center;
+  margin-bottom: 11rem;
 }
 #fh5co-hero .btn {
   font-size: 24px;

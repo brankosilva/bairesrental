@@ -2048,6 +2048,11 @@ button.next {
   padding: 4rem;
 }
 
+.fh5co-preguntas-frecuentes{
+  max-width: 75%;
+}
+
+
 .preguntas-frecuentes-title {
   padding-block: 2rem;
 }

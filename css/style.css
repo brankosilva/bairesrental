@@ -1356,7 +1356,7 @@ a.scrolled {
   -webkit-border-radius: 30px;
   -moz-border-radius: 30px;
   -ms-border-radius: 30px;
-  border-radius: 30px;
+  border-radius: 5px;
   -webkit-transition: 0.5s;
   -o-transition: 0.5s;
   transition: 0.5s;
@@ -1786,8 +1786,8 @@ button.next {
         background-color: #2D6CDF;
         color: #fff;
         border-radius: 5px;
-        padding: 4px 16px;
-        font-size: 16px;
+        padding: 6px 16px;
+        font-size: 15px;
       }
     }
 
@@ -1877,6 +1877,9 @@ button.next {
 
 /***************************************** form  **************************************/
 
+.registration-form {
+  margin-bottom: 4rem;
+}
 
 .registration-form form{
     background-color: #fff;
@@ -1911,7 +1914,7 @@ button.next {
 }
 
 .registration-form .create-account{
-    border-radius: 30px;
+    border-radius: 5px;
     padding: 10px 20px;
     font-size: 13px;
     background-color: #2D6CDF;

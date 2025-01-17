@@ -288,7 +288,6 @@
 
 	};
 
-	
 	$(function(){
 		mobileMenuOutsideClick();
 		offcanvasMenu();
@@ -303,7 +302,6 @@
 		sliderMain();
 		testimonialCarousel();
 	});
-
 
 }());
 
@@ -358,3 +356,41 @@ function updateNights(nights) {
         window.open(whatsappLink, '_blank'); 
  }
     document.querySelector(".registration-form-card").addEventListener("submit", sendWhatsApp);
+	
+
+/* carrusel deptos */
+
+document.addEventListener("DOMContentLoaded", () => {
+	// Seleccionamos todos los carruseles
+	const carousels = document.querySelectorAll(".carousel");
+  
+	carousels.forEach((carousel) => {
+	  const images = carousel.querySelectorAll(".carousel-image");
+	  const prevButton = carousel.querySelector(".prev");
+	  const nextButton = carousel.querySelector(".next");
+	  let currentIndex = 0;
+  
+	  // Función para mostrar la imagen activa
+	  const updateCarousel = () => {
+		images.forEach((img, index) => {
+		  img.classList.toggle("active", index === currentIndex);
+		});
+	  };
+  
+	  // Evento para el botón "prev"
+	  prevButton.addEventListener("click", () => {
+		currentIndex = (currentIndex - 1 + images.length) % images.length;
+		updateCarousel();
+	  });
+  
+	  // Evento para el botón "next"
+	  nextButton.addEventListener("click", () => {
+		currentIndex = (currentIndex + 1) % images.length;
+		updateCarousel();
+	  });
+  
+	  // Iniciar el carrusel mostrando la primera imagen
+	  updateCarousel();
+	});
+  });
+  

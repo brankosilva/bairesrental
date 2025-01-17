@@ -335,3 +335,26 @@ function updateNights(nights) {
   // Actualiza el valor de ganancias estimadas
   earningsValue.textContent = `U$D ${earnings}`;
 }
+
+/* formulario */
+
+    function sendWhatsApp(event) {
+        event.preventDefault();
+
+
+        const name = document.getElementById("username")?.value || "No especificado";
+        const email = document.getElementById("email")?.value || "No especificado";
+        const comments = document.getElementById("coments")?.value || "No especificado";
+
+        // Construir el mensaje para WhatsApp
+        const message = `Hola, me contacto desde la web de *BairesRental*, les dejo mis datos y la consulta para que se comuniquen conmigo:\n\n` +
+            `*Nombre y apellido:* ${name}\n` +
+            `*Email:* ${email}\n` +
+            `*Comentarios:* ${comments}\n\n` +
+            `¡Espero su respuesta!`;
+
+        const whatsappLink = `https://wa.me/5491165233257?text=${encodeURIComponent(message)}`;
+
+        window.open(whatsappLink, '_blank'); 
+ }
+    document.querySelector(".registration-form-card").addEventListener("submit", sendWhatsApp);

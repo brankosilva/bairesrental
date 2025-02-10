@@ -2245,7 +2245,7 @@ a, a:hover {
   .postcard__preview-txt {
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: justify;
+    text-align: left;
     height: 100%;
   }
 
@@ -2255,7 +2255,7 @@ a, a:hover {
     font-size: 14px;
     margin: 20px 0 0 0;
 		padding: 0;
-    justify-content: center;
+    justify-content: start;
 
     .tag__item {
       display: inline-block;

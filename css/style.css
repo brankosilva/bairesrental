@@ -326,7 +326,6 @@ a.scrolled {
   display: -moz-inline-stack;
   display: inline-block;
   zoom: 1;
-  *display: inline;
   -webkit-transition: 0.3s;
   -o-transition: 0.3s;
   transition: 0.3s;
@@ -684,7 +683,6 @@ a.scrolled {
   left: 0;
   top: .05em;
   font-family: 'icomoon';
-  speak: none;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -1177,7 +1175,6 @@ a.scrolled {
   position: absolute;
   right: 0px;
   font-family: 'icomoon';
-  speak: none;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;

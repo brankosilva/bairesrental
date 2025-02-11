@@ -355,7 +355,17 @@ function updateNights(nights) {
 
         window.open(whatsappLink, '_blank'); 
  }
-    document.querySelector(".registration-form-card").addEventListener("submit", sendWhatsApp);
+ 
+ document.addEventListener("DOMContentLoaded", function() {
+    const form = document.querySelector(".registration-form-card");
+    
+    if (form) {
+        form.addEventListener("submit", sendWhatsApp);
+    } else {
+        console.error("No se encontró el formulario con la clase .registration-form-card");
+    }
+});
+
 	
 
 /* carrusel deptos */

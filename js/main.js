@@ -334,6 +334,33 @@ function updateNights(nights) {
   earningsValue.textContent = `U$D ${earnings}`;
 }
 
+
+
+/* carrusel prueba */
+
+
+$('.testi.owl-carousel').owlCarousel({
+	items: 2,
+	margin:10,
+	lazyLoad: true,
+	dots:true,
+	autoPlay: true,
+	autoPlayTimeout: 3000,
+	responsive:{
+	  0:{
+		items:1,
+	  },
+	  600:{
+		items:2,
+	  },
+	  1000:{
+		items:2,
+	  }
+	}
+  });
+
+
+
 /* formulario */
 
     function sendWhatsApp(event) {
@@ -355,7 +382,7 @@ function updateNights(nights) {
 
         window.open(whatsappLink, '_blank'); 
  }
- 
+
  document.addEventListener("DOMContentLoaded", function() {
     const form = document.querySelector(".registration-form-card");
     

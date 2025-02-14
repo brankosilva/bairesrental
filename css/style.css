@@ -1817,6 +1817,9 @@ button.next {
   width: 100%!important;
 }
 
+.departments-title {
+  margin-bottom: 0REM;
+}
 
 .fh5co-blog .carousel {
   flex-shrink: 0; /* Evita que el carrusel cambie de tamaño */
@@ -1841,6 +1844,7 @@ button.next {
   height: 15rem !important;
   overflow-y: auto !important;
   flex-grow: 1;
+  line-height: 2.2rem;
 }
 
 .blog-description::-webkit-scrollbar {
@@ -1866,10 +1870,11 @@ button.next {
 
 /*************  TEMPLATE  PLANES   *********************/
 
-.fh5co-pricing {
+.fh5co-bg-section {
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding-top: 4rem;
 }
 
 .plans-title {
@@ -1884,7 +1889,7 @@ button.next {
 
   .plan {
     background-color: #fff;
-    padding: 3rem;
+    padding: 2rem;
     margin: 12px;
     border-radius: 5px;
     text-align: center;
@@ -1902,11 +1907,18 @@ button.next {
     }
 
     .plan-subtitle {
-      margin-bottom: 8px;
+      margin-block: 1px !important;
+    }
+
+    .plan-subtitle-cost {
+      margin-bottom: 1rem!important;
+      margin-top: -1rem!important;
     }
 
     .price {
       font-size: 30px;
+      color: #2D6CDF;
+      font-weight: 600;
     }
 
     ul.features {
@@ -1914,7 +1926,7 @@ button.next {
       text-align: left;
       flex-grow: 1;
       li {
-        margin: 8px;
+        margin: 4px 8px;
         .fas {
           margin-right: 4px;
         }

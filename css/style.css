@@ -2825,7 +2825,7 @@ label {
   }
 
   .testimonials .item {
-    margin-inline: 4rem;
+    margin-inline: 1rem;
   }
 
   .owl-controls {
@@ -2835,6 +2835,33 @@ label {
 #fh5co-blog {
   margin-inline: 4rem;
 }
+
+.calculadora-container {
+  max-width: 100%;
+}
+
+.calculadora-section {
+  margin-block: 1rem!important;
+}
+
+.formulario-contacto {
+  margin-top: 1rem!important;
+  margin-bottom: 0rem!important;
+}
+
+#fh5co-blog {
+  margin-inline: 1rem;
+}
+
+.calculator-title {
+  font-size: 2rem;
+}
+
+.calculator-price, .calculator-price span {
+  font-size: 4rem;
+}
+
+
 
 }
 

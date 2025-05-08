@@ -2393,7 +2393,10 @@ a, a:hover {
 	}
 	
 	.small {
-		font-size: 80%;
+    font-size: 90%;
+    display: flex;
+    gap: .7rem;
+    flex-wrap: wrap;
 	}
 
   .postcard__title {
@@ -2482,8 +2485,13 @@ a, a:hover {
 .bi-check-lg,
 .bi-check2-square,
 .bi-geo-alt-fill,
-.bi-camera {
-  padding-right: .4rem;
+.bi-camera,
+.bi-house-fill
+.bi-database,
+.bi-house-check-fill,
+.bi-house-slash-fill
+ {
+  padding-right: .3rem;
 }
 
 @media screen and (min-width: 769px) {

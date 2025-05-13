@@ -31,6 +31,10 @@ body {
   max-width: 100%!important;
 }
 
+.letra-chica {
+  font-size: 1.1rem!important;
+}
+
 /* scroll */
 
 
@@ -936,6 +940,7 @@ a.scrolled {
 .gototop a {
   width: 50px;
   height: 50px;
+  margin-bottom: 1rem;
   display: table;
   background: rgba(0, 0, 0, 0.5);
   color: #fff;
@@ -2361,6 +2366,12 @@ a, a:hover {
   margin-inline: 0.2rem;
 }
 
+.bi-geo-alt-fill-b { 
+  font-size: 2rem;
+  color: #2D6CDF;
+  margin-inline: 0.4rem;
+}
+
 
 /* Cards */
 .postcard {
@@ -2493,6 +2504,7 @@ a, a:hover {
  {
   padding-right: .3rem;
 }
+
 
 @media screen and (min-width: 769px) {
   .postcard {

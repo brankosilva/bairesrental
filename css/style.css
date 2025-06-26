@@ -1846,18 +1846,30 @@ button.next {
 
 .plans-title {
   margin-left: 0;
-  margin-bottom: 5rem;
 }
 
 .pricing {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  margin-inline: 2rem;
+  gap: 1px;
+  row-gap: 1rem;
+  max-width: 1300px;
+  margin-inline: 2rem;
+  margin-bottom: 2.5rem;
+
+.plan-title {
+  font-size: 1.5rem!important;
+  margin-bottom: 2px;
+}
 
   .plan {
     background-color: #fff;
-    padding: 2rem;
-    margin: 12px;
+    width: 275px;
+    box-sizing: border-box;
+    padding: 2rem 1rem;
+    margin-inline: .5rem;
     border-radius: 5px;
     text-align: center;
     transition: 0.3s;
@@ -1866,15 +1878,10 @@ button.next {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    
-
-    h2 {
-      font-size: 18px;
-      margin-bottom: 2px;
-    }
 
     .plan-subtitle {
       margin-block: 1px !important;
+      font-size: 12px!important;
     }
 
     .plan-subtitle-cost {
@@ -1892,6 +1899,7 @@ button.next {
       list-style-type: none;
       text-align: left;
       flex-grow: 1;
+      font-size: 12px;
       li {
         margin: 4px 8px;
         .fas {
@@ -1912,14 +1920,14 @@ button.next {
 
     .button-plans {
       border: none;
-      width: 85%;
-      padding: 10px 28px;
+      width: 50%;
+      padding: 5px 12px;
       margin-top: 1rem;
       background-color: #2D6CDF;
       color: #fff;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 11px;
     }
 
     .button-plans:hover {
@@ -1932,7 +1940,6 @@ button.next {
     &.popular {
       border: 2px solid #2D6CDF;
       position: relative;
-      transform: scale(1.08);
 
       span {
         position: absolute;
@@ -1943,7 +1950,7 @@ button.next {
         color: #fff;
         border-radius: 5px;
         padding: 6px 16px;
-        font-size: 15px;
+        font-size: 12px;
       }
     }
 
@@ -2304,9 +2311,9 @@ button.next {
   transition: color .2s, transform .1s .2s;
 }
 
-.tittle-apartments {
+.tittle-apartments,
+.tittle-catalogo-departments {
   font-size: 24px;
-  margin-bottom: 4rem;
   margin-top: 1rem;
   line-height: 1.5;
   color: #000;
@@ -2314,7 +2321,8 @@ button.next {
   text-align: center;
 }
 
-.tittle-apartments:after {
+.tittle-apartments:after,
+.tittle-catalogo-departments:after {
   position: absolute;
     top: 40px;
     left: 0;
@@ -2370,6 +2378,57 @@ a, a:hover {
   font-size: 2rem;
   color: #2D6CDF;
   margin-inline: 0.4rem;
+}
+
+
+.departaments-catalogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalogo-btn-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalogo-text-conteiner {
+  max-width: 80rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.catalogo-text {
+  padding-inline: 3rem;
+  text-align: center;
+}
+
+.catalogo-btn-section {
+  margin-bottom: 3rem;
+}
+
+.catalogo-btn {
+  padding: 16px 26px;
+  color: #fff;
+  border: none !important;
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: #2D6CDF;
+  border-radius: 5px;
+  transition: 0.5s;
+}
+
+.catalogo-btn:hover {
+  background-color: #184cad;
+  transition: .5s;
+  color: #fff;
 }
 
 
@@ -2684,7 +2743,8 @@ a, a:hover {
   }
 
   .pricing {
-    gap: 3rem;
+    gap: .5rem;
+    row-gap: 2rem;
   }
 
   .plan {
@@ -2697,9 +2757,9 @@ a, a:hover {
   }
 
   .button-plans {
-    width: 65%!important;
-    padding: 10px 20px!important;
-    font-size: 15px!important;
+    width: 45%!important;
+    padding: 5px 14px!important;
+    font-size: 10px!important;
   }
 
   .calculator-section {
@@ -2840,6 +2900,13 @@ label {
 
 }
 
+@media screen and (max-width: 992px) {
+    .pricing {
+        gap: .5rem;
+        row-gap: 3.5rem;
+    }
+  }
+
 @media screen and (max-width: 575px) {
 
   .postcard {
@@ -2924,6 +2991,8 @@ label {
 
   .pricing {
     margin: 0 auto 0em;
+    margin-bottom: 2rem;
+
   }
 
   .calculator-section {

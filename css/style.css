@@ -2395,7 +2395,7 @@ a, a:hover {
 }
 
 .catalogo-text-conteiner {
-  max-width: 80rem;
+  max-width: 85rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2406,6 +2406,8 @@ a, a:hover {
 .catalogo-text {
   padding-inline: 3rem;
   text-align: center;
+  font-size: 15px;
+  
 }
 
 .catalogo-btn-section {

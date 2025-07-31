@@ -404,7 +404,7 @@ $('.testi.owl-carousel').owlCarousel({
             `*Comentarios:* ${comments}\n\n` +
             `¡Espero su respuesta!`;
 
-        const whatsappLink = `https://wa.me/5491165233257?text=${encodeURIComponent(message)}`;
+        const whatsappLink = `https://wa.me/5491173735757?text=${encodeURIComponent(message)}`;
 
         window.open(whatsappLink, '_blank'); 
  }

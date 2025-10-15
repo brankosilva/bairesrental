@@ -230,7 +230,18 @@
 	};
 
 	var sliderMain = function() {
-		
+
+		if (window.location.pathname.includes("departamentos.html")) {
+		// Mostrar solo la primera imagen sin animación
+		$('#fh5co-hero .flexslider').flexslider({
+		animation: "slide",
+		slideshow: false,
+		directionNav: false,
+		controlNav: false
+		});
+		return;
+		}
+			
 	  	$('#fh5co-hero .flexslider').flexslider({
 			animation: "slide",
 

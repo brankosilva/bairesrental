@@ -481,6 +481,10 @@ a.scrolled {
   color: #d9534f;
 }
 
+body[data-page="departamentos"] #fh5co-hero .flexslider .slider-text {
+  opacity: 1 !important;
+}
+
 .fh5co-bg-section {
   background: #e8e8e8;
 }

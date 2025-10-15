@@ -2345,7 +2345,8 @@ button.next {
 
 .light {
 	background: #f3f5f7;
-}
+  margin-bottom: 2rem;
+  }
 
 a, a:hover {
 	text-decoration: none;

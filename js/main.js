@@ -420,14 +420,13 @@ $('.testi.owl-carousel').owlCarousel({
         window.open(whatsappLink, '_blank'); 
  }
 
- document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
     const form = document.querySelector(".registration-form-card");
     
     if (form) {
         form.addEventListener("submit", sendWhatsApp);
-    } else {
-        console.error("No se encontró el formulario con la clase .registration-form-card");
-    }
+    } 
+    // No else, no console.error — así no lanza error en otras páginas
 });
 
 	

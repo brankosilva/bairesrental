@@ -1268,6 +1268,15 @@ body[data-page="departamentos"] #fh5co-hero .flexslider .slider-text {
 
 
 /**********************  Porque elegirnos  ********************/ 
+.container-flex{
+  padding-inline: 5rem;
+  max-width: 100%;
+}
+
+.large-box {
+  width: 20%;
+}
+
 .row {
   display: flex;
   justify-content: center;
@@ -1613,6 +1622,7 @@ button.next {
   margin: 0 auto;
   text-align: center;
   padding: 0 20px;
+  margin-bottom: 2rem;
 }
 
 .awards-container h2 {
@@ -2830,6 +2840,12 @@ a, a:hover {
   .services .icon {
     margin: 0 auto 30px auto;
   }
+
+  .large-box {
+        margin-inline: 2rem;
+        width: auto;
+        padding-inline: 1rem;
+    }
 
   .services {
     margin-bottom: 1.5rem;

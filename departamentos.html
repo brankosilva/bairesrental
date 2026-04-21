@@ -1,784 +1,477 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>BairesRental &mdash; Administración de inmuebles</title>
-
-	<link rel="shortcut icon" href="./images/logo-perfin-redes.png" type="image/x-icon">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="Baires Rental" content="Administración de inmuebles" />
-	<meta name="keywords" content="rent alquileres inmuebles alquileresTemporales rental AlquilerTemporal">
-
-	<!-- 
-	//////////////////////////////////////////////////////
-
-	FREE HTML5 TEMPLATE 
-	DESIGNED & DEVELOPED by FreeHTML5.co
-		
-	Website: 		http://freehtml5.co/
-	Email: 			info@freehtml5.co
-	Twitter: 		http://twitter.com/fh5co
-	Facebook: 		https://www.facebook.com/fh5co
-
-	//////////////////////////////////////////////////////
-	 -->
-
-  	<!-- Facebook and Twitter integration -->
-	<meta property="og:title" content=""/>
-	<meta property="og:image" content=""/>
-	<meta property="og:url" content=""/>
-	<meta property="og:site_name" content=""/>
-	<meta property="og:description" content=""/>
-	<meta name="twitter:title" content="" />
-	<meta name="twitter:image" content="" />
-	<meta name="twitter:url" content="" />
-	<meta name="twitter:card" content="" />
-
-
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-	 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:300,400" rel="stylesheet">
-	
-	<!-- Animate.css -->
-	<link rel="stylesheet" href="css/animate.css">
-	<!-- Icomoon Icon Fonts-->
-	<link rel="stylesheet" href="css/icomoon.css">
-	<!-- Bootstrap  -->
-	<link rel="stylesheet" href="css/bootstrap.css">
-
-	<!-- Magnific Popup -->
-	<link rel="stylesheet" href="css/magnific-popup.css">
-
-	<!-- Owl Carousel  -->
-	<link rel="stylesheet" href="css/owl.carousel.min.css">
-	<link rel="stylesheet" href="css/owl.theme.default.min.css">
-
-	<!-- Flexslider  -->
-	<link rel="stylesheet" href="css/flexslider.css">
-
-	<!-- Pricing -->
-	<link rel="stylesheet" href="css/pricing.css">
-
-	<!-- Theme style  -->
-	<link rel="stylesheet" href="css/style.css">
-
-	<!-- Modernizr JS -->
-	<script src="js/modernizr-2.6.2.min.js"></script>
-	<!-- FOR IE9 below -->
-	<!--[if lt IE 9]>
-	<script src="js/respond.min.js"></script>
-	<![endif]-->
-
-	</head>
-	<body data-page="departamentos">
-		
-	<div class="fh5co-loader"></div>
-	
-	<div id="page" class="menumobile">
-	<nav class="fh5co-nav" role="navigation">
-		<div class="top-menu">
-			<div class="container container-nav">
-
-				<div class="row menu-nav">
-					<div class="col-xs-2">
-						<div><a href="index.html"> <img class="img-logo" src="./images/bairesrentallogo.png" alt="logo-Baires-Rental"> </a></div>
-					</div>
-
-					<div class="col-xs-10 text-right menu-1">
-						<ul class="menu-lista">
-							<li ><a href="index.html">HOME</a></li>
-							<li><a href="index.html">REWIEWS</a></li>
-							<li><a href="index.html">CLIENTES</a></li>
-							<li><a href="index.html">NUESTROS PLANES</a></li>
-							<li class="active"><a href="#departamentos">DEPARTAMENTOS</a></li>
-							<li><a href="faq.html">FAQ</a></li>
-							<li><a href="index.html">CONTACTO</a></li>
-						</ul>
-					</div>
-				</div>
-
-			</div>
-		</div>
-	</nav>
-	
-	<aside id="fh5co-hero">
-		<div class="flexslider">
-			<ul class="slides">
-			<li style="background-image: url(images/fondodepartments1.jpg);">
-				<div class="overlay-gradient"></div>
-				<div class="container">
-					<div class="row">
-						<div class="col-md-8 col-md-offset-2 text-center slider-text">
-							<div class="slider-text-inner">
-
-								<h1 class="slider-title title-page-departments">VIVÍ LA EXPERIENCIA</h1>
-								 <div>
-									<img class="img-logo logo-subtitle" src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental">
-								</div>
-
-								<button class="flecha">
-									<div>
-										<a class="flecha-button" href="#nuestros-departamentos"><i class="bi bi-chevron-double-down"></i>
-										</a>
-									</div>
-								</button>
-
-							</div>
-						</div>
-					</div>
-				</div>
-			</li>	   	
-			</ul>
-		</div>
-
-<section class="departaments-catalogo">
-	<div class="container py-4">
-		<div class="catalogo-btn-container">
-			<h2 class="tittle-catalogo-departments">CATÁLOGO DE DEPARTAMENTOS EN PARTNERSHIP</h2>
-			<div class="catalogo-text-conteiner">
-
-				<p class="catalogo-text">
-				<strong>Importante:</strong><br>
-					Este catálogo reúne una selección de departamentos gestionados tanto por BairesRental como por colegas del rubro inmobiliario con quienes trabajamos en modalidad de partnership. Algunas de las propiedades aquí publicadas <strong>no son administradas directamente por BairesRental</strong>, pero han sido incorporadas para ampliar la variedad de opciones disponibles y ayudarte a encontrar la alternativa que mejor se ajuste a tu búsqueda.
-				</p>
-			</div>
-
-			<div class="catalogo-btn-section">
-				<a href="https://drive.google.com/file/d/1o8coeYbpKqk8Dl_dOP_OT7MWaaGyc7ne/view?usp=drive_link" target="_blank" class="catalogo-btn">Ver Catálogo completo</a>
-			</div>
-
-		</div>
-
-		<div class="owl-carousel owl-theme mt-5 carousel-clientes">
-
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/catalogo/puertomadero.jpg"
-							alt="">
-					</div>
-					<div class="name">
-						Puerto Madero
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/catalogo/almagro.jpg"
-							alt="">
-					</div>
-					<div class="name">
-						Almagro
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/catalogo/canitas.jpg"
-							alt="">
-					</div>
-					<div class="name">
-						Cañitas
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/catalogo/palermo.jpg"
-							alt="">
-					</div>
-					<div class="name">
-						Palermo
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/catalogo/belgrano.jpg"
-							alt="">
-					</div>
-					<div class="name">
-						Belgrano
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/catalogo/villaurquiza.jpg"
-							alt="">
-					</div> 
-					<div class="name">
-						Villa Urquiza
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-</section>
-
-	<section  class="departamentos light" id="nuestros-departamentos">
-		<div class="container py-4">
-
-			<h2 class="tittle-apartments" >DEPARTAMENTOS ADMINISTRADOS DIRECTAMENTE POR BAIRESRENTAL</h2>
-
-		<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/JzFQsaeE91TViuTC8" target="_blank">
-				<img class="postcard__img" src="./images/casa-duggan/duggan.JPG" alt="Image Title" />
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  	
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Quinta de verano en Duggan!</h1>						
-						<a href= "https://photos.app.goo.gl/JzFQsaeE91TViuTC8" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://maps.app.goo.gl/r3p8Nh1kuu2AzExJ8" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-					</div>
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar/rooms/1599265620721654934" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/Share-sv3iPb" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-
-							</div>
-
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Duggan - Buenos Aires</div>
-						<div><i class="bi bi-house-fill"></i> Casa de campo</div> 
-						<div><i class="bi bi-house-check-fill"></i><strong>Disponible</strong></div> 
-						</div>
-							</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> <p class="postcard__txt__description">Hermosa casa rodeada de naturaleza, ideal para descansar y desconectarse. 
-Late check-out 18hs! - pet friendly! (tenemos un perro macho muy dócil)
-Terreno arbolado de 3.500 m², parque y pileta de uso exclusivo (14 x 6 m) con sector bajo, reposeras, gazebo y baño exterior. 
-Gran jardín para disfrutar al aire libre, parrilla y mesa de exteri. 
-Casa cómoda, 2 habitaciones, luminosa, totalmente equipada. Alero capacidad 2 autos.
-Un lugar perfecto para relajarse en familia o con amigos.</p></div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>check-out 18hs!</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>6 personas</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>2 habitaciones - 6 camas</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Piscina de 14mts</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>terreno 3500mts2</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Quincho con parrilla</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cochera</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Pet Friendly</li>
-							</ul>
-				<div> <p class="letra-chica">*indicar si van con mascotas!</p></div>
-			</div>
-		</article>
-
-		<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/XnDV11FvcQZsheQv8" target="_blank">
-				<img class="postcard__img" src="./images/teodoro-garcia-2500/20240407_214133.jpg" alt="Image Title" />
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  	
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Hermoso Duplex en Belgrano</h1>						
-						<a href= "https://photos.app.goo.gl/XnDV11FvcQZsheQv8" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://share.google/Ebz3KiPZyN7Y6sn11" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-						</div>
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar/rooms/1096449223624441831" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-
-				</div>
-
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Belgrano</div> 
-						<div><i class="bi bi-house-fill"></i> PH 2 ambientes en edificio</div> 
-						<div><i class="bi bi-database"></i>Precio mensual: 1.100USD, Todo incluido</div> 
-						<div><i class="bi bi-house-check-fill"></i><strong>Disponible 04 de Julio</strong></div> 
-						</div>
-							</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> <p class="postcard__txt__description">Si buscás comodidad, buena ubicación y un espacio funcional para trabajar y descansar, este dúplex en Teodoro García al 2500 es para vos.
-
-Con 48 m² distribuidos en dos plantas, el departamento ofrece una experiencia mucho más cómoda que un monoambiente tradicional: espacios separados, más privacidad y mejor organización.
-
-Al ingresar, en la planta baja, te recibe un living súper luminoso con sofá cómodo, Smart TV, aire acondicionado y mesa de comedor para cuatro personas. Desde allí accedés a un balcón privado con mesa y sillas, ideal para desayunar al aire libre o disfrutar una copa al atardecer.
-
-La cocina está completamente equipada con heladera, horno con hornallas, microondas, cafetera, tostadora, pava eléctrica, vajilla y batería de cocina. Además, el departamento cuenta con lavarropas propio, algo fundamental para estancias más largas. En esta planta también hay un toilette para invitados y WiFi de alta velocidad.
-
-En la planta alta se encuentra el dormitorio, un espacio tranquilo y luminoso con amplio placard, Smart TV, aire acondicionado y un cómodo escritorio de trabajo, perfecto para home office o estudio. El baño es completo, en suite, con ducha y bidet.</p></div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>2 plantas</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>baño completo + toilette</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>aire acondicionado (ambas plantas)</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>lavarropas</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcón + sillas y mesa</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Escritorio + silla</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi (ambas plantas)</li>
-							</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un depósito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/6JnHRBiHgUb8W55c6" target="_blank">
-				<img class="postcard__img" src="./images/lima 1125/lima-1125.jpg" alt="Image Title" />
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  	
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Ideal estudiantes + amenities</h1>						
-						<a href= "https://photos.app.goo.gl/6JnHRBiHgUb8W55c6" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://share.google/KwqzcZAHc3n1LVgH0" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-						</div>
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-
-				</div>
-
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Centro</div> 
-						<div><i class="bi bi-house-fill"></i>Monoambiente con amenities</div> 
-						<div><i class="bi bi-database"></i>Precio mensual: 750USD todo incluido</div> 
-						<div><i class="bi bi-house-check-fill"></i><strong>Disponible</strong></div> 
-						</div>
-							</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> <p class="postcard__txt__description">El edificio cuenta con una amplia variedad de amenities: piscina, SUM con parrilla, sauna, jacuzzi, gimnasio, laundry (con fichas) y terraza, lo que brinda una excelente calidad de vida durante la estadía.
-
-La unidad se encuentra completamente equipada y dispone de cocina con anafes, utensilios y heladera con congelador, cama matrimonial, Smart TV, armario de guardado y baño completo con ducha y bidet. El balcón es amplio y cuenta con mesa y sillas, ideal para disfrutar del espacio exterior.
-
-Ubicación estratégica sobre Lima al 1100, a pasos de UADE y UAI, con excelente conectividad y cercanía a transporte público, comercios y servicios.
-
-Importante: la unidad no incluye blanquería.
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Pileta</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>jacuzzi</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Sauna</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Laundry</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Sum con parrilla</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Gimnasio</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Encargado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcon amplio con mesa y sillas</li>
-				</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un depósito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-
-<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/VE9oQkrg1gi3ArWX7" target="_blank">
-				<img class="postcard__img" src="./images/julian-alvarez-1509/moderno-estudio.jpg" alt="Image Title" />
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Moderno estudio con amenities
-						</h1>						
-						<a href= "https://photos.app.goo.gl/VE9oQkrg1gi3ArWX7" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://share.google/9fTkhi4FqPdqX4wjW" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-						</div>
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar/rooms/1201506393468756933" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/hotel/ar/moderno-estudio-con-terraza-y-parrilla-en-palermo.es-ar.html" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-				</div>
-				<div class="postcard__subtitle small">
-					<div><i class="bi bi-geo-alt-fill"></i>Palermo</div> 
-					<div><i class="bi bi-house-fill"></i> Monoambiente</div> 
-					<div><i class="bi bi-database"></i>Precio mensual: 700usd todo incluido</div> 
-					<div><i class="bi bi-house-check-fill"></i><strong>Disponible a partir del 01/08/2026</strong></div> 
-				</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"><p class="postcard__txt__description">Nuevo y moderno departamento en edificio con parrilla, terraza y lavandería. Ubicado en Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés. Cercano al Jardín botánico, Parque las Heras, Plaza Armenia, Alto Palermo shopping, polos gastronómicos y transporte público. 
-					El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-				</div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Laundry</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Terraza con parrilla</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcón</li>
-				</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un deposito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-
-		<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/n7nnp1SmZvMZaz6ZA" target="_blank">
-				<img class="postcard__img" src="./images/beruti-2390/beruti-2390.jpg" alt="Image Title" />
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  	
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Moderno estudio en recoleta</h1>						
-						<a href= "https://photos.app.goo.gl/n7nnp1SmZvMZaz6ZA" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://share.google/Ebz3KiPZyN7Y6sn11" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-						</div>
-					<div class="icons-redes">
-						<a href="airbnb.com.ar/h/moderno-estudio-en-recoleta" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/hotel/ar/modern-apartment-with-balcony-and-desk-for-students.es.html" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-
-				</div>
-
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Recoleta</div> 
-						<div><i class="bi bi-house-fill"></i> Monoambiente</div> 
-						<div><i class="bi bi-database"></i>Precio mensual: 750USD todo incluido</div> 
-						<div><i class="bi bi-house-check-fill"></i><strong>Disponible Enero 2027</strong></div> 
-						</div>
-							</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> <p class="postcard__txt__description">Disfrutá de un departamento completamente nuevo, en una de las zonas más lindas de Buenos Aires.
-El espacio es amplio, muy luminoso y cuenta con balcón privado.
-
-localizado en pleno Recoleta, una zona residencial, elegante y súper conectada. A pasos de cafés, restaurantes, museos, hospitales y del Subte. Ideal para quienes buscan confort, seguridad y accesibilidad.Monoambiente a estrenar en Recoleta, moderno, luminoso y con excelente ubicación en uno de los barrios más elegantes, seguros y conectados de Buenos Aires. El espacio es amplio, muy luminoso y cuenta con balcón privado, ideal para estadías cómodas tanto cortas como largas.</p></div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcón</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-							</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un deposito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-			<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/DuuJCtz4rX8aDPwv7 " target="_blank">
-				<img class="postcard__img" src="./images/beruti-2390 B/beruti-2390-B.JPG" alt="Image Title" />
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  	
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Fantástico estudio en recoleta</h1>						
-						<a href= "https://photos.app.goo.gl/DuuJCtz4rX8aDPwv7 " target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://share.google/Ebz3KiPZyN7Y6sn11" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-						</div>
-					<div class="icons-redes">
-						<a href="airbnb.com.ar/h/fantastico-departamento-en-recoleta" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-
-				</div>
-
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Recoleta</div> 
-						<div><i class="bi bi-house-fill"></i> Monoambiente</div> 
-						<div><i class="bi bi-database"></i>Precio mensual: 900 usd todo incluido</div> 
-						<div><i class="bi bi-house-check-fill"></i><strong>Disponible 09 Abril </strong></div>
-						</div>
-							</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> <p class="postcard__txt__description">Disfrutá de un departamento completamente nuevo, en una de las zonas más lindas de Buenos Aires.
-El espacio es amplio, muy luminoso y cuenta con balcón privado.
-
-localizado en pleno Recoleta, una zona residencial, elegante y súper conectada. A pasos de cafés, restaurantes, museos, hospitales y del Subte. Ideal para quienes buscan confort, seguridad y accesibilidad. Monoambiente a estrenar en Recoleta, moderno, luminoso y con excelente ubicación en uno de los barrios más elegantes, seguros y conectados de Buenos Aires. El espacio es amplio, muy luminoso y cuenta con balcón privado, ideal para estadías largas.</p></div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcón</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-							</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un depósito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-
-		<article class="postcard dark red">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/bibXNHzeacUSjVZ97" target="_blank">
-				<img class="postcard__img" src="./images/Teodoro-garcia/teodoro-garcia.jpg" alt="Image Title" />	
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">
-					
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Monoambiente luminoso en Belgrano</h1>						
-						<a href= "https://photos.app.goo.gl/bibXNHzeacUSjVZ97" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://maps.app.goo.gl/Kch7DSaQsJCmKNpg8" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-					</div>
-
-					<div class="icons-redes">
-						<!--<a href="https://www.airbnb.com.ar/rooms/841872244620287447" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/hotel/ar/departamento-de-calidad-con-amenities.es-ar.html" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a> -->
-							</div>
-						</div>
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-					<div><i class="bi bi-geo-alt-fill"></i>Belgrano</div> 
-					<div><i class="bi bi-house-fill"></i> Monoambiente</div> 
-					<div><i class="bi bi-database"></i>Precio mensual: 775usd todo incluido.</div> 
-					<div><i class="bi bi-house-check-fill"></i><strong>No disponible</strong></div> 
-							</div>
-							</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> 
-					<p class="postcard__txt__description">Departamento muy luminoso en excelente ubicación. Localizado en el barrio de Belgrano a media cuadra de Av. Cabildo con Subte línea D y metrobus. Estación Colegiales a 6 cuadras con conexión a Retiro. <strong>Proximidad a:</strong> 
- Barrancas de Belgrano ( Barrio Chino)
-- Lagos de Palermo 
-- Cancha de Polo e Hipódromo. 
-- Barrio Cañitas.
-- Cancha River Plate.En zona comercial de locales de ropa, bares, restaurantes y supermercado.
-
-<strong>Comodidades:</strong>
-Cama de 2 plazas + sillón con cama individual, escritorio, Ropa de cama y toallas,
-Vajilla, Cocina con anafe y horno a gas, Microondas,Tostadora, Pava eléctrica, Heladera. 
-Wifi, SmartT.V. Chromecast.</p>
-							</div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-							</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un deposito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-				<article class="postcard dark red">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/ZNvp5HwtVeje8rkc9" target="_blank">
-				<img class="postcard__img" src="./images/medrano-828-sunset/medrano 828 9C 17.jpg" alt="Image Title" />	
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">
-					
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Elegante estudio con amenities</h1>						
-						<a href= "https://photos.app.goo.gl/ZNvp5HwtVeje8rkc9" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://maps.app.goo.gl/b7No5vuziuoGXLB56" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-						</div>
-
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar/rooms/841872244620287447" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/hotel/ar/departamento-de-calidad-con-amenities.es-ar.html" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-					</div>
-				</div>
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-					<div><i class="bi bi-geo-alt-fill"></i>Almagro</div> 
-					<div><i class="bi bi-house-fill"></i> Monoambiente</div> 
-					<div><i class="bi bi-database"></i>Precio mensual: 800USD Todo incluido.</div> 
-					<div><i class="bi bi-house-check-fill"></i><strong>No disponible</strong></div> 
-							</div>
-						</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"> 
-					<p class="postcard__txt__description">Departamento nuevo y elegante en edificio con pileta, gimnasio y laundry. Ubicado en Almagro, corazón de Buenos Aires. A metros de la estación Medrano del subte B y calle Corrientes. Además, a solo 4 cuadras está el Hospital Italiano, cercano a Parque Centenario, Sanatorio Güemes, shopping Abasto y a 9 cuadras de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés.
-				El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-							</div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Pileta</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Gimnasio</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Laundry</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcón</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Contrafrente</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Atardeceres</li>
-				</ul>
-				<div> <p class="letra-chica">*El precio es todo incluido: expensas y servicios. Los honorarios de gestión no están incluidos en el precio. Se solicitará un deposito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-							</div>
-		</article>
- 
-		
-<!-- 
-		<article class="postcard dark red">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/b9t39DpXCdyFqw9VA" target="_blank">
-				<img class="postcard__img" src="./images/espacioso depto (2).JPG" alt="Image Title" />	
-			</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  
-
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Espacioso estudio con amenities</h1>						
-						<a href= "https://photos.app.goo.gl/b9t39DpXCdyFqw9VA" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://maps.app.goo.gl/XesVBDhBxA45oVHJ6" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-							</div>
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar/rooms/1261823560965290860" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/hotel/ar/amplio-y-luminoso-estudio-en-excelente-ubicacion.es-ar.html" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-							</div>
-
-						</div>
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Almagro</div> 
-						<div><i class="bi bi-house-fill"></i>Monoambiente</div> 
-						<div><i class="bi bi-database"></i>600USD + comisión</div> 
-						<div><i class="bi bi-house-slash-fill"></i><strong>No disponible</strong></div> 
-					</div>
-				</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"><p class="postcard__txt__description">Departamento amplio y luminoso, en edificio con laundry y parrilla. Ubicado en Almagro, corazón de Buenos Aires. A metros de la estación Medrano del subte B y calle Corrientes. Además, a solo 4 cuadras está el Hospital Italiano, cercano a Parque Centenario, Sanatorio Güemes, shopping Abasto y a 9 cuadras de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés.
-				El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p></div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Parrilla</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Laundry</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-				</ul>
-				<div> <p class="letra-chica">*El precio es TODO incluido: expensas y servicios. Se solicitará un deposito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>
-
-		<article class="postcard dark blue">
-			<a class="postcard__img_link" href="https://photos.app.goo.gl/Y4HHrSaXC4dx8m358" target="_blank">
-				<img class="postcard__img" src="./images/comodoycalidodepto.JPG" alt="Image Title" />
-								</a>
-			<div class="postcard__text">
-				<div class="tittle-cards-icons">  
-					
-					<div class="tittle-cards-icon">
-						<h1 class="postcard__title blue">Cómodo y cálido departamento</h1>						
-						<a href= "https://photos.app.goo.gl/Y4HHrSaXC4dx8m358" target="_blank"><i class="bi bi-camera-fill"></i></a>
-						<a href= "https://maps.app.goo.gl/nGLA4h6kSLSCxBcw7" target="_blank"><i class="bi bi-geo-alt-fill bi-geo-alt-fill-b"></i></a>
-							</div>
-
-					<div class="icons-redes">
-						<a href="https://www.airbnb.com.ar/rooms/996286859840649429" target="_blank"><img class="icon-red-social" src="./images/airbnb.png" alt="" ></a>
-						<a href="https://www.booking.com/hotel/ar/amplio-y-luminoso-departamento-en-palermo.es-ar.html" target="_blank"><img class="icon-red-social"  src="./images/booking (1).png" alt=""></a>
-							</div>
-
-						</div>
-				<div class="postcard__subtitle small">
-					<div class="postcard__subtitle small">
-						<div><i class="bi bi-geo-alt-fill"></i>Palermo</div> 
-						<div><i class="bi bi-house-fill"></i>Dos ambientes</div> 
-						<div><i class="bi bi-database"></i>600USD + comisión</div> 
-						<div><i class="bi bi-house-slash-fill"></i><strong>No disponible</strong></div> 
-					</div>
-				</div>
-				<div class="postcard__bar"></div>
-				<div class="postcard__preview-txt"><p class="postcard__txt__description">Amplio y luminoso departamento ubicado en el barrio de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés. Cercano al Jardín botánico, Parque las Heras, Plaza Armenia, Alto Palermo shopping, polos gastronómicos y transporte público. 
-				El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía. El departamento cuenta con 2 baños, uno en la habitación y un toilet para invitados. El edificio cuenta con encargado.</p></div>
-				<ul class="postcard__tagbox">
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Lavarropas</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Baño completo</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Cocina equipada</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Aire acondicionado</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Wifi</li>
-					<li class="tag__item"><i class="bi bi-check-lg"></i>Balcón</li>
-				</ul>
-				<div> <p class="letra-chica">*El precio es TODO incluido: expensas y servicios. Se solicitará un deposito de garantía para el ingreso y DNI o pasaporte vigente.</p></div>
-			</div>
-		</article>-->
-
-	</section>
-
-	<section class="departaments-catalogo">
-		<div class="container py-4">
-			<div class="catalogo-btn-container">
-
-			<div class="catalogo-btn-section">
-				<a href="https://drive.google.com/file/d/1o8coeYbpKqk8Dl_dOP_OT7MWaaGyc7ne/view?usp=drive_link" target="_blank" class="catalogo-btn">Ver Catálogo completo</a>
-			</div>
-
-		</div>
-	</div>
-
-	</section> 
-
-
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>BairesRental &mdash; Departamentos en Buenos Aires</title>
+
+<link rel="shortcut icon" href="./images/logo-perfin-redes.png" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Catálogo de departamentos en alquiler temporario en Buenos Aires. Palermo, Recoleta, Belgrano, Almagro y más barrios." />
+<meta name="keywords" content="rent alquileres inmuebles alquileresTemporales rental AlquilerTemporal">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<!-- DM Sans se usa en el catálogo (departamentos.js genera las cards con esta tipografía) -->
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:300,400" rel="stylesheet">
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="css/animate.css">
+<!-- Icomoon Icon Fonts-->
+<link rel="stylesheet" href="css/icomoon.css">
+<!-- Bootstrap  -->
+<link rel="stylesheet" href="css/bootstrap.css">
+<!-- Magnific Popup -->
+<link rel="stylesheet" href="css/magnific-popup.css">
+<!-- Owl Carousel  -->
+<link rel="stylesheet" href="css/owl.carousel.min.css">
+<link rel="stylesheet" href="css/owl.theme.default.min.css">
+<!-- Flexslider  -->
+<link rel="stylesheet" href="css/flexslider.css">
+<!-- Theme style  -->
+<link rel="stylesheet" href="css/style.css">
+
+<!-- Modernizr JS -->
+<script src="js/modernizr-2.6.2.min.js"></script>
+
+
+</head>
+<body data-page="departamentos">
+
+<div class="fh5co-loader"></div>
+
+<div id="page" class="menumobile">
+<nav class="fh5co-nav" role="navigation">
+  <div class="top-menu">
+    <div class="container container-nav">
+      <div class="row menu-nav">
+        <div class="col-xs-2">
+          <div><a href="index.html"><img class="img-logo" src="./images/bairesrentallogo.png" alt="logo-Baires-Rental"></a></div>
+        </div>
+        <div class="col-xs-10 text-right menu-1">
+          <ul class="menu-lista">
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="index.html#fh5co-testimony">REVIEWS</a></li>
+            <li><a href="index.html#fh5co-clientes">CLIENTES</a></li>
+            <li><a href="index.html#fh5co-pricing">NUESTROS PLANES</a></li>
+            <li class="active"><a href="departamentos.html">DEPARTAMENTOS</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+            <li><a href="index.html#fh5co-contact">CONTACTO</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<aside id="fh5co-hero">
+  <div class="flexslider">
+    <ul class="slides">
+      <li style="background-image: url(images/fondodepartments1.jpg);">
+        <div class="overlay-gradient"></div>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-8 col-md-offset-2 text-center slider-text">
+              <div class="slider-text-inner">
+                <h1 class="slider-title title-page-departments">VIVÍ LA EXPERIENCIA</h1>
+                <div>
+                  <img class="img-logo logo-subtitle" src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental">
+                </div>
+                <button class="flecha">
+                  <div>
+                    <a class="flecha-button" href="#catalogo-departamentos"><i class="bi bi-chevron-double-down"></i></a>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</aside>
+
+<!-- =====================================================
+     BARRA DE FILTROS
+===================================================== -->
+<div class="br-filtros-wrapper" id="catalogo-departamentos">
+  <div class="br-filtros-inner">
+
+    <button class="br-filtros-toggle-mobile" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.br-toggle-arrow').textContent = this.nextElementSibling.classList.contains('open') ? '▲' : '▼'">
+      <span>🔍 Filtrar propiedades</span>
+      <span class="br-toggle-arrow">▼</span>
+    </button>
+
+    <div class="br-filtros-collapsible">
+      <div class="br-filtros-row">
+
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label">Barrio</span>
+          <select class="br-filtro-select" id="filtro-barrio">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label">Tipo</span>
+          <div class="br-filtro-pills">
+            <button class="br-pill-btn filtro-tipo-btn" data-tipo="monoambiente">Mono</button>
+            <button class="br-pill-btn filtro-tipo-btn" data-tipo="2 ambientes">2 amb.</button>
+            <button class="br-pill-btn filtro-tipo-btn" data-tipo="3 ambientes">3 amb.</button>
+            <button class="br-pill-btn filtro-tipo-btn" data-tipo="4+ ambientes">4+</button>
+            <button class="br-pill-btn filtro-tipo-btn" data-tipo="casa">Casa</button>
+          </div>
+        </div>
+
+        <div class="br-filtro-grupo br-precio-wrap">
+          <div class="br-precio-top">
+            <span class="br-filtro-label">Precio máx.</span>
+            <span id="label-precio">USD 5.000</span>
+          </div>
+          <input type="range" class="br-range" id="filtro-precio" min="500" max="5000" step="100" value="5000" />
+        </div>
+
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label">Disponibilidad</span>
+          <label class="br-toggle-wrap">
+            <input type="checkbox" id="filtro-disponible" />
+            <span>Solo disponibles</span>
+          </label>
+        </div>
+
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label">Amueblado</span>
+          <div class="br-filtro-pills">
+            <button class="br-pill-btn filtro-amueblado-btn" data-amueblado="si">Sí</button>
+            <button class="br-pill-btn filtro-amueblado-btn" data-amueblado="no">No</button>
+          </div>
+        </div>
+
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label">Mascotas</span>
+          <label class="br-toggle-wrap">
+            <input type="checkbox" id="filtro-mascotas" />
+            <span>Acepta mascotas</span>
+          </label>
+        </div>
+
+        <div class="br-filtro-grupo" style="margin-left:auto;">
+          <span class="br-filtro-label">&nbsp;</span>
+          <button class="br-btn-limpiar" id="btn-limpiar-filtros">✕ Limpiar</button>
+        </div>
+
+      </div>
+
+      <div class="br-filtros-amenities">
+        <span class="br-filtro-label" style="display:block;margin-bottom:.45rem;">Amenities</span>
+        <div class="br-filtro-pills">
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> 🏊 Pileta</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> 🏋️ Gimnasio</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> 🫧 Laundry</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="parrilla" /> 🔥 Parrilla</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="terraza" /> 🌿 Terraza</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="cochera" /> 🚗 Cochera</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="sauna" /> ♨️ Sauna</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="solárium" /> ☀️ Solárium</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="seguridad 24hs" /> 🔒 Seguridad 24hs</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="jacuzzi" /> 🛁 Jacuzzi</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     CATÁLOGO
+===================================================== -->
+<div class="br-catalogo-section">
+  <div class="br-catalogo-header">
+    <span id="contador-resultados">Cargando...</span>
+  </div>
+  <div id="catalogo-grid"></div>
+</div>
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
 <footer class="footer">
-	<div class="footer-container">
-		<!-- Primera Columna -->
-		<div class="footer-column">
-			<div id="footer-logo">
-				<img src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental" class="img-logo">
-			</div>
-			<p class="footer-address">Ciudad Autónoma de Buenos Aires (CABA) - Argentina.<br>
-				<p class="copyright">Copyright © 2025 BairesRental Todos los derechos reservados
-				</p>
-		</div>
-
-		<!-- Segunda Columna -->
-		<div class="footer-column">
-			<h5 class="footer-title">SERVICIOS</h5>
-			<ul class="footer-list">
-				<li><a href="index.html" class="footer-link">Reviews</a></li>
-				<li><a href="index.html" class="footer-link">Nuestros planes</a></li>
-				<li><a href="departamentos.html" class="footer-link">Departametnos</a></li>
-				<li><a href="faq.html" class="footer-link">FAQ</a></li>
-				<li><a href="index.html" class="footer-link">Contacto</a></li>
-			</ul>
-		</div>
-
-		<!-- Tercera Columna -->
-		<div class="footer-column">
-			<h5 class="footer-title">CONTACTANOS</h5>
-			<div class="footer-social">
-				<a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank">
-					<i class="bi bi-whatsapp"></i>
-				</a>
-				<a href="https://www.instagram.com/bairesrentalok/" target="_blank" class="footer-icon-link">
-					<i class="bi bi-instagram"></i>
-				</a>
-				<a href="https://www.facebook.com/profile.php?id=61566568521787" target="_blank" class="footer-icon-link">
-					<i class="bi bi-facebook"></i>
-				</a>
-
-			</div>
-		</div>
-	</div>
+  <div class="footer-container">
+    <div class="footer-column">
+      <div id="footer-logo">
+        <img src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental" class="img-logo">
+      </div>
+      <p class="footer-address">Ciudad Autónoma de Buenos Aires (CABA) - Argentina.</p>
+      <p class="copyright">Copyright © 2025 BairesRental Todos los derechos reservados</p>
+      <div>
+        <button class="btn-admin-discreto" id="btn-admin-access">Administrar catálogo</button>
+      </div>
+    </div>
+    <div class="footer-column">
+      <h5 class="footer-title">SERVICIOS</h5>
+      <ul class="footer-list">
+        <li><a href="index.html#fh5co-testimony" class="footer-link">Reviews</a></li>
+        <li><a href="index.html#fh5co-pricing" class="footer-link">Nuestros planes</a></li>
+        <li><a href="departamentos.html" class="footer-link">Departamentos</a></li>
+        <li><a href="faq.html" class="footer-link">FAQ</a></li>
+        <li><a href="index.html#fh5co-contact" class="footer-link">Contacto</a></li>
+      </ul>
+    </div>
+    <div class="footer-column">
+      <h5 class="footer-title">CONTACTANOS</h5>
+      <div class="footer-social">
+        <a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
+        <a href="https://www.instagram.com/bairesrentalok/" target="_blank" class="footer-icon-link"><i class="bi bi-instagram"></i></a>
+        <a href="https://www.facebook.com/profile.php?id=61566568521787" target="_blank" class="footer-icon-link"><i class="bi bi-facebook"></i></a>
+      </div>
+    </div>
+  </div>
 </footer>
 
+<div class="gototop js-top">
+  <a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
+  <a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
+</div>
 
-	<div class="gototop js-top">
-		<a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
-		<a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
-	</div>
+<!-- =====================================================
+     MODAL DETALLE DE PROPIEDAD
+===================================================== -->
+<div id="detalle-overlay"></div>
+<div id="detalle-modal" role="dialog" aria-modal="true" aria-label="Detalle de propiedad">
+  <button id="detalle-close" title="Cerrar">✕</button>
+  <div class="detalle-inner">
+    <div class="detalle-img-wrap" id="detalle-img-wrap">
+      <!-- imagen o placeholder inyectado por JS -->
+    </div>
+    <div class="detalle-body">
+      <div class="detalle-location" id="detalle-location"></div>
+      <h2 id="detalle-titulo"></h2>
+      <div class="detalle-precio-row" id="detalle-precio-row"></div>
+      <div id="detalle-desde"></div>
+      <p class="detalle-desc" id="detalle-desc"></p>
+      <div id="detalle-amenities-section" style="display:none;">
+        <div class="detalle-seccion-titulo">Amenities del edificio</div>
+        <div class="detalle-amenities-row" id="detalle-amenities-row"></div>
+      </div>
+      <div id="detalle-opciones-section" style="display:none;">
+        <div class="detalle-seccion-titulo">Características</div>
+        <div class="detalle-opciones-row" id="detalle-opciones-row"></div>
+      </div>
+      <div class="detalle-actions" id="detalle-actions"></div>
+    </div>
+  </div>
+</div>
 
-	<!-- jQuery -->
-	<script src="js/jquery.min.js"></script>
-	<!-- jQuery Easing -->
-	<script src="js/jquery.easing.1.3.js"></script>
-	<!-- Bootstrap -->
-	<script src="js/bootstrap.min.js"></script>
-	<!-- Waypoints -->
-	<script src="js/jquery.waypoints.min.js"></script>
-	<!-- Stellar Parallax -->
-	<script src="js/jquery.stellar.min.js"></script>
-	<!-- Carousel -->
-	<script src="js/owl.carousel.min.js"></script>
-	<!-- Flexslider -->
-	<script src="js/jquery.flexslider-min.js"></script>
-	<!-- countTo -->
-	<script src="js/jquery.countTo.js"></script>
-	<!-- Magnific Popup -->
-	<script src="js/jquery.magnific-popup.min.js"></script>
-	<script src="js/magnific-popup-options.js"></script>
-	<!-- Count Down -->
-	<script src="js/simplyCountdown.js"></script>
-	<!-- Main -->
+<!-- =====================================================
+     PANEL DE ADMINISTRACIÓN
+===================================================== -->
+<div id="admin-overlay"></div>
+<div id="admin-modal" role="dialog" aria-modal="true" aria-label="Panel de administración">
 
-	<script src="js/main.js"></script>
+  <div class="admin-header">
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      <h2>Panel de administración</h2>
+      <span class="admin-header-badge">ADMIN</span>
+    </div>
+    <button id="admin-modal-close" title="Cerrar">✕</button>
+  </div>
 
-	</body>
+  <div class="admin-body">
+    <div class="admin-top-actions">
+      <button class="btn-admin-primary" id="btn-nueva-propiedad">+ Nueva propiedad</button>
+      <button class="btn-admin-secondary" id="btn-exportar">⬇ Exportar JSON</button>
+      <button class="btn-admin-secondary" id="btn-importar">⬆ Importar JSON</button>
+    </div>
+
+    <div class="admin-buscar-wrap">
+      <input type="search" id="admin-buscar" placeholder="🔍  Buscar por nombre o barrio..." autocomplete="off" />
+      <span id="admin-contador-lista"></span>
+    </div>
+    <div class="admin-tipo-filtros">
+      <button class="admin-tipo-btn active" data-tipo="">Todos</button>
+      <button class="admin-tipo-btn" data-tipo="monoambiente">Monoambiente</button>
+      <button class="admin-tipo-btn" data-tipo="2 ambientes">2 ambientes</button>
+      <button class="admin-tipo-btn" data-tipo="3+">3+ ambientes</button>
+      <button class="admin-tipo-btn" data-tipo="casa">Casa</button>
+      <button class="admin-tipo-btn" data-tipo="sin-amoblar">Sin amoblar</button>
+    </div>
+
+    <div id="admin-lista"></div>
+
+    <div id="admin-form-section">
+      <div id="form-titulo-label">Nueva Propiedad</div>
+      <form id="form-propiedad" novalidate>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label-admin">ID único *</label>
+            <input type="text" name="id" class="form-control-br" placeholder="ej: palermo-2026-1" required />
+            <small style="color:var(--br-gris-txt);font-size:.75rem;">Sin espacios, solo letras, números y guiones.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Título *</label>
+            <input type="text" name="titulo" class="form-control-br" placeholder="ej: Moderno estudio en Palermo" required />
+          </div>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label-admin">Barrio *</label>
+            <input type="text" name="barrio" class="form-control-br" placeholder="ej: Palermo" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Tipo</label>
+            <select name="tipo" class="form-control-br">
+              <option value="monoambiente">Monoambiente</option>
+              <option value="2 ambientes" selected>2 ambientes</option>
+              <option value="3 ambientes">3 ambientes</option>
+              <option value="4+ ambientes">4+ ambientes</option>
+              <option value="casa">Casa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Precio (USD) — 0 = Consultar</label>
+            <input type="number" name="precio" class="form-control-br" placeholder="ej: 1200" min="0" />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label-admin">Moneda</label>
+            <select name="moneda" class="form-control-br">
+              <option value="USD">USD</option>
+              <option value="ARS">ARS</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Mínimo de meses</label>
+            <input type="number" name="minimoMeses" class="form-control-br" value="1" min="1" max="24" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-admin">Disponibilidad</label>
+          <select name="disponibilidad" class="form-control-br" style="display:none">
+            <option value="disponible">disponible</option>
+            <option value="reservado">reservado</option>
+            <option value="no disponible">no disponible</option>
+          </select>
+          <div class="disp-selector">
+            <button type="button" class="disp-btn disp-btn-disponible selected" data-disp="disponible" onclick="setDisponibilidad(this,'disponible')">✓ Disponible</button>
+            <button type="button" class="disp-btn disp-btn-reservado" data-disp="reservado" onclick="setDisponibilidad(this,'reservado')">⏳ Reservado</button>
+            <button type="button" class="disp-btn disp-btn-no" data-disp="no disponible" onclick="setDisponibilidad(this,'no disponible')">✗ No disponible</button>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label-admin">Disponible desde (opcional)</label>
+            <input type="date" name="disponibleDesde" class="form-control-br" />
+            <small style="color:var(--br-gris-txt);font-size:.75rem;">Se mostrará en la card. Dejar vacío si ya está disponible.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Mensaje de WhatsApp</label>
+            <input type="text" name="whatsappMsg" class="form-control-br" placeholder="Hola! Me interesa el depto en..." />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-admin">Opciones</label>
+          <div class="form-checks-row">
+            <label class="form-check-br"><input type="checkbox" name="amueblado" checked /> Amueblado</label>
+            <label class="form-check-br"><input type="checkbox" name="mascotas" /> Acepta mascotas</label>
+            <label class="form-check-br"><input type="checkbox" name="serviciosIncluidos" /> Servicios incluidos (luz + WiFi)</label>
+            <label class="form-check-br"><input type="checkbox" name="esPropio" /> Propiedad propia BairesRental</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-admin">Amenities del edificio</label>
+          <div class="admin-amenities-grid">
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="pileta" /> 🏊 Pileta</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="gimnasio" /> 🏋️ Gimnasio</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="laundry" /> 🫧 Laundry</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="parrilla" /> 🔥 Parrilla</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="terraza" /> 🌿 Terraza</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="cochera" /> 🚗 Cochera</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="sauna" /> ♨️ Sauna</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="solárium" /> ☀️ Solárium</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="jacuzzi" /> 🛁 Jacuzzi</label>
+            <label class="admin-amenity-label"><input type="checkbox" name="amenities" value="seguridad 24hs" /> 🔒 Seg. 24hs</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-admin">Descripción</label>
+          <textarea name="descripcion" class="form-control-br" rows="4" placeholder="Describí el departamento..."></textarea>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label-admin">Imagen principal</label>
+            <div class="admin-img-upload-wrap">
+              <div class="admin-img-preview" id="admin-img-preview">📸</div>
+              <div class="admin-img-controls">
+                <label class="btn-upload-img">
+                  📁 Subir desde PC
+                  <input type="file" id="admin-img-file" accept="image/*" />
+                </label>
+                <span class="admin-img-sep">o pegar URL</span>
+                <input type="text" name="imagen" id="admin-img-url" class="form-control-br" placeholder="https://... o ./images/foto.jpg" />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Álbum de fotos (Google Photos / Drive)</label>
+            <input type="url" name="fotos" class="form-control-br" placeholder="https://photos.app.goo.gl/..." />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label-admin">Link Airbnb / Booking</label>
+            <input type="text" name="fichaUrl" class="form-control-br" placeholder="https://www.airbnb.com.ar/rooms/..." />
+            <small style="color:var(--br-gris-txt);font-size:.75rem;">Tiene prioridad sobre el álbum al mostrar el botón "Ver fotos".</small>
+          </div>
+          <div class="form-group"></div>
+        </div>
+
+        <div class="preview-label">Vista previa de la card</div>
+        <div id="admin-card-preview"></div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-admin-primary">💾 Guardar propiedad</button>
+          <button type="button" class="btn-admin-secondary" id="btn-cancelar-form">Cancelar</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="br-toast"></div>
+
+<!-- Scripts existentes del sitio -->
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery.easing.1.3.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery.waypoints.min.js"></script>
+<script src="js/jquery.stellar.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+<script src="js/jquery.flexslider-min.js"></script>
+<script src="js/jquery.countTo.js"></script>
+<script src="js/jquery.magnific-popup.min.js"></script>
+<script src="js/magnific-popup-options.js"></script>
+<script src="js/simplyCountdown.js"></script>
+<script src="js/main.js"></script>
+
+<!-- Catálogo -->
+<script src="js/departamentos.js"></script>
+
+</div><!-- /#page -->
+</body>
 </html>
-
-
-

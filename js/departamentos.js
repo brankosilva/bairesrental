@@ -199,7 +199,8 @@ const WA_BASE = "https://wa.me/5491173735757";
 let catalogoActual = [];
 let filtrosActivos = {
   barrio: "", tipo: "", precioMax: 5000,
-  soloDisponibles: false, amueblado: "", amenities: [], mascotas: false
+  soloDisponibles: false, amueblado: "", amenities: [], mascotas: false,
+  soloBairesRental: false
 };
 let adminLogueado = false;
 let propiedadEditando = null;
@@ -219,27 +220,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 // CATÁLOGO (JSON file + localStorage como borrador)
 // ======================================================
 async function cargarCatalogo() {
-  // localStorage guarda cambios del admin que todavía no se subieron al servidor
+  const defaults = { imagen: "", fichaUrl: "", disponibleDesde: "", tipo: "monoambiente", direccion: "", direccionUrl: "" };
   const borrador = localStorage.getItem("br_catalogo");
+
+  // Siempre cargamos el JSON del servidor para tener los campos nuevos (ej: direccion)
+  let jsonServidor = [];
+  try {
+    const resp = await fetch("data/departamentos.json?v=" + Date.now());
+    if (resp.ok) jsonServidor = await resp.json();
+  } catch (e) {}
+
   if (borrador) {
     try {
-      catalogoActual = JSON.parse(borrador).map(p => ({
-        imagen: "", fichaUrl: "", disponibleDesde: "", tipo: "monoambiente", ...p
+      const borradorDatos = JSON.parse(borrador);
+      // Fusionar: el borrador tiene prioridad en sus campos, pero tomamos campos nuevos del JSON
+      const mapaServidor = Object.fromEntries(jsonServidor.map(p => [p.id, p]));
+      catalogoActual = borradorDatos.map(p => ({
+        ...defaults,
+        ...(mapaServidor[p.id] || {}),
+        ...p
       }));
       return;
     } catch (e) {
       localStorage.removeItem("br_catalogo");
     }
   }
-  // Fuente de verdad: data/departamentos.json en el servidor
-  try {
-    const resp = await fetch("data/departamentos.json?v=" + Date.now());
-    if (!resp.ok) throw new Error();
-    const datos = await resp.json();
-    catalogoActual = datos.map(p => ({
-      imagen: "", fichaUrl: "", disponibleDesde: "", tipo: "monoambiente", ...p
-    }));
-  } catch (e) {
+  if (jsonServidor.length > 0) {
+    catalogoActual = jsonServidor.map(p => ({ ...defaults, ...p }));
+  } else {
     catalogoActual = [];
     console.warn("No se pudo cargar data/departamentos.json");
   }
@@ -321,6 +329,15 @@ function inicializarFiltros() {
     });
   });
 
+  const btnBaires = document.getElementById("filtro-bairesrental");
+  if (btnBaires) {
+    btnBaires.addEventListener("click", () => {
+      filtrosActivos.soloBairesRental = !filtrosActivos.soloBairesRental;
+      btnBaires.classList.toggle("active", filtrosActivos.soloBairesRental);
+      aplicarFiltros();
+    });
+  }
+
   document.getElementById("btn-limpiar-filtros")?.addEventListener("click", limpiarFiltros);
 }
 
@@ -330,7 +347,8 @@ function aplicarFiltros() {
 }
 
 function limpiarFiltros() {
-  filtrosActivos = { barrio: "", tipo: "", precioMax: 5000, soloDisponibles: false, amueblado: "", amenities: [], mascotas: false };
+  filtrosActivos = { barrio: "", tipo: "", precioMax: 5000, soloDisponibles: false, amueblado: "", amenities: [], mascotas: false, soloBairesRental: false };
+  document.getElementById("filtro-bairesrental")?.classList.remove("active");
   const sb = document.getElementById("filtro-barrio");
   if (sb) sb.value = "";
   document.querySelectorAll(".filtro-tipo-btn, .filtro-amueblado-btn").forEach(b => b.classList.remove("active"));
@@ -355,6 +373,7 @@ function filtrarPropiedades() {
       if (filtrosActivos.amueblado === "si" && !p.amueblado) return false;
       if (filtrosActivos.amueblado === "no" && p.amueblado) return false;
       if (filtrosActivos.mascotas && !p.mascotas) return false;
+      if (filtrosActivos.soloBairesRental && !p.esPropio) return false;
       if (filtrosActivos.amenities.length > 0) {
         for (const a of filtrosActivos.amenities) {
           if (!p.amenities.includes(a)) return false;
@@ -433,16 +452,29 @@ function crearCardHTML(p) {
   ).join("");
 
   const badgePropio = p.esPropio ? `<span class="br-badge br-badge-propio">★ BairesRental</span>` : "";
-  const serviciosLabel = p.serviciosIncluidos ? `<span class="br-tag-servicios">Servicios incl.</span>` : "";
+  const serviciosLabel = p.serviciosIncluidos
+    ? `<span class="br-tag-servicios">Servicios incl.</span>`
+    : `<span class="br-tag-servicios-aparte">Servicios aparte</span>`;
   const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">Mín. ${p.minimoMeses} meses</span>` : "";
 
   const precioHTML = p.precio > 0
     ? `<span class="br-precio">USD ${p.precio.toLocaleString()}</span><span class="br-precio-sub">/mes ${serviciosLabel}${minimoLabel}</span>`
-    : `<span class="br-precio" style="font-size:1rem;font-weight:700;">Consultar precio</span>`;
+    : `<span class="br-precio" style="font-size:1rem;font-weight:700;">Consultar precio</span><span class="br-precio-sub">${serviciosLabel}${minimoLabel}</span>`;
 
   const waLink = p.fichaUrl || p.fotos || "";
-  const waMsgCompleto = waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg;
+  const waMsgCompleto = (waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg) + `\n\nCod: ${p.id}`;
   const waUrl = `${WA_BASE}?text=${encodeURIComponent(waMsgCompleto)}`;
+
+  const direccionHTML = p.direccion && p.direccionUrl
+    ? `<div class="br-prop-direccion">
+        <a href="${p.direccionUrl}" target="_blank" class="br-btn-ver-mapa" onclick="event.stopPropagation()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+          </svg>
+          ${p.direccion} — Ver mapa
+        </a>
+       </div>`
+    : "";
 
   const imagenHTML = p.imagen
     ? `<img src="${p.imagen}" alt="${p.titulo}" loading="lazy" />`
@@ -466,6 +498,7 @@ function crearCardHTML(p) {
               ${p.barrio} · <em style="font-style:normal;font-weight:500;">${p.tipo}</em>
               ${p.mascotas ? `<span class="br-mascota-inline">🐾 Acepta mascotas</span>` : ""}
             </div>
+            ${direccionHTML}
             <h3 class="br-prop-titulo">${p.titulo}</h3>
             ${desdeHTML}
             <div class="br-prop-precio-row">${precioHTML}</div>
@@ -479,13 +512,20 @@ function crearCardHTML(p) {
               </svg>
               Consultar por WhatsApp
             </a>
-            <button class="br-btn-detalle" onclick="event.stopPropagation(); verDetalle('${p.id}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
-              </svg>
-              Ver detalles completos
-            </button>
+            <div class="br-btn-detalle-row">
+              <button class="br-btn-detalle" onclick="event.stopPropagation(); verDetalle('${p.id}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                  <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+                </svg>
+                Ver detalles
+              </button>
+              <button class="br-btn-compartir" title="Compartir enlace" onclick="event.stopPropagation(); compartirPropiedad('${p.id}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>`;
@@ -525,18 +565,47 @@ function verDetalle(id) {
     : `<div class="detalle-img-placeholder">📸</div>${badgesHTML}`;
 
   // — Ubicación —
+  const direccionDetalleHTML = p.direccion && p.direccionUrl
+    ? `<div class="detalle-direccion">
+        <a href="${p.direccionUrl}" target="_blank" class="br-btn-ver-mapa">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+          </svg>
+          ${p.direccion} — Ver mapa
+        </a>
+       </div>`
+    : "";
   document.getElementById("detalle-location").innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
       <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
     </svg>
     ${p.barrio} · <em style="font-style:normal;font-weight:500;">${p.tipo}</em>
   `;
+  // Inyectar dirección después del location (si existe el elemento)
+  const locationEl = document.getElementById("detalle-location");
+  let dirEl = document.getElementById("detalle-direccion-link");
+  if (!dirEl) {
+    dirEl = document.createElement("div");
+    dirEl.id = "detalle-direccion-link";
+    locationEl.parentNode.insertBefore(dirEl, locationEl.nextSibling);
+  }
+  dirEl.innerHTML = direccionDetalleHTML;
 
   // — Título —
   document.getElementById("detalle-titulo").textContent = p.titulo;
+  let refEl = document.getElementById("detalle-ref");
+  if (!refEl) {
+    refEl = document.createElement("div");
+    refEl.id = "detalle-ref";
+    refEl.style.cssText = "font-size:.72rem;color:#aaa;font-family:'Courier New',monospace;letter-spacing:.02em;margin-bottom:.6rem;";
+    document.getElementById("detalle-titulo").insertAdjacentElement("afterend", refEl);
+  }
+  refEl.textContent = "Cod: " + p.id;
 
   // — Precio —
-  const serviciosLabel = p.serviciosIncluidos ? `<span class="br-tag-servicios">Servicios incluidos</span>` : "";
+  const serviciosLabel = p.serviciosIncluidos
+    ? `<span class="br-tag-servicios">Servicios incluidos</span>`
+    : `<span class="br-tag-servicios-aparte">Servicios aparte</span>`;
   const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">Mín. ${p.minimoMeses} meses</span>` : "";
   document.getElementById("detalle-precio-row").innerHTML = p.precio > 0
     ? `<span class="detalle-precio">USD ${p.precio.toLocaleString()}</span>
@@ -583,10 +652,11 @@ function verDetalle(id) {
 
   // — Acciones —
   const waLink = p.fichaUrl || p.fotos || "";
-  const waMsgCompleto = waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg;
+  const waMsgCompleto = (waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg) + `\n\nCod: ${p.id}`;
   const waUrl = `${WA_BASE}?text=${encodeURIComponent(waMsgCompleto)}`;
   const linkFotos = p.fichaUrl || p.fotos || "";
   const iconWa = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>`;
+  const iconShare = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>`;
 
   document.getElementById("detalle-actions").innerHTML = `
     <a href="${waUrl}" target="_blank" class="br-btn-wa">${iconWa} Consultar por WhatsApp</a>
@@ -600,6 +670,7 @@ function verDetalle(id) {
         </a>`
       : ""
     }
+    <button class="detalle-btn-compartir" onclick="compartirPropiedad('${p.id}')">${iconShare} Compartir</button>
   `;
 
   // — Mostrar —
@@ -627,6 +698,17 @@ function actualizarQueryParams() {
   if (filtrosActivos.amenities.length) params.set("amenities", filtrosActivos.amenities.join(","));
   const nuevaURL = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
   history.replaceState(null, "", nuevaURL);
+}
+
+function compartirPropiedad(id) {
+  const p = catalogoActual.find(x => x.id === id);
+  if (!p) return;
+  const url = window.location.origin + window.location.pathname + "?depto=" + id;
+  if (navigator.share) {
+    navigator.share({ title: p.titulo + " — BairesRental", text: p.titulo + " en " + p.barrio, url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => mostrarToast("Link copiado al portapapeles ✓"));
+  }
 }
 
 function leerQueryParams() {
@@ -666,6 +748,9 @@ function leerQueryParams() {
     });
   }
   renderizarCatalogo();
+  if (params.get("depto")) {
+    setTimeout(() => verDetalle(params.get("depto")), 350);
+  }
 }
 
 // ======================================================
@@ -832,6 +917,8 @@ function abrirFormulario(idx) {
     form.querySelector('[name="fotos"]').value = p.fotos || "";
     form.querySelector('[name="fichaUrl"]').value = p.fichaUrl || "";
     form.querySelector('[name="disponibleDesde"]').value = p.disponibleDesde || "";
+    form.querySelector('[name="direccion"]').value = p.direccion || "";
+    form.querySelector('[name="direccionUrl"]').value = p.direccionUrl || "";
     form.querySelector('[name="whatsappMsg"]').value = p.whatsappMsg;
     form.querySelector('[name="esPropio"]').checked = p.esPropio;
     form.querySelectorAll('[name="amenities"]').forEach(cb => { cb.checked = p.amenities.includes(cb.value); });
@@ -882,6 +969,8 @@ function guardarPropiedad(e) {
     fotos: form.querySelector('[name="fotos"]').value.trim(),
     fichaUrl: form.querySelector('[name="fichaUrl"]').value.trim(),
     disponibleDesde: form.querySelector('[name="disponibleDesde"]').value,
+    direccion: form.querySelector('[name="direccion"]').value.trim(),
+    direccionUrl: form.querySelector('[name="direccionUrl"]').value.trim(),
     whatsappMsg: form.querySelector('[name="whatsappMsg"]').value.trim(),
     esPropio: form.querySelector('[name="esPropio"]').checked
   };
@@ -1007,6 +1096,8 @@ function actualizarPreviewAdmin() {
     fotos: form.querySelector('[name="fotos"]')?.value.trim() || "",
     fichaUrl: form.querySelector('[name="fichaUrl"]')?.value.trim() || "",
     disponibleDesde: form.querySelector('[name="disponibleDesde"]')?.value || "",
+    direccion: form.querySelector('[name="direccion"]')?.value.trim() || "",
+    direccionUrl: form.querySelector('[name="direccionUrl"]')?.value.trim() || "",
     whatsappMsg: form.querySelector('[name="whatsappMsg"]')?.value || "",
     esPropio: form.querySelector('[name="esPropio"]')?.checked || false
   };

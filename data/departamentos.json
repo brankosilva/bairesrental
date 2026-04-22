@@ -17,6 +17,8 @@
     "fotos": "https://photos.app.goo.gl/JzFQsaeE91TViuTC8",
     "fichaUrl": "https://www.airbnb.com.ar/rooms/1599265620721654934",
     "disponibleDesde": "",
+    "direccion": "Duggan, Pcia. de Buenos Aires",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa la Quinta de verano en Duggan. ¿Podría darme más información sobre precios y disponibilidad?",
     "esPropio": true
   },
@@ -38,6 +40,8 @@
     "fotos": "https://photos.app.goo.gl/6JnHRBiHgUb8W55c6",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Lima 1125",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el departamento en Lima 1125 (Centro). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -59,6 +63,8 @@
     "fotos": "https://photos.app.goo.gl/VE9oQkrg1gi3ArWX7",
     "fichaUrl": "https://www.airbnb.com.ar/rooms/1201506393468756933",
     "disponibleDesde": "2026-08-01",
+    "direccion": "Julián Álvarez 1509",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Moderno estudio en Palermo (Julián Álvarez 1509). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -80,6 +86,8 @@
     "fotos": "https://photos.app.goo.gl/n7nnp1SmZvMZaz6ZA",
     "fichaUrl": "https://www.booking.com/hotel/ar/modern-apartment-with-balcony-and-desk-for-students.es.html",
     "disponibleDesde": "2027-01-01",
+    "direccion": "Beruti 2390",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Moderno estudio en Recoleta (Beruti 2390). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -101,6 +109,8 @@
     "fotos": "https://photos.app.goo.gl/DuuJCtz4rX8aDPwv7",
     "fichaUrl": "",
     "disponibleDesde": "2026-06-09",
+    "direccion": "Beruti 2390",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Fantástico estudio en Recoleta (Beruti 2390 B). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -122,6 +132,8 @@
     "fotos": "https://photos.app.goo.gl/XnDV11FvcQZsheQv8",
     "fichaUrl": "https://www.airbnb.com.ar/rooms/1096449223624441831",
     "disponibleDesde": "2026-07-04",
+    "direccion": "Teodoro García 2500",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el PH dúplex en Colegiales (Teodoro García 2500). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -143,6 +155,8 @@
     "fotos": "https://photos.app.goo.gl/bibXNHzeacUSjVZ97",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Teodoro García",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Belgrano (Teodoro García). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -164,6 +178,8 @@
     "fotos": "https://photos.app.goo.gl/ZNvp5HwtVeje8rkc9",
     "fichaUrl": "https://www.airbnb.com.ar/rooms/841872244620287447",
     "disponibleDesde": "",
+    "direccion": "Medrano 828",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Elegante estudio en Almagro (Medrano 828). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -185,6 +201,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Agüero 1600",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Recoleta (Aguero 1600). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -206,6 +224,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Bonpland 1980",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Palermo (Bonpland 1980). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -227,6 +247,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "2026-06-09",
+    "direccion": "Beruti 2300",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Recoleta (Beruti 2300). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -248,6 +270,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "2026-05-06",
+    "direccion": "Bulnes y Güemes",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Palermo (Bulnes y Güemes). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -269,6 +293,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Nuñez 5000",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Palermo (Nuñez 5000). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -290,6 +316,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Av. Mario Bravo 900",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Almagro (Av. Mario Bravo 900). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -311,6 +339,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Av. Corrientes y Gurruchaga",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Villa Crespo (Corrientes y Gurruchaga). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -332,6 +362,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Olazábal y Triunvirato",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Villa Urquiza (Olazábal y Triunvirato). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -353,6 +385,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Virrey Avilés",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Colegiales (Virrey Avilés). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -374,6 +408,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Lacroze 3000",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente en Colegiales (Lacroze 3000). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -395,6 +431,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Lafinur 3000",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Palermo Chico (Lafinur 3000). ¿Podría darme más información?",
     "esPropio": true
   },
@@ -416,6 +454,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Av. Olazábal y Av. Triunvirato",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Villa Urquiza (Olazábal y Triunvirato). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -437,6 +477,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Scalabrini Ortiz 1300",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Palermo (Scalabrini Ortiz 1300). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -458,6 +500,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Donado 2000",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Belgrano (Donado 2000). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -479,6 +523,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Godoy Cruz 2400",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Palermo (Godoy Cruz 2400). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -500,6 +546,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Guardia Vieja 3700",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Almagro (Guardia Vieja 3700). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -521,6 +569,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Mosconi y Lavallol",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Villa Devoto (Mosconi y Lavallol). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -542,6 +592,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Scalabrini Ortiz 1300",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Palermo (Scalabrini Ortiz 1300). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -563,6 +615,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Franklin D. Roosevelt 1800",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Belgrano (Roosevelt 1800). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -584,6 +638,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Franklin D. Roosevelt 1800",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes económico en Belgrano (Roosevelt 1800). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -605,6 +661,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Independencia 3700",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Boedo (Independencia 3700). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -626,6 +684,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Arcos y Larralde",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Nuñez (Arcos y Larralde). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -647,6 +707,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Migueletes 600",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Palermo (Migueletes 600). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -668,6 +730,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "2026-04-24",
+    "direccion": "Sinclair 3000",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en Palermo (Sinclair 3000). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -689,6 +753,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Arribeños 2400",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 4 ambientes en Belgrano (Arribeños 2400). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -710,6 +776,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "San Juan 1100",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en San Telmo (San Juan 1100). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -731,6 +799,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "San José 200",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el departamento ideal para estudiantes en Monserrat (San José 200). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -752,6 +822,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Arce 500",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en Palermo (Arce 500). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -773,6 +845,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "O'Higgins 2300",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en Belgrano (O'Higgins 2300). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -794,6 +868,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Larrea 1400",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en Recoleta (Larrea 1400). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -815,6 +891,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Superi 2300",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 4 ambientes en Belgrano (Superi 2300). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -836,6 +914,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Bolivar 1800",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el departamento ideal para estudiantes en San Telmo (Bolivar 1800). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -857,6 +937,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "2026-05-15",
+    "direccion": "Godoy Cruz 2900",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en Palermo (Godoy Cruz 2900). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -878,6 +960,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Roseti 1400",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el PH en Villa Ortuzar (Roseti 1400). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -899,6 +983,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Pringles 800",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes en Almagro (Pringles 800). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -920,6 +1006,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Donado y García del Río",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes sin amoblar en Saavedra (Donado y García del Río). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -941,6 +1029,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Güemes 4200",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes sin amoblar en Palermo (Güemes 4200). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -962,6 +1052,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "2026-05-01",
+    "direccion": "11 de Septiembre 4200",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes sin amoblar en Nuñez (11 de Septiembre 4200). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -983,6 +1075,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Pacheco de Melo y Azcuénaga",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el 3 ambientes sin amoblar en Recoleta (Pacheco de Melo y Azcuénaga). ¿Podría darme más información?",
     "esPropio": false
   },
@@ -1004,6 +1098,8 @@
     "fotos": "",
     "fichaUrl": "",
     "disponibleDesde": "",
+    "direccion": "Monroe 2840",
+    "direccionUrl": "",
     "whatsappMsg": "Hola! Me interesa el Monoambiente sin amoblar en Belgrano (Monroe 2840). ¿Podría darme más información?",
     "esPropio": false
   }

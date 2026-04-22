@@ -159,6 +159,13 @@
           </label>
         </div>
 
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label">BairesRental</span>
+          <div class="br-filtro-pills">
+            <button class="br-pill-btn br-pill-btn-baires" id="filtro-bairesrental">★ Solo BairesRental</button>
+          </div>
+        </div>
+
         <div class="br-filtro-grupo" style="margin-left:auto;">
           <span class="br-filtro-label">&nbsp;</span>
           <button class="br-btn-limpiar" id="btn-limpiar-filtros">✕ Limpiar</button>
@@ -437,6 +444,18 @@
             <small style="color:var(--br-gris-txt);font-size:.75rem;">Tiene prioridad sobre el álbum al mostrar el botón "Ver fotos".</small>
           </div>
           <div class="form-group"></div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label-admin">Dirección visible (ej: Lima 1125)</label>
+            <input type="text" name="direccion" class="form-control-br" placeholder="ej: Lima 1125" />
+            <small style="color:var(--br-gris-txt);font-size:.75rem;">Se muestra en la card como texto clickeable.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label-admin">Link de Google Maps</label>
+            <input type="url" name="direccionUrl" class="form-control-br" placeholder="https://maps.google.com/?q=..." />
+          </div>
         </div>
 
         <div class="preview-label">Vista previa de la card</div>

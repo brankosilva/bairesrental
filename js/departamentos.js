@@ -424,7 +424,7 @@ function renderizarCatalogo() {
           </div>
         </div>`;
     } else {
-      grid.innerHTML = resultados.map(p => crearCardHTML(p)).join("");
+      grid.innerHTML = resultados.map(p => crearCardHTML(p, catalogoActual.indexOf(p))).join("");
     }
     grid.style.opacity = "1";
   }, 180);
@@ -437,7 +437,7 @@ function formatearFecha(fechaStr) {
   return `${parseInt(dia)} de ${meses[parseInt(mes) - 1]}`;
 }
 
-function crearCardHTML(p) {
+function crearCardHTML(p, idx) {
   let badgeDisp = "";
   if (p.disponibilidad === "disponible") badgeDisp = `<span class="br-badge br-badge-disponible">● Disponible</span>`;
   else if (p.disponibilidad === "reservado") badgeDisp = `<span class="br-badge br-badge-reservado">● Reservado</span>`;
@@ -482,7 +482,7 @@ function crearCardHTML(p) {
 
   return `
     <div class="br-prop-card">
-        <div class="br-prop-img" onclick="verDetalle('${p.id}')">
+        <div class="br-prop-img" onclick="verDetalle(${idx})">
           ${imagenHTML}
           <div class="br-prop-badges">
             ${badgePropio}
@@ -490,7 +490,7 @@ function crearCardHTML(p) {
           </div>
         </div>
         <div class="br-prop-body">
-          <div class="br-prop-clickzone" onclick="verDetalle('${p.id}')">
+          <div class="br-prop-clickzone" onclick="verDetalle(${idx})">
             <div class="br-prop-location">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
@@ -513,7 +513,7 @@ function crearCardHTML(p) {
               Consultar por WhatsApp
             </a>
             <div class="br-btn-detalle-row">
-              <button class="br-btn-detalle" onclick="event.stopPropagation(); verDetalle('${p.id}')">
+              <button class="br-btn-detalle" onclick="event.stopPropagation(); verDetalle(${idx})">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                   <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
@@ -545,8 +545,10 @@ function initDetalleModal() {
   });
 }
 
-function verDetalle(id) {
-  const p = catalogoActual.find(x => x.id === id);
+function verDetalle(ref) {
+  const p = typeof ref === "number"
+    ? catalogoActual[ref]
+    : catalogoActual.find(x => x.id === ref);
   if (!p) return;
 
   // — Imagen —
@@ -799,15 +801,15 @@ function initAdminPanel() {
   document.getElementById("admin-img-file")?.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const base64 = ev.target.result;
+    comprimirImagen(file, (base64, calidadFinal) => {
       const urlInput = document.getElementById("admin-img-url");
       if (urlInput) urlInput.value = base64;
       actualizarPreviewImagen(base64);
       actualizarPreviewAdmin();
-    };
-    reader.readAsDataURL(file);
+      if (calidadFinal < 0.55) {
+        mostrarToast("Imagen comprimida automáticamente para ahorrar espacio");
+      }
+    });
   });
 
   document.getElementById("admin-img-url")?.addEventListener("input", (e) => {
@@ -986,7 +988,12 @@ function guardarPropiedad(e) {
     catalogoActual.push(propiedad);
   }
 
-  guardarCatalogo();
+  try {
+    guardarCatalogo();
+  } catch (err) {
+    alert("No se pudo guardar: la imagen es demasiado grande para el almacenamiento local.\n\nUsá una URL externa en vez de subir el archivo desde la PC, o elegí una imagen más chica.");
+    return;
+  }
   inicializarFiltros();
   renderizarTablaAdmin();
   renderizarCatalogo();
@@ -1056,6 +1063,38 @@ function importarCatalogo() {
     reader.readAsText(file);
   };
   input.click();
+}
+
+// Redimensiona y comprime una imagen hasta MAX_KB usando Canvas
+function comprimirImagen(file, callback) {
+  const MAX_KB = 450;
+  const MAX_W  = 1200;
+  const MAX_H  = 900;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+      if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H; }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+
+      // base64.length * 0.75 ≈ bytes reales; iteramos hasta estar bajo el límite
+      let quality = 0.85;
+      let base64 = canvas.toDataURL("image/jpeg", quality);
+      while (base64.length * 0.75 > MAX_KB * 1024 && quality > 0.15) {
+        quality = Math.round((quality - 0.1) * 100) / 100;
+        base64 = canvas.toDataURL("image/jpeg", quality);
+      }
+      callback(base64, quality);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function actualizarPreviewImagen(src) {

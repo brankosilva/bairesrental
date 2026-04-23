@@ -983,10 +983,6 @@ function guardarPropiedad(e) {
   if (propiedadEditando !== null) {
     catalogoActual[propiedadEditando] = propiedad;
   } else {
-    if (catalogoActual.find(p => p.id === propiedad.id)) {
-      alert(`Ya existe una propiedad con el ID "${propiedad.id}". Usá un ID único.`);
-      return;
-    }
     catalogoActual.push(propiedad);
   }
 

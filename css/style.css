@@ -3432,9 +3432,9 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 .br-precio { font-size: 1.3rem; font-weight: 700; color: #111; letter-spacing: -.02em; }
 .br-precio-sub { font-size: .8rem; color: var(--br-gris-txt); display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-.br-tag-servicios        { background: #dcfce7; color: #15803d; border-radius: 4px; padding: .1rem .4rem; font-weight: 600; }
-.br-tag-servicios-aparte { background: #fee2e2; color: #dc2626; border-radius: 4px; padding: .1rem .4rem; font-weight: 600; }
-.br-tag-minimo           { background: #fef3c7; color: #92400e; border-radius: 4px; padding: .1rem .4rem; font-weight: 600; }
+.br-tag-servicios        { background: #dcfce7; color: #15803d; border-radius: 4px; padding: .1rem .4rem; font-size: .72rem; font-weight: 600; }
+.br-tag-servicios-aparte { background: #fee2e2; color: #dc2626; border-radius: 4px; padding: .1rem .4rem; font-size: .72rem; font-weight: 600; }
+.br-tag-minimo           { background: #fef3c7; color: #92400e; border-radius: 4px; padding: .1rem .4rem; font-size: .72rem; font-weight: 600; }
 
 .br-amenities-row { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .55rem; min-height: 1.8rem; }
 .br-amenity-tag {
@@ -3835,4 +3835,8 @@ input[type="range"].br-range::-webkit-slider-thumb {
   .admin-acciones { flex-wrap: wrap; }
   #admin-modal { width: 100%; top: auto; border-radius: 16px 16px 0 0; max-height: 92vh; }
   .disp-selector { flex-direction: column; }
+  .br-tag-servicios, .br-tag-servicios-aparte, .br-tag-minimo {
+    font-size: .65rem;
+    padding: .05rem .3rem;
+  }
 }

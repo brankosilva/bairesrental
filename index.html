@@ -1,1774 +1,1319 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>BairesRental &mdash; Administración de inmuebles</title>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BairesRental — Tu Hogar, Nuestro Cuidado</title>
+  <meta name="description" content="Gestión profesional de propiedades en Buenos Aires. Maximizá tus ingresos con BairesRental." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-	<link rel="shortcut icon" href="./images/logo-perfin-redes.png" type="image/x-icon">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="Baires Rental" content="Administración de inmuebles" />
-    <meta name="keywords" content="rent alquileres inmuebles alquileresTemporales rental AlquilerTemporal">
+    :root {
+      --negro: #111111;
+      --azul: #1A6FE8;
+      --azul-dark: #1058c0;
+      --verde: #25D366;
+      --blanco: #ffffff;
+      --gris: #f4f4f6;
+      --gris2: #e8e8ec;
+      --texto-gris: #6b7280;
+      --radius: 16px;
+    }
 
-	<!-- 
-	//////////////////////////////////////////////////////
+    html { scroll-behavior: smooth; }
 
-	FREE HTML5 TEMPLATE 
-	DESIGNED & DEVELOPED by FreeHTML5.co
-		
-	Website: 		http://freehtml5.co/
-	Email: 			info@freehtml5.co
-	Twitter: 		http://twitter.com/fh5co
-	Facebook: 		https://www.facebook.com/fh5co
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--blanco);
+      color: var(--negro);
+      overflow-x: hidden;
+    }
 
-	//////////////////////////////////////////////////////
-	 -->
+    /* ── NAVBAR ─────────────────────────────────── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 1.2rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s, backdrop-filter 0.4s, padding 0.3s;
+    }
+    .nav.scrolled {
+      background: rgba(17,17,17,0.96);
+      backdrop-filter: blur(12px);
+      padding: 0.8rem 2rem;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .nav-logo img { height: 34px; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--azul); color: #fff;
+      padding: 0.55rem 1.2rem; border-radius: 100px;
+      font-size: 0.8rem; font-weight: 700;
+      text-decoration: none; transition: background 0.2s, transform 0.15s;
+    }
+    .nav-cta:hover { background: var(--azul-dark); transform: translateY(-1px); }
+    .nav-mobile-toggle {
+      display: none; background: none; border: none;
+      color: white; cursor: pointer; font-size: 1.4rem;
+      width: 40px; height: 40px; align-items: center; justify-content: center;
+      border-radius: 8px; transition: background 0.2s;
+    }
+    .nav-mobile-toggle:hover { background: rgba(255,255,255,0.1); }
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .nav-mobile-toggle { display: flex; }
+    }
+    /* Mobile drawer */
+    .mobile-overlay {
+      display: none; position: fixed; inset: 0; z-index: 1001;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    }
+    .mobile-overlay.open { display: block; }
+    .mobile-drawer {
+      position: fixed; top: 0; right: -280px; bottom: 0; z-index: 1002;
+      width: 280px; background: #111118;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      display: flex; flex-direction: column;
+      padding: 1.5rem;
+      transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .mobile-drawer.open { right: 0; }
+    .drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+    .drawer-header img { height: 28px; }
+    .drawer-close {
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 1.5rem; cursor: pointer; line-height: 1;
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; transition: background 0.2s, color 0.2s;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .drawer-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+    .drawer-links a {
+      display: block; padding: 0.75rem 1rem;
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      font-size: 0.95rem; font-weight: 600;
+      border-radius: 10px; transition: background 0.2s, color 0.2s;
+    }
+    .drawer-links a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .drawer-cta {
+      display: block; text-align: center;
+      background: var(--azul); color: #fff;
+      padding: 0.9rem; border-radius: 100px;
+      font-weight: 700; font-size: 0.9rem;
+      text-decoration: none; margin-top: 1rem;
+      transition: background 0.2s;
+    }
+    .drawer-cta:hover { background: var(--azul-dark); }
 
-  	<!-- Facebook and Twitter integration -->
-	<meta property="og:title" content=""/>
-	<meta property="og:image" content=""/>
-	<meta property="og:url" content=""/>
-	<meta property="og:site_name" content=""/>
-	<meta property="og:description" content=""/>
-	<meta name="twitter:title" content="" />
-	<meta name="twitter:image" content="" />
-	<meta name="twitter:url" content="" />
-	<meta name="twitter:card" content="" />
-	<meta name="facebook-domain-verification" content="6d0hmu09n6lo6ysqaj5aa53q6s20oy" />
+    /* ── HERO ─────────────────────────────────── */
+    .hero {
+      position: relative; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; text-align: center;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse at 40% 50%, #0d1f3c 0%, #0a0a12 70%);
+      overflow: hidden;
+    }
+    .hero-bg::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 70% 30%, rgba(26,111,232,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 60% at 20% 70%, rgba(26,111,232,0.10) 0%, transparent 50%);
+      animation: heroGlow 10s ease-in-out infinite alternate;
+    }
+    .hero-bg::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    @keyframes heroGlow {
+      0% { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.08) translate(2%, -2%); }
+    }
 
+    .hero-particles {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    }
+    .particle {
+      position: absolute; border-radius: 50%;
+      background: rgba(26,111,232,0.6);
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
 
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-	 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:300,400" rel="stylesheet">
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 860px; padding: 5rem 2rem 7rem;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--azul);
+      background: rgba(26,111,232,0.12);
+      border: 1px solid rgba(26,111,232,0.3);
+      padding: 0.35rem 1rem; border-radius: 100px;
+      margin-bottom: 2rem;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.7s ease forwards 0.2s;
+    }
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800; line-height: 1.0;
+      letter-spacing: -0.04em; color: var(--blanco);
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .line { overflow: hidden; display: block; }
+    .hero-title .word {
+      display: inline-block;
+      opacity: 0; transform: translateY(100%);
+      animation: wordUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .hero-title .accent { color: var(--azul); }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: rgba(255,255,255,0.55); font-weight: 400;
+      max-width: 460px; margin: 0 auto 2.5rem; line-height: 1.6;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 0.9s;
+    }
+    .hero-actions {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 1.1s;
+    }
+    .btn-primary {
+      background: var(--azul); color: #fff;
+      padding: 1rem 2rem; border-radius: 100px;
+      font-size: 0.95rem; font-weight: 700;
+      text-decoration: none; display: inline-flex;
+      align-items: center; gap: 0.5rem;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(26,111,232,0.35);
+    }
+    .btn-primary:hover { background: var(--azul-dark); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(26,111,232,0.45); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.08); color: #fff;
+      padding: 1rem 2rem; border-radius: 100px;
+      font-size: 0.95rem; font-weight: 600;
+      text-decoration: none; border: 1px solid rgba(255,255,255,0.2);
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
 
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.css">
+    .hero-scroll-hint {
+      position: absolute; bottom: 2.5rem; left: 0; right: 0;
+      z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 1.5s;
+    }
+    .hero-scroll-hint span {
+      font-size: 0.65rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: rgba(255,255,255,0.35);
+    }
+    @media (max-width: 768px) {
+      .hero-scroll-hint { display: none; }
+    }
+    .scroll-line {
+      width: 1px; height: 48px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { transform: scaleY(1); opacity: 0.5; }
+      50% { transform: scaleY(1.3); opacity: 1; }
+    }
 
-	
-	<!-- Animate.css -->
-	<link rel="stylesheet" href="css/animate.css">
-	<!-- Icomoon Icon Fonts-->
-	<link rel="stylesheet" href="css/icomoon.css">
-	<!-- Bootstrap  -->
-	<link rel="stylesheet" href="css/bootstrap.css">
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes wordUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-	<!-- Magnific Popup -->
-	<link rel="stylesheet" href="css/magnific-popup.css">
+    /* ── GALERÍA ──────────────────────────────────── */
+    .galeria-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto;
+      gap: 0.75rem;
+    }
+    .galeria-item {
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--gris2);
+      aspect-ratio: 4/3;
+    }
+    .galeria-item.galeria-tall {
+      grid-row: span 2;
+      aspect-ratio: unset;
+    }
+    .galeria-item.galeria-wide {
+      grid-column: span 2;
+      aspect-ratio: 16/7;
+    }
+    .galeria-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .galeria-item:hover img { transform: scale(1.04); }
 
-	<!-- Owl Carousel  -->
-	<link rel="stylesheet" href="css/owl.carousel.min.css">
-	<link rel="stylesheet" href="css/owl.theme.default.min.css">
+    @media (max-width: 700px) {
+      .galeria-grid { grid-template-columns: 1fr 1fr; grid-template-rows: unset; }
+      .galeria-item,
+      .galeria-item.galeria-tall,
+      .galeria-item.galeria-wide { grid-row: span 1; grid-column: span 1; aspect-ratio: 4/3; }
+      .galeria-item:nth-child(n+7) { display: none; }
+    }
 
-	<!-- Flexslider  -->
-	<link rel="stylesheet" href="css/flexslider.css">
+    /* ── STATS INTRO ─────────────────────────────── */
+    .stats-intro {
+      background: var(--negro);
+      padding: 5rem 2rem 0;
+      text-align: center;
+      display: block;
+      line-height: 0;
+    }
+    .stats-intro-inner { line-height: normal; }
+    .stats-intro-inner {
+      max-width: 600px; margin: 0 auto;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .stats-intro-inner.visible { opacity: 1; transform: translateY(0); }
+    .stats-intro-eyebrow {
+      font-size: 0.7rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--azul);
+      font-weight: 700; margin-bottom: 0.75rem;
+    }
+    .stats-intro-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800; letter-spacing: -0.04em;
+      color: #fff; line-height: 1.1;
+    }
+    .stats-intro-title span { color: var(--azul); }
 
-	<!-- Pricing -->
-	<link rel="stylesheet" href="css/pricing.css">
+    /* ── STATS ───────────────────────────────────── */
+    #stats {
+      background: var(--negro);
+      padding: 6rem 2rem;
+    }
+    .stats-inner {
+      max-width: 1100px; margin: 0 auto;
+    }
+    .stats-label {
+      text-align: center; margin-bottom: 4rem;
+      font-size: 0.7rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--azul);
+      font-weight: 700;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2rem;
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 560px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 
-	<!-- Theme style  -->
-	<link rel="stylesheet" href="css/style.css">
+    .stat-item {
+      text-align: center;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .stat-item.visible { opacity: 1; transform: translateY(0); }
+    .stat-num {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800; color: #fff;
+      letter-spacing: -0.04em; line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-num .stat-suffix { font-size: 0.6em; }
+    .stat-desc {
+      font-size: 0.75rem; color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-weight: 600;
+    }
 
-	<!-- Modernizr JS -->
-	<script src="js/modernizr-2.6.2.min.js"></script>
-	<!-- FOR IE9 below -->
-	<!--[if lt IE 9]>
-	<script src="js/respond.min.js"></script>
-	<![endif]-->
+    /* ── POR QUÉ ─────────────────────────────────── */
+    #por-que {
+      padding: 7rem 2rem; background: var(--blanco);
+    }
+    .section-label {
+      font-size: 0.7rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--azul);
+      font-weight: 700; margin-bottom: 1rem;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800; letter-spacing: -0.04em;
+      line-height: 1.1; color: var(--negro);
+      max-width: 640px;
+      opacity: 0; transform: translateY(25px);
+      transition: opacity 0.6s 0.1s, transform 0.6s 0.1s;
+    }
+    .section-label.visible, .section-title.visible {
+      opacity: 1; transform: translateY(0);
+    }
 
-	</head>
-	<body>
-		
-	<div class="fh5co-loader"></div>
-	
-	<div id="page" class="menumobile">
-	<nav class="fh5co-nav" role="navigation">
-		<div class="top-menu">
-			<div class="container container-nav">
+    .porq-header { max-width: 1100px; margin: 0 auto 4rem; }
+    .features-grid {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 700px) { .features-grid { grid-template-columns: 1fr; } }
 
-				<div class="row menu-nav">
-					<div class="col-xs-2">
-						<div id="fh5co-logo"><a href="index.html"> <img class="img-logo" src="./images/bairesrentallogo.png" alt="logo-Baires-Rental"> </a></div>
-					</div>
+    .feature-card {
+      background: var(--gris); border-radius: var(--radius);
+      padding: 2.5rem; position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .feature-card:nth-child(2) { transition-delay: 0.1s; }
+    .feature-card:nth-child(3) { transition-delay: 0.2s; }
+    .feature-card:nth-child(4) { transition-delay: 0.3s; }
+    .feature-card.visible { opacity: 1; transform: translateY(0); }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+    .feature-card:hover .feature-num { color: var(--azul); }
 
-					<div class="col-xs-10 text-right menu-1">
-						<ul class="menu-lista">
-							<li class="active"><a href="index.html">HOME</a></li>
-							<li><a href="#reviews">REVIEWS</a></li>
-							<li><a href="#clientes">CLIENTES</a></li>
-							<li><a href="#nuestros-planes">NUESTROS PLANES</a></li>
-							<li><a href="departamentos.html">DEPARTAMENTOS</a></li>
-							<li><a href="faq.html">FAQ</a></li>
-							<li><a href="#contacto">CONTACTO</a></li>
-						</ul>
-					</div>
-				</div>
+    .feature-num {
+      font-size: 4.5rem; font-weight: 800;
+      letter-spacing: -0.05em; color: var(--gris2);
+      line-height: 1; margin-bottom: 1rem;
+      transition: color 0.3s;
+    }
+    .feature-title {
+      font-size: 1.1rem; font-weight: 700;
+      margin-bottom: 0.6rem; color: var(--negro);
+    }
+    .feature-desc {
+      font-size: 0.9rem; color: var(--texto-gris);
+      line-height: 1.6;
+    }
 
-			</div>
-		</div>
-	</nav>
+    /* ── PLANES ──────────────────────────────────── */
+    #planes {
+      padding: 7rem 2rem;
+      background: var(--negro);
+    }
+    .planes-header { max-width: 1100px; margin: 0 auto 4rem; }
+    .planes-header .section-title { color: var(--blanco); }
+    .planes-header .section-label { color: var(--azul); }
 
-	<aside id="fh5co-hero">
-		<div class="flexslider">
-			<ul class="slides">
-			<li style="background-image: url(images/carrusel-1.jpg);">
-				<div class="overlay-gradient"></div>
-				<div class="container">
-					<div class="row">
-						<div class="col-md-8 col-md-offset-2 text-center slider-text">
-							<div class="slider-text-inner">
+    .planes-grid {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem; align-items: stretch;
+    }
+    @media (max-width: 800px) { .planes-grid { grid-template-columns: 1fr; } }
 
-								<h1 class="slider-title">TU HOGAR, NUESTRO CUIDADO.</h1>
+    .plan-card {
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.6s, transform 0.6s;
+      display: flex; flex-direction: column;
+    }
+    .plan-card:nth-child(2) { transition-delay: 0.1s; }
+    .plan-card:nth-child(3) { transition-delay: 0.2s; }
+    .plan-card.visible { opacity: 1; transform: translateY(0); }
+    .plan-card.destacado {
+      background: var(--azul);
+      border-color: var(--azul);
+    }
+    .plan-card.destacado::before {
+      content: "MÁS POPULAR";
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      font-size: 0.65rem; font-weight: 800;
+      letter-spacing: 0.12em;
+      background: rgba(255,255,255,0.2);
+      color: #fff; padding: 0.3rem 0.7rem;
+      border-radius: 100px;
+    }
+    .plan-nombre {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); margin-bottom: 1rem;
+    }
+    .plan-card.destacado .plan-nombre { color: rgba(255,255,255,0.7); }
+    .plan-precio {
+      font-size: 3.5rem; font-weight: 800;
+      letter-spacing: -0.04em; color: #fff; line-height: 1;
+    }
+    .plan-precio small { font-size: 0.9rem; font-weight: 500; opacity: 0.6; }
+    .plan-desc { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin: 0.75rem 0 1.75rem; line-height: 1.6; }
+    .plan-card.destacado .plan-desc { color: rgba(255,255,255,0.65); }
+    .plan-items { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 2rem; flex: 1; }
+    .plan-items li {
+      font-size: 0.85rem; color: rgba(255,255,255,0.7);
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+    .plan-items li::before { content: "✓"; color: var(--verde); font-weight: 700; flex-shrink: 0; }
+    .plan-card.destacado .plan-items li { color: rgba(255,255,255,0.9); }
+    .plan-btn {
+      display: block; text-align: center;
+      background: rgba(255,255,255,0.1); color: #fff;
+      padding: 0.85rem; border-radius: 10px;
+      font-weight: 700; font-size: 0.88rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .plan-btn:hover { background: rgba(255,255,255,0.2); }
+    .plan-card.destacado .plan-btn { background: rgba(0,0,0,0.2); }
+    .plan-card.destacado .plan-btn:hover { background: rgba(0,0,0,0.35); }
 
-								<div class="catalogo-btn-section"> 
-				<a href="departamentos.html" target="_blank" class="catalogo-btn">Ver departamentos</a>
-			</div>
+    /* ── CALCULADORA ─────────────────────────────── */
+    #calculadora {
+      padding: 7rem 2rem; background: var(--gris);
+    }
+    .calc-inner {
+      max-width: 780px; margin: 0 auto; text-align: center;
+    }
+    .calc-inner .section-label { justify-content: center; display: block; }
+    .calc-display {
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      font-weight: 800; letter-spacing: -0.05em;
+      color: var(--negro); line-height: 1; margin: 2rem 0;
+      transition: all 0.2s;
+    }
+    .calc-display span { color: var(--azul); }
+    .calc-sub { font-size: 0.9rem; color: var(--texto-gris); margin-bottom: 2.5rem; }
+    .calc-slider-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--texto-gris); margin-bottom: 0.5rem;
+    }
+    .calc-slider {
+      width: 100%; -webkit-appearance: none;
+      height: 5px; border-radius: 5px;
+      background: var(--gris2); outline: none; margin-bottom: 1rem;
+    }
+    .calc-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 24px; height: 24px;
+      border-radius: 50%; background: var(--azul);
+      cursor: pointer; border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(26,111,232,0.4);
+    }
+    .calc-notas {
+      font-size: 0.78rem; color: var(--texto-gris);
+    }
 
-							</div>
-						</div>
-					</div>
-				</div>
-			</li>
-			<li style="background-image: url(images/carrusel-2.jpg);">
-				<div class="overlay-gradient"></div>
-				<div class="container">
-					<div class="row">
-						<div class="col-md-8 col-md-offset-2 text-center slider-text">
-							<div class="slider-text-inner">
-								<h1 class="slider-title">MAXIMIZÁ TUS INGRESOS, MINIMIZÁ TUS PREOCUPACIONES.</h1>
-								<a class="btn btn-primary btn-lg btn-learn" href="#nuestros-planes">NUESTROS PLANES</a></p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</li>
-			<li style="background-image: url(images/carrusel-3.jpg);">
-				<div class="overlay-gradient"></div>
-				<div class="container">
-					<div class="row">
-						<div class="col-md-8 col-md-offset-2 text-center slider-text">
-							<div class="slider-text-inner">
-								<h1 class="slider-title">GESTIÓN EFICIENTE. RESULTADOS EXTRAORDINARIOS</h1>
-								<a class="btn btn-primary btn-lg btn-learn" href="#calificaciones">CALIFICACIONES</a></p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</li>		   	
-			</ul>
-		</div>
-	</aside>
+    /* ── TESTIMONIOS ─────────────────────────────── */
+    #testimonios { padding: 7rem 2rem; background: var(--blanco); }
+    .testi-header { max-width: 1100px; margin: 0 auto 4rem; }
+    .testi-grid {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 800px) { .testi-grid { grid-template-columns: 1fr; } }
 
-	<section id="elegirnos" class="elegirnos">
-		<div id="fh5co-course-categories">
-			<div class="container">
-				<div class="row animate-box">
-					<div class="col-md-6 col-md-offset-3 text-center fh5co-heading" style="margin-left: 0;">
-						<h2>¿Por qué BairesRental?</h2>
-						<p>Porque con nuestra experiencia en gestión de inmuebles, cuidamos tu propiedad como propia, maximizamos tus ingresos y adaptamos nuestro servicio a lo que realmente necesitas.</p>
-					</div>
-				</div>
-				<div class="row animate-box-grid" style="
-				display: flex!important;
-				justify-content: center!important;
-				align-items: flex-start!important;
-				flex-wrap: wrap!important;">
-					<div class="col-md-3 col-sm-6 text-center animate-box">
-						<div class="services">
-							<span class="icon">
-								<i class="icon-shop"></i>
-							</span>
-							<div class="desc">
-								<h3>GESTIÓN INTEGRAL</h3>
-								<p>Nos ocupamos de todo: fotografía, publicación, consultas, reservas, precios, limpieza, lavandería, check-in/out y más. Vos solo disfrutás los resultados.</p>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-sm-6 text-center animate-box">
-						<div class="services">
-							<span class="icon">
-								<i class="icon-heart4"></i>
-							</span>
-							<div class="desc">
-								<h3>CUIDADO PERSONALIZADO</h3>
-								<p>Administramos tu propiedad como si fuera nuestra, garantizando confianza, seguridad y tranquilidad.</p>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-sm-6 text-center animate-box">
-						<div class="services">
-							<span class="icon">
-								<i class="icon-banknote"></i>
-							</span>
-							<div class="desc">
-								<h3>MAXIMIZACIÓN DE INGRESOS</h3>
-								<p>Optimizamos los precios y ocupación para aumentar tus ingresos.</p>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-3 col-sm-6 text-center animate-box">
-						<div class="services">
-							<span class="icon">
-								<i class="icon-photo"></i>
-							</span>
-							<div class="desc">
-								<h3>AJUSTADOS A TU MEDIDA</h3>
-								<p>Personalizamos nuestra gestión según tus preferencias, para que se ajuste perfectamente a tus expectativas.</p>
-							</div>
-						</div>
-					</div>
-					
-				</div>
-			</div>
-		</div>
-	</section>
+    .testi-card {
+      background: var(--gris); border-radius: var(--radius); padding: 2rem;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .testi-card:nth-child(2) { transition-delay: 0.12s; }
+    .testi-card:nth-child(3) { transition-delay: 0.24s; }
+    .testi-card.visible { opacity: 1; transform: translateY(0); }
+    .testi-quote {
+      font-size: 0.95rem; line-height: 1.7;
+      color: var(--negro); margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+    .testi-quote::before { content: '\201C'; }
+    .testi-quote::after  { content: '\201D'; }
+    .testi-person { display: flex; align-items: center; gap: 0.75rem; }
+    .testi-avatar-init {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--azul); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem; flex-shrink: 0;
+    }
+    .testi-name { font-weight: 700; font-size: 0.9rem; }
+    .testi-stars { color: #f59e0b; font-size: 0.8rem; }
 
-	<section id="calificaciones">
-		<div id="fh5co-counter" class="fh5co-counters" style="background-image: url(images/estadisticas.jpg);" data-stellar-background-ratio="0.5">
-			<div class="overlay"></div>
-			<div class="container container-flex">
-				<div class="row">
-					<div class="col-md-10 col-md-offset-1 stadistics-box">
-						<div class="row">
-							<div class="col-md-3 col-sm-6 text-center animate-box large-box">
-								<span class="icon"><i class="icon-head"></i></span>
-								<span class="fh5co-counter js-counter" data-from="0" data-to="201" data-speed="5000" data-refresh-interval="50"></span>
-								<span class="fh5co-counter-label">HUÉSPEDES RECIBIDOS</span>
-							</div>
-							<div class="col-md-3 col-sm-6 text-center animate-box large-box">
-								<span class="icon"><i class="icon-head"></i></span>
-								<span class="fh5co-counter js-counter" data-from="0" data-to="1632" data-speed="5000" data-refresh-interval="50"></span>
-								<span class="fh5co-counter-label">NOCHES RESERVADAS</span>
-							</div>
-							<div class="col-md-3 col-sm-6 text-center animate-box large-box">
-								<span class="icon"><i class="icon-bubble3"></i></span>
-								<span class="fh5co-counter js-counter" data-from="0" data-to="186" data-speed="5000" data-refresh-interval="50"></span>
-								<span class="fh5co-counter-label">RESEÑAS</span>
-							</div>
-							<div class="col-md-3 col-sm-6 text-center animate-box large-box">
-								<span class="icon"><i class="icon-home-outline"></i></span>
-								<span class="fh5co-counter js-counter" data-from="0" data-to="9" data-speed="5000" data-refresh-interval="50"></span>
-								<span class="fh5co-counter-label">PROMEDIO CALIFICACIONES</span>
-							</div>
-							<div class="col-md-3 col-sm-6 text-center animate-box large-box">
-								<span class="icon"><i class="icon-bulb"></i></span>
-								<span class="fh5co-counter js-counter" data-from="0" data-to="85" data-speed="5000" data-refresh-interval="50"></span>
-								<span class="fh5co-counter-label">TASA OCUPACIÓN %</span>
-							</div>
+    /* ── REVIEWS MARQUEE ─────────────────────────── */
+    #reviews {
+      padding: 5rem 0; background: var(--negro);
+      overflow: hidden;
+    }
+    .reviews-label {
+      text-align: center; margin-bottom: 3rem;
+      font-size: 0.7rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--azul); font-weight: 700;
+    }
+    .marquee-row { display: flex; gap: 1.25rem; margin-bottom: 1.25rem; }
+    .marquee-track {
+      display: flex; gap: 1.25rem;
+      animation: marquee 35s linear infinite;
+    }
+    .marquee-track.reverse { animation-direction: reverse; animation-duration: 40s; }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .review-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 1.4rem 1.6rem;
+      flex-shrink: 0; width: 300px;
+    }
+    .review-text {
+      font-size: 0.85rem; color: rgba(255,255,255,0.7);
+      line-height: 1.6; margin-bottom: 1rem;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .review-author { display: flex; align-items: center; gap: 0.6rem; }
+    .review-name { font-size: 0.8rem; color: rgba(255,255,255,0.5); font-weight: 600; }
+    .review-from { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
 
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+    /* ── AWARD ───────────────────────────────────── */
+    #award {
+      padding: 6rem 2rem; background: var(--blanco);
+      text-align: center;
+    }
+    .award-inner {
+      max-width: 700px; margin: 0 auto;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .award-inner.visible { opacity: 1; transform: translateY(0); }
+    .award-eyebrow {
+      font-size: 0.7rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--azul);
+      font-weight: 700; margin-bottom: 1.5rem;
+    }
+    .award-title {
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      font-weight: 800; letter-spacing: -0.03em;
+      margin-bottom: 1rem; color: var(--negro);
+    }
+    .award-desc {
+      color: var(--texto-gris); font-size: 0.95rem;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+    .award-logos {
+      display: flex; gap: 2rem; justify-content: center;
+      align-items: center; flex-wrap: wrap; margin-top: 1rem;
+    }
+    .award-logo-badge {
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--gris); border-radius: 100px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.78rem; font-weight: 700; color: var(--negro);
+    }
 
-	<section id="clientes" class="clientes">
-		<div class="row animate-box">
-			<div class="col-md-6 col-md-offset-3 text-center fh5co-heading" style="margin-left: 0;">
-				<h2><span>PROPIETARIOS QUE NOS ELIGEN</span></h2>
-			</div>
-		</div>
-		<div class="owl-carousel owl-theme mt-5 carousel-clientes">
+    /* ── CONTACTO ────────────────────────────────── */
+    #contacto {
+      padding: 7rem 2rem; background: var(--negro);
+    }
+    .contacto-inner {
+      max-width: 680px; margin: 0 auto; text-align: center;
+    }
+    .contacto-inner .section-label { color: var(--azul); display: block; }
+    .contacto-inner .section-title { color: var(--blanco); margin: 0 auto 1rem; }
+    .contacto-sub {
+      color: rgba(255,255,255,0.45); font-size: 0.95rem;
+      line-height: 1.6; margin-bottom: 3rem;
+    }
+    .contacto-form { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
+    .form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-field label {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 0.85rem 1rem;
+      color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color: var(--azul); }
+    .form-field input::placeholder,
+    .form-field textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .form-field select { color: rgba(255,255,255,0.3); }
+    .form-field select.has-value { color: #fff; }
+    .form-field select option { color: #fff; background: #111; }
+    .form-field select option { background: #111; }
+    .form-field textarea { resize: vertical; min-height: 100px; }
+    .form-submit {
+      background: var(--azul); color: #fff;
+      padding: 1rem 2.5rem; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      border: none; cursor: pointer; align-self: center;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(26,111,232,0.35);
+    }
+    .form-submit:hover { background: var(--azul-dark); transform: translateY(-2px); }
 
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/perfiles/Vero V.jpg"
-							alt="">
-					</div>
-					<div class="testimonial mt-4 mb-2">
-						"Confié en BairesRental para gestionar mi departamento, y fue la mejor decisión. Se encargaron de todo con profesionalismo."
-					</div>
-					<div class="name">
-						Vero V
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/perfiles/Bettina.jpg"
-							alt="">
-					</div>
-					<div class="testimonial mt-4 mb-2">
-						"Lo que más valoro de trabajar con BairesRental es su flexibilidad. Adaptaron el servicio a mis necesidades y siempre están disponibles para responder mis consultas. 100% recomendable."
-					</div>
-					<div class="name">
-						Bettina M
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/perfiles/Bruno G.jpg"
-							alt="">
-					</div>
-					<div class="testimonial mt-4 mb-2">
-						"Como emprendedor con poco tiempo libre, necesitaba un servicio confiable que se encargue de mis inmuebles. BairesRental superó nuestras expectativas: buena comunicación, ingresos estables y cero preocupaciones."
-					</div>
-					<div class="name">
-						Bruno G
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/perfiles/gabriela.jpg"
-							alt="">
-					</div>
-					<div class="testimonial mt-4 mb-2">
-						"Me sorprendió la cantidad de reservas que lograron en tan poco tiempo. Además, mis huéspedes siempre están contentos, y eso habla del gran trabajo que hacen."
-					</div>
-					<div class="name">
-						Gabriela A
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/perfiles/esteban.jpg"
-							alt="">
-					</div>
-					<div class="testimonial mt-4 mb-2">
-						"Delegué la administración de mi departamento porque no tenía tiempo, y no podría estar más feliz con el resultado. El equipo es súper profesional y siempre buscan maximizar las ganancias. Un lujo!"
-					</div>
-					<div class="name">
-						Esteban R
-					</div>
-				</div>
-			</div>
-			<div class="owl-item">
-				<div class="card">
-					<div class="img-card">
-						<img src="./images/perfiles/javier.jpg"
-							alt="">
-					</div>
-					<div class="testimonial mt-4 mb-2">
-						"Al principio dudaba en delegar la gestión de mi propiedad, pero con BairesRental todo fue tan fácil y transparente. Siempre están atentos a los detalles y mantienen mi departamento en perfectas condiciones."
-					</div>
-					<div class="name">
-						Javier T
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      background: #0a0a0f; padding: 3rem 2rem 2rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; justify-content: space-between;
+      align-items: flex-start; flex-wrap: wrap; gap: 2rem;
+    }
+    .footer-brand img { height: 32px; margin-bottom: 0.75rem; }
+    .footer-brand p { font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+    .footer-links h4 {
+      font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); margin-bottom: 0.75rem;
+    }
+    .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+    .footer-links a {
+      color: rgba(255,255,255,0.45); font-size: 0.85rem;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: #fff; }
+    .footer-bottom {
+      max-width: 1100px; margin: 2rem auto 0;
+      padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-bottom p { font-size: 0.75rem; color: rgba(255,255,255,0.25); }
 
-	
+    /* FABs (WhatsApp + scroll top) */
+    .fab-group {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 900;
+      display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+    }
+    .wa-fab, .top-fab {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; transition: transform 0.2s, opacity 0.2s;
+      border: none; cursor: pointer;
+    }
+    .wa-fab {
+      background: rgba(20,20,24,0.72);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .wa-fab:hover { transform: scale(1.08); background: rgba(37,211,102,0.85); }
+    .top-fab {
+      background: rgba(20,20,24,0.60);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.2s;
+    }
+    .top-fab.visible { opacity: 1; pointer-events: auto; }
+    .top-fab:hover { transform: scale(1.08); color: #fff; }
 
-	<!-- ============================= -->
-<!-- Sección: Premios y Reconocimientos -->
-<!-- ============================= -->
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
 
-<section id="awards">
-  <div class="awards-container">
-	<div class="awards-texts">    
-		<h2>🏆 Traveller Review Awards 2025</h2>
-		<p class="text-awards">
-		En BairesRental trabajamos día a día para ofrecer experiencias únicas y alojamientos de primera calidad en Buenos Aires.
-		Gracias a las valoraciones de nuestros huéspedes, fuimos reconocidos por <strong>Booking.com</strong> con el
-		<em>Traveller Review Award 2025</em>, obteniendo una calificación promedio de <strong>9,6/10</strong>.
-		</p>
-	</div>
+<!-- ── NAVBAR ──────────────────────────────────── -->
+<nav class="nav" id="navbar">
+  <a href="#" class="nav-logo">
+    <img src="images/bairesrentallogoblanco.png" alt="BairesRental" />
+  </a>
+  <ul class="nav-links">
+    <li><a href="#propiedades">Propiedades</a></li>
+    <li><a href="#por-que">Servicios</a></li>
+    <li><a href="#planes">Planes</a></li>
+    <li><a href="#testimonios">Propietarios</a></li>
+    <li><a href="departamentos.html">Departamentos</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+  <a href="#contacto" class="nav-cta">Sumate →</a>
+  <button class="nav-mobile-toggle" id="mobile-toggle">☰</button>
+</nav>
 
-    <div class="awards-gallery">
-      <div class="award-card">
-        <img src="images/Digital-Frame-TRA-2025.png" alt="Premio Booking.com Traveller Review Awards 2025">
-      </div>
+<!-- Mobile drawer -->
+<div class="mobile-overlay" id="mob-overlay"></div>
+<div class="mobile-drawer" id="mob-drawer">
+  <div class="drawer-header">
+    <img src="images/bairesrentallogoblanco.png" alt="BairesRental" />
+    <button class="drawer-close" id="drawer-close">✕</button>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="#propiedades">Propiedades</a></li>
+    <li><a href="#por-que">Servicios</a></li>
+    <li><a href="#planes">Planes</a></li>
+    <li><a href="#testimonios">Propietarios</a></li>
+    <li><a href="departamentos.html">Departamentos</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+  <a href="#contacto" class="drawer-cta">Sumate →</a>
+</div>
 
-      <div class="award-card">
-        <img src="images/Digital-Award-TRA-2025.png" alt="Departamento premiado con 9.6 en Booking.com">
-      </div>
+<!-- ── HERO ────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-particles" id="particles"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Gestión profesional de propiedades · Buenos Aires</div>
+
+    <h1 class="hero-title">
+      <span class="line">
+        <span class="word" style="animation-delay:0.4s">Tu</span>&nbsp;<span class="word" style="animation-delay:0.52s">hogar,</span>
+      </span>
+      <span class="line">
+        <span class="word accent" style="animation-delay:0.68s">nuestro</span>&nbsp;<span class="word" style="animation-delay:0.8s">cuidado.</span>
+      </span>
+    </h1>
+
+    <p class="hero-sub">
+      Maximizá tus ingresos y olvidate de las preocupaciones. Nos ocupamos de todo.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#contacto" class="btn-primary">Evaluar mi propiedad →</a>
+      <a href="#planes" class="btn-ghost">Ver planes</a>
     </div>
+  </div>
 
-    <div class="awards-link">
-      <a href="https://www.booking.com/hotel/ar/departamento-de-calidad-con-amenities.es.html" target="_blank">Ver en Booking.com</a>
+  <div class="hero-scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ── STATS INTRO ──────────────────────────────── -->
+<div class="stats-intro">
+  <div class="stats-intro-inner">
+    <p class="stats-intro-eyebrow">Números que hablan</p>
+    <h2 class="stats-intro-title">Resultados <span>extraordinarios</span></h2>
+  </div>
+</div>
+
+<!-- ── STATS ───────────────────────────────────── -->
+<section id="stats">
+  <div class="stats-inner">
+    <div class="stats-grid">
+      <div class="stat-item" data-count="300" data-suffix="+">
+        <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">+</span></div>
+        <div class="stat-desc">Huéspedes recibidos</div>
+      </div>
+      <div class="stat-item" data-count="2500" data-suffix="+">
+        <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">+</span></div>
+        <div class="stat-desc">Noches reservadas</div>
+      </div>
+      <div class="stat-item" data-count="150" data-suffix="+">
+        <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">+</span></div>
+        <div class="stat-desc">Reseñas</div>
+      </div>
+      <div class="stat-item" data-count="9.6" data-suffix="" data-decimals="1">
+        <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">/10</span></div>
+        <div class="stat-desc">Calificación promedio</div>
+      </div>
+      <div class="stat-item" data-count="85" data-suffix="%">
+        <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">%</span></div>
+        <div class="stat-desc">Tasa de ocupación</div>
+      </div>
     </div>
   </div>
 </section>
 
+<!-- ── GALERÍA DE PROPIEDADES ───────────────────── -->
+<section id="propiedades" style="padding: 7rem 2rem 3rem; background: var(--blanco);">
+  <div style="max-width:1100px; margin: 0 auto;">
+    <p class="section-label">Nuestras propiedades</p>
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:2.5rem;">
+      <h2 class="section-title" style="margin:0;">Espacios diseñados para vivir bien</h2>
+      <a href="departamentos.html" class="btn-primary" style="white-space:nowrap; flex-shrink:0; color:#fff;">
+        Ver catálogo completo →
+      </a>
+    </div>
+
+    <div class="galeria-grid">
+      <div class="galeria-item galeria-tall reveal">
+        <img src="images/galeria-1.jpg" alt="Departamento premium — dormitorio" />
+      </div>
+      <div class="galeria-item reveal" style="transition-delay:0.08s">
+        <img src="images/galeria-2.jpg" alt="Studio luminoso con balcón" />
+      </div>
+      <div class="galeria-item reveal" style="transition-delay:0.16s">
+        <img src="images/galeria-3.jpg" alt="Living con balcón y terraza" />
+      </div>
+      <div class="galeria-item galeria-wide reveal" style="transition-delay:0.12s">
+        <img src="images/galeria-4.jpg" alt="Pileta y jardín" />
+      </div>
+      <div class="galeria-item reveal" style="transition-delay:0.2s">
+        <img src="images/galeria-5.jpg" alt="Dormitorio Medrano" />
+      </div>
+      <div class="galeria-item reveal" style="transition-delay:0.28s">
+        <img src="images/galeria-6.jpg" alt="Studio con vista a la ciudad" />
+      </div>
+      <div class="galeria-item reveal" style="transition-delay:0.36s">
+        <img src="images/galeria-7.jpg" alt="Pileta con jardín y mural" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── POR QUÉ ─────────────────────────────────── -->
+<section id="por-que">
+  <div class="porq-header">
+    <p class="section-label">¿Por qué BairesRental?</p>
+    <h2 class="section-title">Cuidamos tu propiedad como si fuera nuestra</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-num">01</div>
+      <div class="feature-title">Gestión integral</div>
+      <div class="feature-desc">Fotografía, publicación, consultas, reservas, precios dinámicos, limpieza, lavandería, check-in/out y más. Vos solo disfrutás los resultados.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">02</div>
+      <div class="feature-title">Cuidado personalizado</div>
+      <div class="feature-desc">Administramos tu propiedad garantizando confianza, seguridad y tranquilidad. Sin sorpresas, con comunicación constante.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">03</div>
+      <div class="feature-title">Maximización de ingresos</div>
+      <div class="feature-desc">Precios dinámicos y optimización de ocupación para que tu propiedad rinda al máximo todos los meses del año.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">04</div>
+      <div class="feature-title">A tu medida</div>
+      <div class="feature-desc">Personalizamos el servicio según tus preferencias y tipo de propiedad. Elegís el plan que mejor se adapta a vos.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PLANES ─────────────────────────────────── -->
+<section id="planes">
+  <div class="planes-header">
+    <p class="section-label">Nuestros planes</p>
+    <h2 class="section-title">Elegí el que se adapta a tu propiedad</h2>
+  </div>
+  <div class="planes-grid">
+    <div class="plan-card">
+      <div class="plan-nombre">Gestión Online</div>
+      <div class="plan-precio">12%<small> del neto</small></div>
+      <div class="plan-desc">Ideal para propietarios que quieren ayuda online.</div>
+      <ul class="plan-items">
+        <li>Fotografía profesional</li>
+        <li>Creación y optimización de perfil</li>
+        <li>Gestión de reservas y consultas</li>
+        <li>Evaluación de huéspedes</li>
+        <li>Precios dinámicos</li>
+        <li>Soporte online 24/7</li>
+      </ul>
+      <a href="#contacto" class="plan-btn">Más información</a>
+    </div>
+
+    <div class="plan-card destacado">
+      <div class="plan-nombre">Gestión Mensual</div>
+      <div class="plan-precio">15%<small> del contrato</small></div>
+      <div class="plan-desc">Perfecto para alquileres temporales mensuales.</div>
+      <ul class="plan-items">
+        <li>Fotografía y difusión</li>
+        <li>Selección y evaluación de inquilinos</li>
+        <li>Coordinación de visitas</li>
+        <li>Firma de contrato</li>
+        <li>Check-in y check-out</li>
+        <li>Cobranzas mensuales</li>
+        <li>Limpieza y lavandería</li>
+      </ul>
+      <a href="#contacto" class="plan-btn">Más información</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-nombre">Gestión Airbnb</div>
+      <div class="plan-precio">25%<small> del neto</small></div>
+      <div class="plan-desc">Para alquileres diarios en plataformas turísticas.</div>
+      <ul class="plan-items">
+        <li>Fotografía y difusión</li>
+        <li>Publicación en Airbnb, Booking y más</li>
+        <li>Check-in y check-out</li>
+        <li>Limpieza y lavandería</li>
+        <li>Reposición de ropa blanca</li>
+        <li>Reposición de básicos</li>
+        <li>Soporte online 24/7</li>
+      </ul>
+      <a href="#contacto" class="plan-btn">Más información</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── CALCULADORA ─────────────────────────────── -->
+<section id="calculadora">
+  <div class="calc-inner">
+    <p class="section-label reveal">Calculá tus ingresos</p>
+    <p style="font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.5rem;" class="reveal">Tu hogar como alquiler temporal</p>
+    <p class="calc-sub reveal">Mové el slider y estimá cuánto podés ganar por mes</p>
+
+    <div class="calc-display reveal">
+      <span id="calc-result">U$D <span>900</span></span>
+    </div>
+
+    <div class="reveal" style="max-width:480px;margin:0 auto;">
+      <div class="calc-slider-label">
+        <span>Noches: <strong id="noches-label">20</strong></span>
+        <span>Precio/noche: U$D <strong id="precio-label">45</strong></span>
+      </div>
+      <input type="range" class="calc-slider" id="slider-noches" min="5" max="28" value="20" />
+      <div class="calc-slider-label" style="margin-top:.75rem;">
+        <span>Precio por noche</span>
+      </div>
+      <input type="range" class="calc-slider" id="slider-precio" min="30" max="200" value="45" step="5" />
+    </div>
+    <p class="calc-notas reveal" style="margin-top:1.5rem;">* El precio depende de las características y ubicación del inmueble</p>
+  </div>
+</section>
+
+<!-- ── TESTIMONIOS ────────────────────────────── -->
+<section id="testimonios">
+  <div class="testi-header">
+    <p class="section-label">Propietarios que nos eligen</p>
+    <h2 class="section-title">Ellos ya confían en BairesRental</h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card">
+      <p class="testi-quote">Confié en BairesRental para gestionar mi departamento, y fue la mejor decisión. Se encargaron de todo con profesionalismo.</p>
+      <div class="testi-person">
+        <div class="testi-avatar-init">VV</div>
+        <div>
+          <div class="testi-name">Vero V.</div>
+          <div class="testi-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <p class="testi-quote">Lo que más valoro es su flexibilidad. Adaptaron el servicio a mis necesidades y siempre están disponibles. 100% recomendable.</p>
+      <div class="testi-person">
+        <div class="testi-avatar-init">BM</div>
+        <div>
+          <div class="testi-name">Bettina M.</div>
+          <div class="testi-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <p class="testi-quote">BairesRental superó nuestras expectativas: buena comunicación, ingresos estables y cero preocupaciones. Un servicio de primer nivel.</p>
+      <div class="testi-person">
+        <div class="testi-avatar-init">BG</div>
+        <div>
+          <div class="testi-name">Bruno G.</div>
+          <div class="testi-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── REVIEWS MARQUEE ────────────────────────── -->
 <section id="reviews">
-		<div>
-			<div class="container" >
-				<div class="row ">
-
-					<section class="testimonials ">
-						<div class="container">
-							<div class="title">
-								<h2 class="title-testimonials">NUESTROS HUESPEDES</h2>
-								<h3><i class="bi bi-dash"></i>Reviews de BairesRental<i class="bi bi-dash"></i></h3>
-							</div>
-							<div class="owl-carousel owl-theme testi">
-							  <!-- Single Starts -->
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Fabio</p>
-											<div class="nacionalidad-redes">
-												<span>Bernardsville, Nueva Jersey</span>
-												<img class="banderas-redes" src="./images/banderas/us.png" alt="">
-											</div>
-										</div>
-									</div>
-									<p>This place is a hidden gem! Great location, comfortable bed, good A/C, coffee maker, warm shower… the perfect place for a a quick trip to Buenos Aires. To be honest, I could see myself staying for a long trip here as well. Very livable neighborhood!!! Thank you for the amazing communication Branko!!
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-								  	<div class="profile">
-									  	<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Maira</p>
-											<div class="nacionalidad-redes">
-												<span>Buenos Aires</span>
-												<img class="banderas-redes" src="./images/banderas/Ar.png" alt="">
-											</div>
-									  	</div>
-									</div>
-									<p>El departamento me pareció más lindo e inclusive más espacioso de lo que se veían en las fotos, me sentí como en casa. Ésta zona de Almagro es muy cómoda y bastante tranquila para ser tan céntrica, la recomiendo para cualquiera que quiera estar cerca de bares, restaurants, etc pero no en el medio de todo el movimiento.
-									Branko siempre fue super amable, resolutivo y atento. Definitivamente voy a volver la próxima.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-								</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-										  	<div class="stars">
-											  <i class="fa fa-star"></i>
-											  <i class="fa fa-star"></i>
-											  <i class="fa fa-star"></i>
-											  <i class="fa fa-star"></i>
-											  <i class="fa fa-star"></i>
-											  <span style="padding: 4px; color: lightgrey;">|</span>
-											  <img src="/images/redes2.png" alt="">
-											</div>
-										  <p>Escobedo</p>
-										  <div class="nacionalidad-redes">
-											<span>Argentina</span>
-											<img class="banderas-redes" src="./images/banderas/Ar.png" alt="">
-										</div>
-										</div>
-									</div>
-									<p>Excelente departamento, excelente ubicación muy comodo.
-										La predisposición de Branko para adaptarse a nuestros horarios de llegada y salida.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-							  	</div>
-
-							  	<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Martin</p>
-											<div class="nacionalidad-redes">
-												<span>Alemania</span>
-												<img class="banderas-redes" src="/images/banderas/alemania.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Excellent host and apartment in a great location, very central and close to public transport. It was very comfortable with several amenities. Perfect for a single person or a couple. I would not hesitate staying there again.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Fernando</p>
-											<div class="nacionalidad-redes">
-												<span>Uruguay</span>
-												<img class="banderas-redes" src="/images/banderas/Uy.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Muy lindo el lugar pasamos muy bien y todo se dio como esperábamos muy agradecidos.!!!
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Emilia</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Excelente estadía! Apartamento hermoso igual a lo que se ve en las fotos. Muy lindo barrio y entorno, muy tranquilo para disfrutar y descansar. Bastante cerca de todo para poder pasear. Servicio 10/10, muy recomendable!!!
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Eileen</p>
-											<div class="nacionalidad-redes">
-												<span>Brasil</span>
-												<img class="banderas-redes" src="/images/banderas/Br.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>O apartamento é lindo a decoração mais ainda um ambiente confortável
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Andrea</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Excelente apartamento, pequeño, funcional y cómodo. Colchones y ropa de cama de buena calidad.Excelente disposición de las anfitrionas para brindarnos ayuda ante algunos inconvenientes que se nos presentaron en la ciudad.Muy recomendable!
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Martin</p>
-											<div class="nacionalidad-redes">
-												<span>Uruguay</span>
-												<img class="banderas-redes" src="/images/banderas/Uy.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>El alojamiento fue excelente, su ubicación para tomar bus, subte y otros transporte fue excelente, su anfitrión, realmente fue muy coordinal en nuestro hospedaje e incluso ayudándonos con un problema que tuvimos al llegar a bs as, apto muy cómodo, su balcon y barrio tranquilo, recomiendo.La piscina excelente con acceso libre y muy diafrutable, volvería a ir !!
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Gerson</p>
-											<div class="nacionalidad-redes">
-												<span>Uruguay</span>
-												<img class="banderas-redes" src="/images/banderas/Uy.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Básicamente todo estuvo bien, principalmente la predisposición del anfitrión.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Sairam</p>
-											<div class="nacionalidad-redes">
-												<span>India</span>
-												<img class="banderas-redes" src="/images/banderas/In.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>It was very cozy and well designed home with all ameneties.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Yamila</p>
-											<div class="nacionalidad-redes">
-												<span>Mar del Plata</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>El departamento esta muy bien ubicado en una zona súper accesible tanto para transporte publico como para moverse en vehículo particular.El edificio es nuevo, todas las instalaciones impecables, la unidad esta muy bien equipada y cuenta con variados utensilios de cocina nuevos, cafetera, tostadora y pava eléctrica. El baño completo y muy amplio.Tiene un sector de pileta que es un oasis para las tardes calurosas de Bs. As
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								  <div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Maria Fernanda</p>
-											<div class="nacionalidad-redes">
-												<span>Colombia</span>
-												<img class="banderas-redes" src="/images/banderas/col.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>El departamento es muy bonito, acogedor, organizado , tenia todo lo necesario para nuestra estancia, se encuentra en un lugar central se puede encontrar todo fácilmente, es igual a cómo se ve en las fotos , nuestra estadía fue excelente
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Fermh2010</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>La ubicación es muy buena. Con locales de todo tipo donde poder conseguir todo lo que podes necesitar para la estadía y cerca del subte que te permite estar a 10'-15' del centro de la ciudad. El estacionamiento es muy cómodo y se accede mediante ascensor (sólo primer subsuelo).Dentro del departamento la cama era muy cómoda, el baño muy bien (sobretodo la ducha) y la cocina tiene casi todo lo que podes llegar a necesitar (horno es eléctrico).
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Luisa</p>
-											<div class="nacionalidad-redes">
-												<span>Tampa Florida</span>
-												<img class="banderas-redes" src="/images/banderas/us.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Our host Branko was communicative, responsive and accommodating, the apartment was simple and has basic features and is located around many restaurants, cafes, grocery stores and shops. There is a Police Station across the street which creates a safe environment.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Juan</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Todo espectacular! Es tal como se describe, con todo lo necesario y una buena ubicación. Almagro tiene todos los servicios y está muy cerca del Centro y de Palermo.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Matias</p>
-											<div class="nacionalidad-redes">
-												<span>Córdoba Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>El departamento es muy lindo, cómodo, tiene una muy buena ubicación. Todo estaba en excelentes condiciones, muy limpio. Pasamos una hermosa estadía.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Maria Fernanda</p>
-											<div class="nacionalidad-redes">
-												<span>Brasil</span>
-												<img class="banderas-redes" src="/images/banderas/Br.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Anfitriã muito gentil. O espaço correspondia ao anunciado.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Yan</p>
-											<div class="nacionalidad-redes">
-												<span>Brasil</span>
-												<img class="banderas-redes" src="/images/banderas/Br.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Eu e minha esposa passamos uma ótima semana. Excelente apartamento, muito bem localizado e com boas instalações.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Christian</p>
-											<div class="nacionalidad-redes">
-												<span>Alemania</span>
-												<img class="banderas-redes" src="/images/banderas/alemania.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Nice and comfortable flat in a perfect location.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Langa</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Excelente atención de los anfitriones. Un departamento súper luminoso y funcional. Súper recomendable.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								  <div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Jeannette</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Todo super bien con la instancia, cómodo, de buen acceso a los lugares más céntricos y a pesar de tener solo una habitación tiene mucho espacio y la tele se adaptaba para la habitación o para el lugar del sillón. Branko nos ayudó en un check in anticipado y estuvo atento a ayudarnos en todo momento. Recomendable todo.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Leonardo</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Recomendable. Todo fue tal cual lo describieron. Atención super amable! Fuimos en auto y el edificio tiene un parking subterráneo con autoelevador. El auto entraba justo, atención si el vehículo es mas grande.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Carlos Federico</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Excelente todo, el departamento es nuevo, a estrenar.
-										A 2 cuadras de av Corrientes (subte) y a 2 de Córdoba. Muchos supermercados en los alrededores. Sin dudas volvería.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Maria</p>
-											<div class="nacionalidad-redes">
-												<span>Brasil</span>
-												<img class="banderas-redes" src="/images/banderas/Br.png" alt="">
-											</div>
-											
-										</div>
-									</div>
-									<p>Branko que,cuidou da nossa hospedagem, muito atencioso. Excelente localização, numa rua tranquila de Pallermo porém poucas quadras, uma caminhada de 10 minutos já está nas ruas do bairro com restaurantes, bares e lojas super charmosas.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Geovanni</p>
-											<div class="nacionalidad-redes">
-												<span>Paraguay</span>
-												<img class="banderas-redes" src="/images/banderas/par.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>me atendieron de forma muy atenta! Me facilitaron todo lo que necesité y sin importa la hora me brindaron respuestas a mis consultas. El departamento es comodo y cuenta con todo lo necesario para pasar una buena estadía, aire acondicionado, balcón, el edificio cuenta con gimnasion, piscina y es muy seguro. Por otra parte, está rodeado de lugares para comer, para beber tragos, desayunar y supermercados.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes2.png" alt="">
-											</div>
-											<p>Marcelo</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>El monoambiente es amplio y tiene todo lo necesario. Muy buena atencion de Branko, siempre atento a las necesidades.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Carol</p>
-											<div class="nacionalidad-redes">
-												<span>Colombia</span>
-												<img class="banderas-redes" src="/images/banderas/col.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>Excelente departamento y con la vista al atardecer lo hizo más maravilloso aun.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Josefina</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>Excelente servicio! Branko siempre super atenta, facilitando la comunicación y siendo flexible con los horario de check out que nos sirvió mucho!  Linda zona!Se contó con todo lo que se mencionó en la descripción.Volveríamos ☺️🙌🏼
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Mariano</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>El dpto impecable , muy bien la limpieza y la disposiciones, la zona muy buena a 2 cuadras de calle corrientes y el subte. Volveria a ir y lo recomiendo.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Milton</p>
-											<div class="nacionalidad-redes">
-												<span>Fray Bentos</span>
-												<img class="banderas-redes" src="/images/banderas/Uy.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>El departamento es precioso, la ubicación muy cerca al transporte público, muy seguro. Impecable todo, volvería sin dudas.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Cintia</p>
-											<div class="nacionalidad-redes">
-												<span> Córdoba Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>Todo es como se ve. El depto es pequeño pero muy bien distribuido, es cómodo y limpio. Tiene todo lo que puede hacer falta. Nos recibieron muy bien y se adaptaron a nuestros horarios. Super recomendable!
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Joseline</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>La predisposición del alfrition Branko fue buenas. El lugar es lindo cuenta con todos los servicios necesarios para pasar en familia como si uno estuviera en su casa. Es súper recomendable. Nos fuimos a gusto del lugar.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Gabriel Alberto</p>
-											<div class="nacionalidad-redes">
-												<span>Argentina</span>
-												<img class="banderas-redes" src="/images/banderas/Ar.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>Excelente departamento, exactamente igual a como se ve en las fotos y muy acogedor. Adminsitrador predispuesto a ayudar con lo que fuese necesario y con las indicaciones solicitadas para aprovechar al maximo la estadía. 100 % recomendable.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-								<div class="item">
-
-									<div class="profile">
-										<div class="information">
-											<div class="stars">
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<i class="fa fa-star"></i>
-												<span style="padding: 4px; color: lightgrey;">|</span>
-												<img src="/images/redes1.png" alt="">
-											</div>
-											<p>Martín</p>
-											<div class="nacionalidad-redes">
-												<span>Santiago Chile</span>
-												<img class="banderas-redes" src="/images/banderas/ch.png" alt="">
-											</div>
-											
-										</div>	
-									</div>
-									<p>Alojamiento igual a las fotos … todo cerca y seguro… la cama implacable y los muebles nuevos … edifico nuevo y con buena ubicación. Branko con respuesta rápida y amable!! Recomendable para quedarse en Palermo y visitar las atracciones del sector.
-									</p>
-									<div class="icon">
-										<i class="fa fa-quote-right" aria-hidden="true"></i>
-									</div>
-						  		</div>
-
-
-							</div>
-						</div>
-					</section>
-
-				</div>
-
-			</div>
-
-		</div>
-	</section>
-
-<!-- 
-	<section id="departamentos">
-		<div id="fh5co-blog">
-			<div class="container departments-box">
-				<div class="row animate-box">
-					<div class="col-md-8 col-md-offset-2 text-center" style="margin-left: 0;">
-						<h2 class="departments-title">DEPARTAMENTOS</h2>
-						<h3 class="departments-subtitle"><i class="bi bi-dash"></i>Los destacados del año<i class="bi bi-dash"></i></h3>
-					</div>
-				</div>
-
-				<div class="row carousel-inner-box ">
-					<div class="col-lg-4 col-md-4 department-box">
-						<div class="fh5co-blog animate-box departamentos-estilo ">
-							<div class="carousel">
-								<div class="carousel-inner">
-								<img src="./images/depto1 (1).jpeg" class="carousel-image active" alt="Imagen 1">
-								<img src="./images/depto1 (2).jpeg" class="carousel-image" alt="Imagen 2">
-								<img src="./images/depto1 (3).jpeg" class="carousel-image" alt="Imagen 3">
-								<img src="./images/depto1 (4).jpeg"  class="carousel-image" alt="Imagen 4">
-								</div>
-								<button class="prev">&#10094;</button>
-								<button class="next">&#10095;</button>
-							</div>
-							<div class="blog-text">
-								<h3><a href="#">Amplio y luminoso estudio en excelente ubicación</a></h3>
-								<span class="posted_on">Almagro - CABA</span>
-								<span class="comment"><a href="">21<i class="icon-speech-bubble"></i></a></span>
-								<p class="blog-description">Departamento amplio y luminoso, en edificio con laundry y parrilla. Ubicado en Almagro, corazón de Buenos Aires. A metros de la estación Medrano del subte B y calle Corrientes. Además, a solo 4 cuadras está el Hospital Italiano, cercano a Parque Centenario, Sanatorio Güemes, shopping Abasto y a 9 cuadras de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés.
-								El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-							</div> 
-						</div>
-					</div>
-					<div class="col-lg-4 col-md-4 department-box">
-						<div class="fh5co-blog animate-box departamentos-estilo ">
-							<div class="carousel">
-								<div class="carousel-inner">
-								<img src="./images/depto2 (1).jpeg" class="carousel-image active" alt="Imagen 1">
-								<img src="./images/depto2 (2).jpeg" class="carousel-image" alt="Imagen 2">
-								<img src="./images/depto2 (3).jpeg" class="carousel-image" alt="Imagen 3">
-								<img src="./images/depto2 (4).jpeg"  class="carousel-image" alt="Imagen 4">
-								</div>
-								<button class="prev">&#10094;</button>
-								<button class="next">&#10095;</button>
-							</div>
-							<div class="blog-text">
-								<h3><a href="#">Cálido y luminoso departamento</a></h3>
-								<span class="posted_on">Palermo - CABA</span>
-								<span class="comment"><a href="">31<i class="icon-speech-bubble"></i></a></span>
-								<p class="blog-description">Amplio y luminoso departamento ubicado en el barrio de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés. Cercano al Jardín botánico, Parque las Heras, Plaza Armenia, Alto Palermo shopping, polos gastronómicos y transporte público. 
-									El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía. El departamento cuenta con 2 baños, uno en la habitación y un toilet para invitados. El edificio cuenta con encargado.</p>
-							</div> 
-						</div>
-					</div>
-
-					<div class="col-lg-4 col-md-4 department-box">
-						<div class="fh5co-blog animate-box  departamentos-estilo">
-							<div class="carousel">
-								<div class="carousel-inner">
-								<img src="./images/depto3 (1).jpeg" class="carousel-image active" alt="Imagen 1">
-								<img src="./images/depto3 (2).jpeg" class="carousel-image" alt="Imagen 2">
-								<img src="./images/depto3 (3).jpeg" class="carousel-image" alt="Imagen 3">
-								<img src="./images/depto3 (4).jpeg"  class="carousel-image" alt="Imagen 4">
-								</div>
-								<button class="prev">&#10094;</button>
-								<button class="next">&#10095;</button>
-							</div>
-							<div class="blog-text">
-								<h3><a href="#">Elegante estudio con terraza y parrilla</a></h3>
-								<span class="posted_on">Palermo - CABA</span>
-								<span class="comment"><a href="">44<i class="icon-speech-bubble"></i></a></span>
-								<p class="blog-description">Elegante departamento en edificio con parrilla, terraza y lavandería. Ubicado en Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés. Cercano al Jardín botánico, Parque las Heras, Plaza Armenia, Alto Palermo shopping, polos gastronómicos y transporte público. 
-								El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-							</div> 
-						</div>
-					</div>
-
-					<div class="col-lg-4 col-md-4 department-box">
-						<div class="fh5co-blog animate-box departamentos-estilo">
-							<div class="carousel">
-								<div class="carousel-inner">
-								<img src="./images/depto4 (1).jpg" class="carousel-image active" alt="Imagen 1">
-								<img src="./images/depto4 (2).jpeg" class="carousel-image" alt="Imagen 2">
-								<img src="./images/depto4 (3).jpeg" class="carousel-image" alt="Imagen 3">
-								<img src="./images/depto4 (4).jpeg"  class="carousel-image" alt="Imagen 4">
-								</div>
-								<button class="prev">&#10094;</button>
-								<button class="next">&#10095;</button>
-							</div>
-							<div class="blog-text">
-								<h3><a href="#">Moderno departamento con amenities</a></h3>
-								<span class="posted_on">Almagro - CABA</span>
-								<span class="comment"><a href="">68<i class="icon-speech-bubble"></i></a></span>
-								<p class="blog-description">Departamento nuevo, en edifcio con pileta, gimnasio y laundry. Ubicado en Almagro, corazón de Buenos Aires. A metros de la estación Medrano del subte B y calle Corrientes. Además, a solo 4 cuadras está el Hospital Italiano, cercano a Parque Centenario, Sanatorio Güemes, shopping Abasto y a 9 cuadras de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés.
-								El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-							</div> 
-						</div>
-					</div>
-
-					<div class="col-lg-4 col-md-4 department-box">
-						<div class="fh5co-blog animate-box departamentos-estilo ">
-							<div class="carousel">
-								<div class="carousel-inner">
-								<img src="./images/depto5 (1).jpeg" class="carousel-image active" alt="Imagen 1">
-								<img src="./images/depto5 (2).jpeg" class="carousel-image" alt="Imagen 2">
-								<img src="./images/depto5 (3).jpeg" class="carousel-image" alt="Imagen 3">
-								<img src="./images/depto5 (4).jpeg"  class="carousel-image" alt="Imagen 4">
-								</div>
-								<button class="prev">&#10094;</button>
-								<button class="next">&#10095;</button>
-							</div>
-							<div class="blog-text">
-								<h3><a href="#">Moderno estudio con sunsets increibles</a></h3>
-								<span class="posted_on">Almagro - CABA</span>
-								<span class="comment"><a href="">73<i class="icon-speech-bubble"></i></a></span>
-								<p class="blog-description">Departamento nuevo, en edificio con pileta, gimnasio y laundry. Ubicado en Almagro, corazón de Buenos Aires. A metros de la estación Medrano del subte B y calle Corrientes. Además, a solo 4 cuadras está el Hospital Italiano, cercano a Parque Centenario, Sanatorio Güemes, shopping Abasto y a 9 cuadras de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés.
-								El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-							</div> 
-						</div>
-					</div>
-
-					<div class="col-lg-4 col-md-4 department-box">
-						<div class="fh5co-blog animate-box  departamentos-estilo">
-							<div class="carousel">
-								<div class="carousel-inner">
-								<img src="./images/depto6 (1).jpeg" class="carousel-image active1" alt="Imagen 1">
-								<img src="./images/depto6 (2).jpeg" class="carousel-image" alt="Imagen 2">
-								<img src="./images/depto6 (3).jpeg" class="carousel-image" alt="Imagen 3">
-								<img src="./images/depto6 (4).jpeg"  class="carousel-image" alt="Imagen 4">
-								</div>
-								<button class="prev">&#10094;</button>
-								<button class="next">&#10095;</button>
-							</div>
-							<div class="blog-text">
-								<h3><a href="#">Amplio y silencioso departamento con amenities</a></h3>
-								<span class="posted_on">Almagro - CABA</span>
-								<span class="comment"><a href="">26<i class="icon-speech-bubble"></i></a></span>
-								<p class="blog-description">Alojamiento al contrafrente super tranquilo y silencioso en pleno Palermo con pileta, parrilla y sum. Cercano al Jardín botánico, Parque las Heras, Plaza Armenia, Alto Palermo shopping, polos gastronómicos y transporte público. Uno de los barrios porteños más populares por su gastronomía, bares y cafés.
-								El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.</p>
-							</div> 
-						</div>
-					</div>
-				</div>
-
-
-			</div>
-		</div>
-	</section> -->
-
-	<section id="nuestros-planes" >
-		<div id="fh5co-pricing" class="fh5co-bg-section" >
-				<div class="row animate-box" >
-					<div class="col-md-6 col-md-offset-3 text-center fh5co-heading plans-title">
-						<h2>NUESTROS PLANES</h2>
-					</div>
-				</div>
-				<div class="row">
-					<div class="pricing pricing--rabten">
-						<div class="pricing">
-							<div class="plan">
-								<h2 class="plan-title">GESTIÓN ONLINE</h2>
-								<p class="plan-subtitle">Ideal si solo querés ayuda online.</p>
-								<div class="price">12%</div>
-								<p class="plan-subtitle-cost">del neto de las reservas</p>
-								<ul class="features">
-									<li><i class="fas fa-check-circle"></i>Fotografía</li>
-									<li><i class="fas fa-check-circle"></i>Creación y optimización de perfil</li>
-									<li><i class="fas fa-check-circle"></i>Gestión de reservas y consultas.</li>
-									<li><i class="fas fa-check-circle"></i>Evaluación de huéspedes.</li>
-									<li><i class="fas fa-check-circle"></i>Precios dinámicos</li>
-									<li><i class="fas fa-check-circle"></i>Sorpote online 24/7</li>
-									<li><i class="fas fa-times-circle"></i>Recepción (check-in/check-out)</li>
-									<li><i class="fas fa-times-circle"></i>Coordinación de limpieza y lavanderia</li>
-								</ul>
-								<a class="button-plans" href="#contacto">MÁS INFORMACIÓN</a>
-							</div>
-							<div class="plan popular">
-								<span>MÁS POPULAR</span>
-								<h2 class="plan-title">GESTIÓN MENSUAL</h2>
-								<p class="plan-subtitle">Perfecto para alquileres temporales mensuales</p>
-								<div class="price">15%</div>
-								<p class="plan-subtitle-cost">Del total del contrato o del valor de alquiler mensual pactado 
-(a cargo del huesped)</p>
-								<ul class="features">
-									<li><i class="fas fa-check-circle"></i>Fotografía</li>
-									<li><i class="fas fa-check-circle"></i>Publicación y difusión del inmueble.</li>
-									<li><i class="fas fa-check-circle"></i>Selección y evaluación de inquilinos.</li>
-									<li><i class="fas fa-check-circle"></i>coordinación de visitas al inmueble.</li>
-									<li><i class="fas fa-check-circle"></i>Firma de contrato</li>
-									<li><i class="fas fa-check-circle"></i>Check-in y check-out de huéspedes.</li>
-									<li><i class="fas fa-check-circle"></i>Gestión de consultas</li>
-									<li><i class="fas fa-times-circle"></i>cobranzas mensuales</li>
-									<li><i class="fas fa-times-circle"></i>Coordinación de limpieza y lavanderia.</li>
-									<li><i class="fas fa-times-circle"></i>Cambio de ropa blanca.</li>
-									<li><i class="fas fa-times-circle"></i>Reposición de artículos básicos.</li>
-								</ul>
-								<a class="button-plans" href="#contacto">MÁS INFORMACIÓN</a>
-							</div>
-							<div class="plan">
-								<h2 class="plan-title">GESTIÓN AIRBNB</h2>
-								<p class="plan-subtitle">Perfecto para alquileres diaros en plataformas</p>
-								<div class="price">25%</div>
-								<p class="plan-subtitle-cost">del neto de las reservas</p>
-								<ul class="features">
-									<li><i class="fas fa-check-circle"></i>Fotografía</li>
-									<li><i class="fas fa-check-circle"></i>Publicación y difusión del inmueble.</li>
-									<li><i class="fas fa-check-circle"></i>Selección y evaluación de inquilinos.</li>
-									<li><i class="fas fa-check-circle"></i>Check-in y check-out de huéspedes.</li>
-									<li><i class="fas fa-check-circle"></i>Gestión de consultas</li>
-									<li><i class="fas fa-check-circle"></i>Coordinación de limpieza y lavanderia.</li>
-									<li><i class="fas fa-check-circle"></i>Reposición de ropa blanca.</li>
-									<li><i class="fas fa-check-circle"></i>Reposición de artículos básicos.</li>
-									<li><i class="fas fa-check-circle"></i>Sorpote online 24/7</li>
-								</ul>
-								<a class="button-plans" href="#contacto">MÁS INFORMACIÓN</a>
-							</div>
-						</div>
-					</div>
-				</div>
-		</div>
-	</section>
-
-	<section class="calculadora">
-		<div id="fh5co-blog" class="calculadora-section">
-			<div class="container calculadora-container">
-				<div class="calculator-section">
-					<div class="calculator">
-						<h1 class="calculator-title">TU HOGAR COMO ALQUILER TEMPORAL</h1>
-						<label for="nightsRange">Podes ganar...
-						</label> 
-						<p class="calculator-price"><span id="earningsValue">U$D 900</span></p>
-
-		
-						<div class="output">
-							<p>Precio por <span id="nightsValue">20</span> noches</p>
-							<input type="range" id="nightsRange" min="1" max="30" value="20" oninput="updateNights(this.value)">
-							<P class="calculator-text-aclaracion">*El precio por noche establecido depende de las características del inmueble y la ubicación</P>
-						</div>
-
-					</div>
-		
-					<div> 
-						<img src="./images/mapa.png" alt="mapa-baires">
-					</div>
-				</div>
-			<div>
-		</div>
-	</section>
-
-	<section id="contacto" class="contacto-section">
-		<div id="fh5co-blog" class="formulario-contacto">
-			<div class="container">
-				<section class="registration-form">
-						<form class="registration-form-card">
-								<h1>SOLICITÁ LA EVALUACIÓN DE TU PROPIEDAD</h1>
-							<div class="form-group">
-								<input type="text" class="form-control item" id="username" placeholder="Nombre y apellido: *" required>
-							</div>
-							<div class="form-group">
-								<input type="email" class="form-control item" id="email" placeholder="Email: *" required>
-							</div>
-							<div class="form-group">
-								<input type="text" class="form-control item coments" id="coments" placeholder="Información de la propiedad: *" required>
-							</div>
-							<div class="form-group">
-								<button type="submit" class="btn btn-block create-account">ENVIAR</button>
-							</div>
-						</form>	
-				</section>
-			<div>
-		</div>
-	</section>
-
-
-
-
-	<footer class="footer">
-		<div class="footer-container">
-			<!-- Primera Columna -->
-			<div class="footer-column">
-				<div id="footer-logo">
-					<img src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental" class="img-logo">
-				</div>
-				<p class="footer-address">Ciudad Autónoma de Buenos Aires (CABA) - Argentina.<br>
-				<p class="copyright">Copyright © 2025 BairesRental Todos los derechos reservados
-				</p>
-			</div>
-
-			<!-- Segunda Columna -->
-			<div class="footer-column">
-				<h5 class="footer-title">SERVICIOS</h5>
-				<ul class="footer-list">
-					<li><a href="#reviews" class="footer-link">Reviews</a></li>
-					<li><a href="#nuestros-planes" class="footer-link">Nuestros planes</a></li>
-					<li><a href="departamentos.html" class="footer-link">Departametnos</a></li>
-					<li><a href="faq.html" class="footer-link">FAQ</a></li>
-					<li><a href="#contacto" class="footer-link">Contacto</a></li>
-				</ul>
-			</div>
-
-			<!-- Tercera Columna -->
-			<div class="footer-column">
-				<h5 class="footer-title">CONTACTANOS</h5>
-				<div class="footer-social">
-					<a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank">
-						<i class="bi bi-whatsapp"></i>
-					</a>
-					<a href="https://www.instagram.com/bairesrentalok/" target="_blank" class="footer-icon-link">
-						<i class="bi bi-instagram"></i>
-					</a>
-					<a href="https://www.facebook.com/profile.php?id=61566568521787" target="_blank" class="footer-icon-link">
-						<i class="bi bi-facebook"></i>
-					</a>
-
-				</div>
-			</div>
-		</div>
-	</footer>
-
-
-	<div class="gototop js-top">
-		<a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
-		<a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
-	</div>
-
-	<!-- jQuery -->
-	<script src="js/jquery.min.js"></script>
-	<!-- jQuery Easing -->
-	<script src="js/jquery.easing.1.3.js"></script>
-	<!-- Bootstrap -->
-	<script src="js/bootstrap.min.js"></script>
-	<!-- Waypoints -->
-	<script src="js/jquery.waypoints.min.js"></script>
-	<!-- Stellar Parallax -->
-	<script src="js/jquery.stellar.min.js"></script>
-	<!-- Carousel -->
-	<script src="js/owl.carousel.min.js"></script>
-	<!-- Flexslider -->
-	<script src="js/jquery.flexslider-min.js"></script>
-	<!-- countTo -->
-	<script src="js/jquery.countTo.js"></script>
-	<!-- Magnific Popup -->
-	<script src="js/jquery.magnific-popup.min.js"></script>
-	<script src="js/magnific-popup-options.js"></script>
-	<!-- Count Down -->
-	<script src="js/simplyCountdown.js"></script>
-	<!-- Main -->
-
-	<script src="js/main.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/owl.carousel.js"></script>
-
+  <p class="reviews-label">Lo que dicen nuestros huéspedes</p>
+  <div class="marquee-row">
+    <div class="marquee-track" id="marquee1"></div>
+  </div>
+  <div class="marquee-row">
+    <div class="marquee-track reverse" id="marquee2"></div>
+  </div>
+</section>
+
+<!-- ── AWARD ──────────────────────────────────── -->
+<section id="award">
+  <div class="award-inner">
+    <div class="award-eyebrow">🏆 Reconocimiento internacional</div>
+    <h2 class="award-title">Traveller Review Awards 2025 · Superanfitrión Airbnb 2026</h2>
+    <p class="award-desc">
+      Gracias a las valoraciones de nuestros huéspedes, fuimos reconocidos por <strong>Booking.com</strong> con el Traveller Review Award 2025 con una calificación de <strong>9,6/10</strong>, y somos <strong>Superhost</strong> certificados por Airbnb en 2026.
+    </p>
+    <div class="award-logos">
+      <div class="award-logo-badge">🏅 Booking.com · 9,6/10</div>
+      <div class="award-logo-badge">⭐ Airbnb · Superanfitrión 2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACTO ───────────────────────────────── -->
+<section id="contacto">
+  <div class="contacto-inner">
+    <p class="section-label reveal">Trabajemos juntos</p>
+    <h2 class="section-title reveal">Solicitá la evaluación de tu propiedad</h2>
+    <p class="contacto-sub reveal">Completá el formulario y te contactamos en menos de 24 hs.</p>
+
+    <form class="contacto-form reveal" onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Nombre</label>
+          <input type="text" placeholder="Tu nombre" required />
+        </div>
+        <div class="form-field">
+          <label>Teléfono / WhatsApp</label>
+          <input type="tel" placeholder="+54 11 ..." />
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Email</label>
+        <input type="email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Barrio / Dirección</label>
+          <input type="text" placeholder="Palermo, Recoleta, Belgrano..." />
+        </div>
+        <div class="form-field">
+          <label>Cantidad de ambientes</label>
+          <select>
+            <option value="">Seleccionar...</option>
+            <option>Monoambiente</option>
+            <option>2 ambientes</option>
+            <option>3 ambientes</option>
+            <option>4 ambientes o más</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>¿Está amoblado?</label>
+          <select>
+            <option value="">Seleccionar...</option>
+            <option>Sí, completamente amoblado</option>
+            <option>Sí, parcialmente amoblado</option>
+            <option>No, sin muebles</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Plan de interés</label>
+          <select>
+            <option value="">Seleccionar plan...</option>
+            <option>Gestión Online (12%)</option>
+            <option>Gestión Mensual (15%)</option>
+            <option>Gestión Airbnb (25%)</option>
+            <option>No sé aún</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Mensaje (opcional)</label>
+        <textarea placeholder="Contanos un poco sobre tu propiedad..."></textarea>
+      </div>
+      <button type="submit" class="form-submit">Enviar consulta →</button>
+    </form>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="images/bairesrentallogoblanco.png" alt="BairesRental" />
+      <p>Ciudad Autónoma de Buenos Aires (CABA), Argentina.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Servicios</h4>
+      <ul>
+        <li><a href="#planes">Nuestros planes</a></li>
+        <li><a href="departamentos.html">Departamentos</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4>Contacto</h4>
+      <ul>
+        <li><a href="#contacto">Consultas</a></li>
+        <li><a href="https://wa.me/5491173735757" target="_blank">WhatsApp</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
+    <p>🏆 Booking.com Traveller Review Award 2025 · 9,6/10</p>
+  </div>
+</footer>
+
+<!-- FABs -->
+<div class="fab-group">
+  <button class="top-fab" id="top-fab" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Volver al inicio">
+    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/>
+    </svg>
+  </button>
+  <a href="https://wa.me/5491173735757?text=Hola!%20Quiero%20información%20sobre%20BairesRental." target="_blank" class="wa-fab" title="WhatsApp">
+    <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+    </svg>
+  </a>
+</div>
+
+<script>
+// ── PARTICLES ──────────────────────────────────────
+const particleContainer = document.getElementById('particles');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 4 + 2;
+  p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*8}s;opacity:${0.2+Math.random()*0.5};`;
+  particleContainer.appendChild(p);
+}
+
+// ── NAVBAR SCROLL ──────────────────────────────────
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  navbar.classList.toggle('scrolled', y > 60);
+  document.getElementById('top-fab').classList.toggle('visible', y > 400);
+}, { passive: true });
+
+// ── MOBILE DRAWER ──────────────────────────────────
+const drawer  = document.getElementById('mob-drawer');
+const overlay = document.getElementById('mob-overlay');
+function openDrawer()  { drawer.classList.add('open'); overlay.classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('open'); document.body.style.overflow=''; }
+document.getElementById('mobile-toggle').addEventListener('click', openDrawer);
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+overlay.addEventListener('click', closeDrawer);
+drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+
+
+// ── INTERSECTION OBSERVER ──────────────────────────
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      if (e.target.classList.contains('stat-item')) animateCount(e.target);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll(
+  '.section-label, .section-title, .feature-card, .plan-card, .testi-card, .stat-item, .reveal, .award-inner, .stats-intro-inner'
+).forEach(el => io.observe(el));
+
+// ── COUNT UP ────────────────────────────────────────
+function animateCount(el) {
+  const target   = parseFloat(el.dataset.count);
+  const decimals = parseInt(el.dataset.decimals || 0);
+  const numEl    = el.querySelector('.count-num');
+  if (!numEl) return;
+  const duration = 1600;
+  const start    = performance.now();
+  function step(now) {
+    const p    = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val  = target * ease;
+    numEl.textContent = decimals > 0
+      ? val.toFixed(decimals)
+      : Math.floor(val).toLocaleString('es-AR');
+    if (p < 1) requestAnimationFrame(step);
+    else numEl.textContent = decimals > 0 ? target.toFixed(decimals) : target.toLocaleString('es-AR');
+  }
+  requestAnimationFrame(step);
+}
+
+// ── CALCULADORA ────────────────────────────────────
+const sliderNoches = document.getElementById('slider-noches');
+const sliderPrecio = document.getElementById('slider-precio');
+const calcResult   = document.getElementById('calc-result');
+const nochesLabel  = document.getElementById('noches-label');
+const precioLabel  = document.getElementById('precio-label');
+
+function updateCalc() {
+  const noches = parseInt(sliderNoches.value);
+  const precio = parseInt(sliderPrecio.value);
+  calcResult.innerHTML = `U$D <span>${(noches * precio).toLocaleString('es-AR')}</span>`;
+  nochesLabel.textContent = noches;
+  precioLabel.textContent = precio;
+}
+sliderNoches.addEventListener('input', updateCalc);
+sliderPrecio.addEventListener('input', updateCalc);
+updateCalc();
+
+// ── REVIEWS MARQUEE ────────────────────────────────
+const reviews = [
+  { name: "Fabio", from: "New Jersey, EEUU", text: "This place is a hidden gem! Great location, comfortable bed, good A/C. Very livable neighborhood!" },
+  { name: "Maira", from: "Buenos Aires", text: "El departamento me pareció más lindo de lo que se veía en las fotos. Me sentí como en casa." },
+  { name: "Escobedo", from: "Argentina", text: "Excelente departamento, excelente ubicación. La predisposición de Branko para adaptarse a nuestros horarios." },
+  { name: "Martin", from: "Alemania", text: "Excellent host and apartment in a great location, very central and close to public transport." },
+  { name: "Fernando", from: "Uruguay", text: "Muy lindo el lugar, pasamos muy bien y todo se dio como esperábamos. Muy agradecidos!" },
+  { name: "Emilia", from: "Argentina", text: "Excelente estadía! Apartamento hermoso igual a lo que se ve en las fotos. Servicio 10/10." },
+  { name: "Eileen", from: "Brasil", text: "O apartamento é lindo, a decoração mais ainda, um ambiente confortável." },
+  { name: "Andrea", from: "Argentina", text: "Excelente apartamento, pequeño, funcional y cómodo. Muy recomendable!" },
+  { name: "Yamila", from: "Mar del Plata", text: "El departamento está muy bien ubicado. Edificio nuevo, instalaciones impecables." },
+  { name: "Luisa", from: "Florida, EEUU", text: "Our host was communicative, responsive and accommodating. Great location." },
+  { name: "María Fernanda", from: "Colombia", text: "El departamento es muy bonito, acogedor, organizado. Nuestra estadía fue excelente." },
+  { name: "Carol", from: "Colombia", text: "Excelente departamento y con la vista al atardecer lo hizo más maravilloso aún." },
+  { name: "Geovanni", from: "Paraguay", text: "Me atendieron de forma muy atenta, el edificio cuenta con gimnasio, piscina y es muy seguro." },
+  { name: "Josefina", from: "Argentina", text: "Excelente servicio! Branko siempre super atenta, facilitando la comunicación. Volveríamos." },
+  { name: "Christian", from: "Alemania", text: "Nice and comfortable flat in a perfect location." },
+  { name: "Martin", from: "Uruguay", text: "El alojamiento fue excelente. Branko fue muy cordial e incluso nos ayudó con un problema." },
+];
+
+function makeCard(r) {
+  return `<div class="review-card"><p class="review-text">${r.text}</p><div class="review-author"><div><div class="review-name">${r.name}</div><div class="review-from">${r.from}</div></div></div></div>`;
+}
+function buildMarquee(id, items) {
+  const track = document.getElementById(id);
+  const html = items.map(makeCard).join('');
+  track.innerHTML = html + html;
+}
+const mid = Math.ceil(reviews.length / 2);
+buildMarquee('marquee1', reviews.slice(0, mid));
+buildMarquee('marquee2', reviews.slice(mid));
+
+// ── SELECTS: placeholder gris ──────────────────────
+document.querySelectorAll('.form-field select').forEach(sel => {
+  const update = () => sel.classList.toggle('has-value', sel.value !== '');
+  sel.addEventListener('change', update);
+  update();
+});
+
+// ── FORM ───────────────────────────────────────────
+function handleSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('.form-submit');
+  btn.textContent = '✓ Enviado — te contactamos pronto!';
+  btn.style.background = '#22c55e';
+  btn.disabled = true;
+}
+</script>
 </body>
 </html>
-

@@ -35,9 +35,10 @@
     .nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       padding: 1.2rem 2rem;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center; gap: 1.2rem;
       transition: background 0.4s, backdrop-filter 0.4s, padding 0.3s;
     }
+    .nav-logo { margin-right: auto; }
     .nav.scrolled {
       background: rgba(17,17,17,0.96);
       backdrop-filter: blur(12px);
@@ -70,10 +71,23 @@
       border-radius: 8px; transition: background 0.2s;
     }
     .nav-mobile-toggle:hover { background: rgba(255,255,255,0.1); }
-    @media (max-width: 768px) {
+    @media (max-width: 1060px) {
       .nav-links, .nav-cta { display: none; }
       .nav-mobile-toggle { display: flex; }
     }
+    .lang-btn {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 100px; color: rgba(255,255,255,0.45);
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; padding: 5px 11px; cursor: pointer;
+      display: flex; align-items: center; gap: 3px; transition: background 0.2s;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,0.14); }
+    .lang-btn[data-lang="es"] .l-es,
+    .lang-btn:not([data-lang]) .l-es { color: #fff; }
+    .lang-btn[data-lang="en"] .l-en  { color: #fff; }
+    .lang-sep { opacity: 0.35; }
+    @media (max-width: 1060px) { .lang-btn { display: none; } }
     /* Mobile drawer */
     .mobile-overlay {
       display: none; position: fixed; inset: 0; z-index: 1001;
@@ -118,6 +132,12 @@
       transition: background 0.2s;
     }
     .drawer-cta:hover { background: var(--azul-dark); }
+    .drawer-lang-row {
+      display: flex; justify-content: center;
+      margin-top: 1rem; padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .drawer-lang-row .lang-btn { display: flex !important; }
 
     /* ── HERO ─────────────────────────────────── */
     .hero {
@@ -186,7 +206,7 @@
       letter-spacing: -0.04em; color: var(--blanco);
       margin-bottom: 1.5rem;
     }
-    .hero-title .line { overflow: hidden; display: block; }
+    .hero-title .line { overflow: hidden; display: block; padding-bottom: 0.18em; margin-bottom: -0.1em; }
     .hero-title .word {
       display: inline-block;
       opacity: 0; transform: translateY(100%);
@@ -758,14 +778,17 @@
     <img src="images/bairesrentallogoblanco.png" alt="BairesRental" />
   </a>
   <ul class="nav-links">
-    <li><a href="#propiedades">Propiedades</a></li>
-    <li><a href="#por-que">Servicios</a></li>
-    <li><a href="#planes">Planes</a></li>
-    <li><a href="#testimonios">Propietarios</a></li>
-    <li><a href="departamentos.html">Departamentos</a></li>
-    <li><a href="#contacto">Contacto</a></li>
+    <li><a href="#propiedades" data-i18n="nav-prop">Propiedades</a></li>
+    <li><a href="#por-que" data-i18n="nav-serv">Servicios</a></li>
+    <li><a href="#planes" data-i18n="nav-planes">Planes</a></li>
+    <li><a href="#testimonios" data-i18n="nav-owners">Propietarios</a></li>
+    <li><a href="departamentos.html" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
-  <a href="#contacto" class="nav-cta">Sumate →</a>
+  <button class="lang-btn" id="lang-btn" data-lang="es" onclick="idxToggleLang()">
+    <span class="l-es">ES</span><span class="lang-sep">·</span><span class="l-en">EN</span>
+  </button>
+  <a href="#contacto" class="nav-cta" data-i18n="nav-cta">Sumate →</a>
   <button class="nav-mobile-toggle" id="mobile-toggle">☰</button>
 </nav>
 
@@ -777,14 +800,19 @@
     <button class="drawer-close" id="drawer-close">✕</button>
   </div>
   <ul class="drawer-links">
-    <li><a href="#propiedades">Propiedades</a></li>
-    <li><a href="#por-que">Servicios</a></li>
-    <li><a href="#planes">Planes</a></li>
-    <li><a href="#testimonios">Propietarios</a></li>
-    <li><a href="departamentos.html">Departamentos</a></li>
-    <li><a href="#contacto">Contacto</a></li>
+    <li><a href="#propiedades" data-i18n="nav-prop">Propiedades</a></li>
+    <li><a href="#por-que" data-i18n="nav-serv">Servicios</a></li>
+    <li><a href="#planes" data-i18n="nav-planes">Planes</a></li>
+    <li><a href="#testimonios" data-i18n="nav-owners">Propietarios</a></li>
+    <li><a href="departamentos.html" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
-  <a href="#contacto" class="drawer-cta">Sumate →</a>
+  <a href="#contacto" class="drawer-cta" data-i18n="nav-cta">Sumate →</a>
+  <div class="drawer-lang-row">
+    <button class="lang-btn" data-lang="es" onclick="idxToggleLang()">
+      <span class="l-es">ES</span><span class="lang-sep">·</span><span class="l-en">EN</span>
+    </button>
+  </div>
 </div>
 
 <!-- ── HERO ────────────────────────────────────── -->
@@ -793,24 +821,24 @@
   <div class="hero-particles" id="particles"></div>
 
   <div class="hero-content">
-    <div class="hero-eyebrow">Gestión profesional de propiedades · Buenos Aires</div>
+    <div class="hero-eyebrow" data-i18n="h-eyebrow">Gestión profesional de propiedades · Buenos Aires</div>
 
     <h1 class="hero-title">
       <span class="line">
-        <span class="word" style="animation-delay:0.4s">Tu</span>&nbsp;<span class="word" style="animation-delay:0.52s">hogar,</span>
+        <span class="word" style="animation-delay:0.4s" data-i18n="h-w1">Tu</span>&nbsp;<span class="word" style="animation-delay:0.52s" data-i18n="h-w2">hogar,</span>
       </span>
       <span class="line">
-        <span class="word accent" style="animation-delay:0.68s">nuestro</span>&nbsp;<span class="word" style="animation-delay:0.8s">cuidado.</span>
+        <span class="word accent" style="animation-delay:0.68s" data-i18n="h-w3">nuestro</span>&nbsp;<span class="word" style="animation-delay:0.8s" data-i18n="h-w4">cuidado.</span>
       </span>
     </h1>
 
-    <p class="hero-sub">
+    <p class="hero-sub" data-i18n="h-sub">
       Maximizá tus ingresos y olvidate de las preocupaciones. Nos ocupamos de todo.
     </p>
 
     <div class="hero-actions">
-      <a href="#contacto" class="btn-primary">Evaluar mi propiedad →</a>
-      <a href="#planes" class="btn-ghost">Ver planes</a>
+      <a href="#contacto" class="btn-primary" data-i18n="h-btn1">Evaluar mi propiedad →</a>
+      <a href="#planes" class="btn-ghost" data-i18n="h-btn2">Ver planes</a>
     </div>
   </div>
 
@@ -823,8 +851,8 @@
 <!-- ── STATS INTRO ──────────────────────────────── -->
 <div class="stats-intro">
   <div class="stats-intro-inner">
-    <p class="stats-intro-eyebrow">Números que hablan</p>
-    <h2 class="stats-intro-title">Resultados <span>extraordinarios</span></h2>
+    <p class="stats-intro-eyebrow" data-i18n="s-eyebrow">Números que hablan</p>
+    <h2 class="stats-intro-title"><span data-i18n="s-t1">Resultados</span> <span data-i18n="s-t2">extraordinarios</span></h2>
   </div>
 </div>
 
@@ -834,23 +862,23 @@
     <div class="stats-grid">
       <div class="stat-item" data-count="300" data-suffix="+">
         <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">+</span></div>
-        <div class="stat-desc">Huéspedes recibidos</div>
+        <div class="stat-desc" data-i18n="sd-huespedes">Huéspedes recibidos</div>
       </div>
       <div class="stat-item" data-count="2500" data-suffix="+">
         <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">+</span></div>
-        <div class="stat-desc">Noches reservadas</div>
+        <div class="stat-desc" data-i18n="sd-noches">Noches reservadas</div>
       </div>
       <div class="stat-item" data-count="150" data-suffix="+">
         <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">+</span></div>
-        <div class="stat-desc">Reseñas</div>
+        <div class="stat-desc" data-i18n="sd-resenas">Reseñas</div>
       </div>
       <div class="stat-item" data-count="9.6" data-suffix="" data-decimals="1">
         <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">/10</span></div>
-        <div class="stat-desc">Calificación promedio</div>
+        <div class="stat-desc" data-i18n="sd-calif">Calificación promedio</div>
       </div>
       <div class="stat-item" data-count="85" data-suffix="%">
         <div class="stat-num"><span class="count-num">0</span><span class="stat-suffix">%</span></div>
-        <div class="stat-desc">Tasa de ocupación</div>
+        <div class="stat-desc" data-i18n="sd-ocup">Tasa de ocupación</div>
       </div>
     </div>
   </div>
@@ -859,10 +887,10 @@
 <!-- ── GALERÍA DE PROPIEDADES ───────────────────── -->
 <section id="propiedades" style="padding: 7rem 2rem 3rem; background: var(--blanco);">
   <div style="max-width:1100px; margin: 0 auto;">
-    <p class="section-label">Nuestras propiedades</p>
+    <p class="section-label" data-i18n="p-label">Nuestras propiedades</p>
     <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:2.5rem;">
-      <h2 class="section-title" style="margin:0;">Espacios diseñados para vivir bien</h2>
-      <a href="departamentos.html" class="btn-primary" style="white-space:nowrap; flex-shrink:0; color:#fff;">
+      <h2 class="section-title" style="margin:0;" data-i18n="p-title">Espacios diseñados para vivir bien</h2>
+      <a href="departamentos.html" class="btn-primary" style="white-space:nowrap; flex-shrink:0; color:#fff;" data-i18n="p-btn">
         Ver catálogo completo →
       </a>
     </div>
@@ -896,29 +924,29 @@
 <!-- ── POR QUÉ ─────────────────────────────────── -->
 <section id="por-que">
   <div class="porq-header">
-    <p class="section-label">¿Por qué BairesRental?</p>
-    <h2 class="section-title">Cuidamos tu propiedad como si fuera nuestra</h2>
+    <p class="section-label" data-i18n="pq-label">¿Por qué BairesRental?</p>
+    <h2 class="section-title" data-i18n="pq-title">Cuidamos tu propiedad como si fuera nuestra</h2>
   </div>
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-num">01</div>
-      <div class="feature-title">Gestión integral</div>
-      <div class="feature-desc">Fotografía, publicación, consultas, reservas, precios dinámicos, limpieza, lavandería, check-in/out y más. Vos solo disfrutás los resultados.</div>
+      <div class="feature-title" data-i18n="f1-title">Gestión integral</div>
+      <div class="feature-desc" data-i18n="f1-desc">Fotografía, publicación, consultas, reservas, precios dinámicos, limpieza, lavandería, check-in/out y más. Vos solo disfrutás los resultados.</div>
     </div>
     <div class="feature-card">
       <div class="feature-num">02</div>
-      <div class="feature-title">Cuidado personalizado</div>
-      <div class="feature-desc">Administramos tu propiedad garantizando confianza, seguridad y tranquilidad. Sin sorpresas, con comunicación constante.</div>
+      <div class="feature-title" data-i18n="f2-title">Cuidado personalizado</div>
+      <div class="feature-desc" data-i18n="f2-desc">Administramos tu propiedad garantizando confianza, seguridad y tranquilidad. Sin sorpresas, con comunicación constante.</div>
     </div>
     <div class="feature-card">
       <div class="feature-num">03</div>
-      <div class="feature-title">Maximización de ingresos</div>
-      <div class="feature-desc">Precios dinámicos y optimización de ocupación para que tu propiedad rinda al máximo todos los meses del año.</div>
+      <div class="feature-title" data-i18n="f3-title">Maximización de ingresos</div>
+      <div class="feature-desc" data-i18n="f3-desc">Precios dinámicos y optimización de ocupación para que tu propiedad rinda al máximo todos los meses del año.</div>
     </div>
     <div class="feature-card">
       <div class="feature-num">04</div>
-      <div class="feature-title">A tu medida</div>
-      <div class="feature-desc">Personalizamos el servicio según tus preferencias y tipo de propiedad. Elegís el plan que mejor se adapta a vos.</div>
+      <div class="feature-title" data-i18n="f4-title">A tu medida</div>
+      <div class="feature-desc" data-i18n="f4-desc">Personalizamos el servicio según tus preferencias y tipo de propiedad. Elegís el plan que mejor se adapta a vos.</div>
     </div>
   </div>
 </section>
@@ -926,55 +954,55 @@
 <!-- ── PLANES ─────────────────────────────────── -->
 <section id="planes">
   <div class="planes-header">
-    <p class="section-label">Nuestros planes</p>
-    <h2 class="section-title">Elegí el que se adapta a tu propiedad</h2>
+    <p class="section-label" data-i18n="pl-label">Nuestros planes</p>
+    <h2 class="section-title" data-i18n="pl-title">Elegí el que se adapta a tu propiedad</h2>
   </div>
   <div class="planes-grid">
     <div class="plan-card">
-      <div class="plan-nombre">Gestión Online</div>
-      <div class="plan-precio">12%<small> del neto</small></div>
-      <div class="plan-desc">Ideal para propietarios que quieren ayuda online.</div>
+      <div class="plan-nombre" data-i18n="pl1-name">Gestión Online</div>
+      <div class="plan-precio">12%<small data-i18n="pl1-sub"> del neto</small></div>
+      <div class="plan-desc" data-i18n="pl1-desc">Ideal para propietarios que quieren ayuda online.</div>
       <ul class="plan-items">
-        <li>Fotografía profesional</li>
-        <li>Creación y optimización de perfil</li>
-        <li>Gestión de reservas y consultas</li>
-        <li>Evaluación de huéspedes</li>
-        <li>Precios dinámicos</li>
-        <li>Soporte online 24/7</li>
+        <li data-i18n="pl1-i1">Fotografía profesional</li>
+        <li data-i18n="pl1-i2">Creación y optimización de perfil</li>
+        <li data-i18n="pl1-i3">Gestión de reservas y consultas</li>
+        <li data-i18n="pl1-i4">Evaluación de huéspedes</li>
+        <li data-i18n="pl1-i5">Precios dinámicos</li>
+        <li data-i18n="pl1-i6">Soporte online 24/7</li>
       </ul>
-      <a href="#contacto" class="plan-btn">Más información</a>
+      <a href="#contacto" class="plan-btn" data-i18n="pl-btn">Más información</a>
     </div>
 
     <div class="plan-card destacado">
-      <div class="plan-nombre">Gestión Mensual</div>
-      <div class="plan-precio">15%<small> del contrato</small></div>
-      <div class="plan-desc">Perfecto para alquileres temporales mensuales.</div>
+      <div class="plan-nombre" data-i18n="pl2-name">Gestión Mensual</div>
+      <div class="plan-precio">15%<small data-i18n="pl2-sub"> del contrato</small></div>
+      <div class="plan-desc" data-i18n="pl2-desc">Perfecto para alquileres temporales mensuales.</div>
       <ul class="plan-items">
-        <li>Fotografía y difusión</li>
-        <li>Selección y evaluación de inquilinos</li>
-        <li>Coordinación de visitas</li>
-        <li>Firma de contrato</li>
-        <li>Check-in y check-out</li>
-        <li>Cobranzas mensuales</li>
-        <li>Limpieza y lavandería</li>
+        <li data-i18n="pl2-i1">Fotografía y difusión</li>
+        <li data-i18n="pl2-i2">Selección y evaluación de inquilinos</li>
+        <li data-i18n="pl2-i3">Coordinación de visitas</li>
+        <li data-i18n="pl2-i4">Firma de contrato</li>
+        <li data-i18n="pl2-i5">Check-in y check-out</li>
+        <li data-i18n="pl2-i6">Cobranzas mensuales</li>
+        <li data-i18n="pl2-i7">Limpieza y lavandería</li>
       </ul>
-      <a href="#contacto" class="plan-btn">Más información</a>
+      <a href="#contacto" class="plan-btn" data-i18n="pl-btn">Más información</a>
     </div>
 
     <div class="plan-card">
-      <div class="plan-nombre">Gestión Airbnb</div>
-      <div class="plan-precio">25%<small> del neto</small></div>
-      <div class="plan-desc">Para alquileres diarios en plataformas turísticas.</div>
+      <div class="plan-nombre" data-i18n="pl3-name">Gestión Airbnb</div>
+      <div class="plan-precio">25%<small data-i18n="pl3-sub"> del neto</small></div>
+      <div class="plan-desc" data-i18n="pl3-desc">Para alquileres diarios en plataformas turísticas.</div>
       <ul class="plan-items">
-        <li>Fotografía y difusión</li>
-        <li>Publicación en Airbnb, Booking y más</li>
-        <li>Check-in y check-out</li>
-        <li>Limpieza y lavandería</li>
-        <li>Reposición de ropa blanca</li>
-        <li>Reposición de básicos</li>
-        <li>Soporte online 24/7</li>
+        <li data-i18n="pl3-i1">Fotografía y difusión</li>
+        <li data-i18n="pl3-i2">Publicación en Airbnb, Booking y más</li>
+        <li data-i18n="pl3-i3">Check-in y check-out</li>
+        <li data-i18n="pl3-i4">Limpieza y lavandería</li>
+        <li data-i18n="pl3-i5">Reposición de ropa blanca</li>
+        <li data-i18n="pl3-i6">Reposición de básicos</li>
+        <li data-i18n="pl3-i7">Soporte online 24/7</li>
       </ul>
-      <a href="#contacto" class="plan-btn">Más información</a>
+      <a href="#contacto" class="plan-btn" data-i18n="pl-btn">Más información</a>
     </div>
   </div>
 </section>
@@ -982,9 +1010,9 @@
 <!-- ── CALCULADORA ─────────────────────────────── -->
 <section id="calculadora">
   <div class="calc-inner">
-    <p class="section-label reveal">Calculá tus ingresos</p>
-    <p style="font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.5rem;" class="reveal">Tu hogar como alquiler temporal</p>
-    <p class="calc-sub reveal">Mové el slider y estimá cuánto podés ganar por mes</p>
+    <p class="section-label reveal" data-i18n="ca-label">Calculá tus ingresos</p>
+    <p style="font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.5rem;" class="reveal" data-i18n="ca-title">Tu hogar como alquiler temporal</p>
+    <p class="calc-sub reveal" data-i18n="ca-sub">Mové el slider y estimá cuánto podés ganar por mes</p>
 
     <div class="calc-display reveal">
       <span id="calc-result">U$D <span>900</span></span>
@@ -992,8 +1020,8 @@
 
     <div class="reveal" style="max-width:480px;margin:0 auto;">
       <div class="calc-slider-label">
-        <span>Noches: <strong id="noches-label">20</strong></span>
-        <span>Precio/noche: U$D <strong id="precio-label">45</strong></span>
+        <span><span data-i18n="ca-noches">Noches</span>: <strong id="noches-label">20</strong></span>
+        <span><span data-i18n="ca-precio">Precio/noche</span>: U$D <strong id="precio-label">45</strong></span>
       </div>
       <input type="range" class="calc-slider" id="slider-noches" min="5" max="28" value="20" />
       <div class="calc-slider-label" style="margin-top:.75rem;">
@@ -1001,15 +1029,15 @@
       </div>
       <input type="range" class="calc-slider" id="slider-precio" min="30" max="200" value="45" step="5" />
     </div>
-    <p class="calc-notas reveal" style="margin-top:1.5rem;">* El precio depende de las características y ubicación del inmueble</p>
+    <p class="calc-notas reveal" style="margin-top:1.5rem;" data-i18n="ca-nota">* El precio depende de las características y ubicación del inmueble</p>
   </div>
 </section>
 
 <!-- ── TESTIMONIOS ────────────────────────────── -->
 <section id="testimonios">
   <div class="testi-header">
-    <p class="section-label">Propietarios que nos eligen</p>
-    <h2 class="section-title">Ellos ya confían en BairesRental</h2>
+    <p class="section-label" data-i18n="te-label">Propietarios que nos eligen</p>
+    <h2 class="section-title" data-i18n="te-title">Ellos ya confían en BairesRental</h2>
   </div>
   <div class="testi-grid">
     <div class="testi-card">
@@ -1047,7 +1075,7 @@
 
 <!-- ── REVIEWS MARQUEE ────────────────────────── -->
 <section id="reviews">
-  <p class="reviews-label">Lo que dicen nuestros huéspedes</p>
+  <p class="reviews-label" data-i18n="rv-label">Lo que dicen nuestros huéspedes</p>
   <div class="marquee-row">
     <div class="marquee-track" id="marquee1"></div>
   </div>
@@ -1059,14 +1087,14 @@
 <!-- ── AWARD ──────────────────────────────────── -->
 <section id="award">
   <div class="award-inner">
-    <div class="award-eyebrow">🏆 Reconocimiento internacional</div>
-    <h2 class="award-title">Traveller Review Awards 2025 · Superanfitrión Airbnb 2026</h2>
-    <p class="award-desc">
-      Gracias a las valoraciones de nuestros huéspedes, fuimos reconocidos por <strong>Booking.com</strong> con el Traveller Review Award 2025 con una calificación de <strong>9,6/10</strong>, y somos <strong>Superhost</strong> certificados por Airbnb en 2026.
+    <div class="award-eyebrow" data-i18n="aw-eyebrow">🏆 Reconocimiento internacional</div>
+    <h2 class="award-title" data-i18n="aw-title">Traveller Review Awards 2025 · Superanfitrión Airbnb 2026</h2>
+    <p class="award-desc" data-i18n="aw-desc">
+      Gracias a las valoraciones de nuestros huéspedes, fuimos reconocidos por Booking.com con el Traveller Review Award 2025 con una calificación de 9,6/10, y somos Superhost certificados por Airbnb en 2026.
     </p>
     <div class="award-logos">
-      <div class="award-logo-badge">🏅 Booking.com · 9,6/10</div>
-      <div class="award-logo-badge">⭐ Airbnb · Superanfitrión 2026</div>
+      <div class="award-logo-badge" data-i18n="aw-b1">🏅 Booking.com · 9,6/10</div>
+      <div class="award-logo-badge" data-i18n="aw-b2">⭐ Airbnb · Superanfitrión 2026</div>
     </div>
   </div>
 </section>
@@ -1074,67 +1102,67 @@
 <!-- ── CONTACTO ───────────────────────────────── -->
 <section id="contacto">
   <div class="contacto-inner">
-    <p class="section-label reveal">Trabajemos juntos</p>
-    <h2 class="section-title reveal">Solicitá la evaluación de tu propiedad</h2>
-    <p class="contacto-sub reveal">Completá el formulario y te contactamos en menos de 24 hs.</p>
+    <p class="section-label reveal" data-i18n="co-label">Trabajemos juntos</p>
+    <h2 class="section-title reveal" data-i18n="co-title">Solicitá la evaluación de tu propiedad</h2>
+    <p class="contacto-sub reveal" data-i18n="co-sub">Completá el formulario y te contactamos en menos de 24 hs.</p>
 
     <form class="contacto-form reveal" onsubmit="handleSubmit(event)">
       <div class="form-row">
         <div class="form-field">
-          <label>Nombre</label>
-          <input type="text" placeholder="Tu nombre" required />
+          <label data-i18n="co-f-nombre">Nombre</label>
+          <input type="text" placeholder="Tu nombre" data-i18n-ph="co-ph-nombre" required />
         </div>
         <div class="form-field">
-          <label>Teléfono / WhatsApp</label>
+          <label data-i18n="co-f-tel">Teléfono / WhatsApp</label>
           <input type="tel" placeholder="+54 11 ..." />
         </div>
       </div>
       <div class="form-field">
-        <label>Email</label>
+        <label data-i18n="co-f-email">Email</label>
         <input type="email" placeholder="tu@email.com" required />
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>Barrio / Dirección</label>
-          <input type="text" placeholder="Palermo, Recoleta, Belgrano..." />
+          <label data-i18n="co-f-barrio">Barrio / Dirección</label>
+          <input type="text" placeholder="Palermo, Recoleta, Belgrano..." data-i18n-ph="co-ph-barrio" />
         </div>
         <div class="form-field">
-          <label>Cantidad de ambientes</label>
+          <label data-i18n="co-f-amb">Cantidad de ambientes</label>
           <select>
-            <option value="">Seleccionar...</option>
-            <option>Monoambiente</option>
-            <option>2 ambientes</option>
-            <option>3 ambientes</option>
-            <option>4 ambientes o más</option>
+            <option value="" data-i18n="co-sel">Seleccionar...</option>
+            <option data-i18n="co-amb1">Monoambiente</option>
+            <option data-i18n="co-amb2">2 ambientes</option>
+            <option data-i18n="co-amb3">3 ambientes</option>
+            <option data-i18n="co-amb4">4 ambientes o más</option>
           </select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>¿Está amoblado?</label>
+          <label data-i18n="co-f-amob">¿Está amoblado?</label>
           <select>
-            <option value="">Seleccionar...</option>
-            <option>Sí, completamente amoblado</option>
-            <option>Sí, parcialmente amoblado</option>
-            <option>No, sin muebles</option>
+            <option value="" data-i18n="co-sel">Seleccionar...</option>
+            <option data-i18n="co-amob1">Sí, completamente amoblado</option>
+            <option data-i18n="co-amob2">Sí, parcialmente amoblado</option>
+            <option data-i18n="co-amob3">No, sin muebles</option>
           </select>
         </div>
         <div class="form-field">
-          <label>Plan de interés</label>
+          <label data-i18n="co-f-plan">Plan de interés</label>
           <select>
-            <option value="">Seleccionar plan...</option>
+            <option value="" data-i18n="co-sel-plan">Seleccionar plan...</option>
             <option>Gestión Online (12%)</option>
             <option>Gestión Mensual (15%)</option>
             <option>Gestión Airbnb (25%)</option>
-            <option>No sé aún</option>
+            <option data-i18n="co-plan-ns">No sé aún</option>
           </select>
         </div>
       </div>
       <div class="form-field">
-        <label>Mensaje (opcional)</label>
-        <textarea placeholder="Contanos un poco sobre tu propiedad..."></textarea>
+        <label data-i18n="co-f-msg">Mensaje (opcional)</label>
+        <textarea placeholder="Contanos un poco sobre tu propiedad..." data-i18n-ph="co-ph-msg"></textarea>
       </div>
-      <button type="submit" class="form-submit">Enviar consulta →</button>
+      <button type="submit" class="form-submit" data-i18n="co-submit">Enviar consulta →</button>
     </form>
   </div>
 </section>
@@ -1144,27 +1172,27 @@
   <div class="footer-inner">
     <div class="footer-brand">
       <img src="images/bairesrentallogoblanco.png" alt="BairesRental" />
-      <p>Ciudad Autónoma de Buenos Aires (CABA), Argentina.</p>
+      <p data-i18n="ft-addr-idx">Ciudad Autónoma de Buenos Aires (CABA), Argentina.</p>
     </div>
     <div class="footer-links">
-      <h4>Servicios</h4>
+      <h4 data-i18n="ft-h-serv">Servicios</h4>
       <ul>
-        <li><a href="#planes">Nuestros planes</a></li>
-        <li><a href="departamentos.html">Departamentos</a></li>
+        <li><a href="#planes" data-i18n="ft-planes-idx">Nuestros planes</a></li>
+        <li><a href="departamentos.html" data-i18n="ft-dept-idx">Departamentos</a></li>
         <li><a href="faq.html">FAQ</a></li>
       </ul>
     </div>
     <div class="footer-links">
-      <h4>Contacto</h4>
+      <h4 data-i18n="ft-h-cont">Contacto</h4>
       <ul>
-        <li><a href="#contacto">Consultas</a></li>
+        <li><a href="#contacto" data-i18n="ft-consultas">Consultas</a></li>
         <li><a href="https://wa.me/5491173735757" target="_blank">WhatsApp</a></li>
-        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="#reviews" data-i18n="ft-reviews-idx">Reviews</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
+    <p data-i18n="ft-copy-idx">Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
     <p>🏆 Booking.com Traveller Review Award 2025 · 9,6/10</p>
   </div>
 </footer>
@@ -1310,9 +1338,131 @@ document.querySelectorAll('.form-field select').forEach(sel => {
 function handleSubmit(e) {
   e.preventDefault();
   const btn = e.target.querySelector('.form-submit');
-  btn.textContent = '✓ Enviado — te contactamos pronto!';
+  btn.textContent = IDX_LANG === 'en' ? '✓ Sent — we\'ll contact you soon!' : '✓ Enviado — te contactamos pronto!';
   btn.style.background = '#22c55e';
   btn.disabled = true;
+}
+
+// ── TRADUCCIONES ES / EN ────────────────────────────
+const IDX_T_DATA = {
+  es: {
+    'nav-prop':'Propiedades','nav-serv':'Servicios','nav-planes':'Planes',
+    'nav-owners':'Propietarios','nav-dept':'Departamentos','nav-cont':'Contacto',
+    'nav-cta':'Sumate →',
+    'h-eyebrow':'Gestión profesional de propiedades · Buenos Aires',
+    'h-w1':'Tu','h-w2':'hogar,','h-w3':'nuestro','h-w4':'cuidado.',
+    'h-sub':'Maximizá tus ingresos y olvidate de las preocupaciones. Nos ocupamos de todo.',
+    'h-btn1':'Evaluar mi propiedad →','h-btn2':'Ver planes',
+    's-eyebrow':'Números que hablan','s-t1':'Resultados','s-t2':'extraordinarios',
+    'sd-huespedes':'Huéspedes recibidos','sd-noches':'Noches reservadas',
+    'sd-resenas':'Reseñas','sd-calif':'Calificación promedio','sd-ocup':'Tasa de ocupación',
+    'p-label':'Nuestras propiedades','p-title':'Espacios diseñados para vivir bien','p-btn':'Ver catálogo completo →',
+    'pq-label':'¿Por qué BairesRental?','pq-title':'Cuidamos tu propiedad como si fuera nuestra',
+    'f1-title':'Gestión integral','f1-desc':'Fotografía, publicación, consultas, reservas, precios dinámicos, limpieza, lavandería, check-in/out y más. Vos solo disfrutás los resultados.',
+    'f2-title':'Cuidado personalizado','f2-desc':'Administramos tu propiedad garantizando confianza, seguridad y tranquilidad. Sin sorpresas, con comunicación constante.',
+    'f3-title':'Maximización de ingresos','f3-desc':'Precios dinámicos y optimización de ocupación para que tu propiedad rinda al máximo todos los meses del año.',
+    'f4-title':'A tu medida','f4-desc':'Personalizamos el servicio según tus preferencias y tipo de propiedad. Elegís el plan que mejor se adapta a vos.',
+    'pl-label':'Nuestros planes','pl-title':'Elegí el que se adapta a tu propiedad','pl-btn':'Más información',
+    'pl1-name':'Gestión Online','pl1-sub':' del neto','pl1-desc':'Ideal para propietarios que quieren ayuda online.',
+    'pl1-i1':'Fotografía profesional','pl1-i2':'Creación y optimización de perfil','pl1-i3':'Gestión de reservas y consultas','pl1-i4':'Evaluación de huéspedes','pl1-i5':'Precios dinámicos','pl1-i6':'Soporte online 24/7',
+    'pl2-name':'Gestión Mensual','pl2-sub':' del contrato','pl2-desc':'Perfecto para alquileres temporales mensuales.',
+    'pl2-i1':'Fotografía y difusión','pl2-i2':'Selección y evaluación de inquilinos','pl2-i3':'Coordinación de visitas','pl2-i4':'Firma de contrato','pl2-i5':'Check-in y check-out','pl2-i6':'Cobranzas mensuales','pl2-i7':'Limpieza y lavandería',
+    'pl3-name':'Gestión Airbnb','pl3-sub':' del neto','pl3-desc':'Para alquileres diarios en plataformas turísticas.',
+    'pl3-i1':'Fotografía y difusión','pl3-i2':'Publicación en Airbnb, Booking y más','pl3-i3':'Check-in y check-out','pl3-i4':'Limpieza y lavandería','pl3-i5':'Reposición de ropa blanca','pl3-i6':'Reposición de básicos','pl3-i7':'Soporte online 24/7',
+    'ca-label':'Calculá tus ingresos','ca-title':'Tu hogar como alquiler temporal','ca-sub':'Mové el slider y estimá cuánto podés ganar por mes',
+    'ca-noches':'Noches','ca-precio':'Precio/noche','ca-nota':'* El precio depende de las características y ubicación del inmueble',
+    'te-label':'Propietarios que nos eligen','te-title':'Ellos ya confían en BairesRental',
+    'rv-label':'Lo que dicen nuestros huéspedes',
+    'aw-eyebrow':'🏆 Reconocimiento internacional','aw-title':'Traveller Review Awards 2025 · Superanfitrión Airbnb 2026',
+    'aw-desc':'Gracias a las valoraciones de nuestros huéspedes, fuimos reconocidos por Booking.com con el Traveller Review Award 2025 con una calificación de 9,6/10, y somos Superhost certificados por Airbnb en 2026.',
+    'aw-b1':'🏅 Booking.com · 9,6/10','aw-b2':'⭐ Airbnb · Superanfitrión 2026',
+    'co-label':'Trabajemos juntos','co-title':'Solicitá la evaluación de tu propiedad','co-sub':'Completá el formulario y te contactamos en menos de 24 hs.',
+    'co-f-nombre':'Nombre','co-ph-nombre':'Tu nombre','co-f-tel':'Teléfono / WhatsApp',
+    'co-f-email':'Email','co-f-barrio':'Barrio / Dirección','co-ph-barrio':'Palermo, Recoleta, Belgrano...',
+    'co-f-amb':'Cantidad de ambientes','co-sel':'Seleccionar...','co-sel-plan':'Seleccionar plan...',
+    'co-amb1':'Monoambiente','co-amb2':'2 ambientes','co-amb3':'3 ambientes','co-amb4':'4 ambientes o más',
+    'co-f-amob':'¿Está amoblado?','co-amob1':'Sí, completamente amoblado','co-amob2':'Sí, parcialmente amoblado','co-amob3':'No, sin muebles',
+    'co-f-plan':'Plan de interés','co-plan-ns':'No sé aún',
+    'co-f-msg':'Mensaje (opcional)','co-ph-msg':'Contanos un poco sobre tu propiedad...',
+    'co-submit':'Enviar consulta →',
+    'ft-addr-idx':'Ciudad Autónoma de Buenos Aires (CABA), Argentina.',
+    'ft-h-serv':'Servicios','ft-planes-idx':'Nuestros planes','ft-dept-idx':'Departamentos',
+    'ft-h-cont':'Contacto','ft-consultas':'Consultas','ft-reviews-idx':'Reviews',
+    'ft-copy-idx':'Copyright © 2025 BairesRental. Todos los derechos reservados.',
+  },
+  en: {
+    'nav-prop':'Properties','nav-serv':'Services','nav-planes':'Pricing',
+    'nav-owners':'Owners','nav-dept':'Apartments','nav-cont':'Contact',
+    'nav-cta':'Get started →',
+    'h-eyebrow':'Professional property management · Buenos Aires',
+    'h-w1':'Your','h-w2':'home,','h-w3':'our','h-w4':'care.',
+    'h-sub':'Maximize your income and forget about the hassle. We take care of everything.',
+    'h-btn1':'Evaluate my property →','h-btn2':'See plans',
+    's-eyebrow':'Numbers that speak','s-t1':'Extraordinary','s-t2':'results',
+    'sd-huespedes':'Guests hosted','sd-noches':'Nights booked',
+    'sd-resenas':'Reviews','sd-calif':'Average rating','sd-ocup':'Occupancy rate',
+    'p-label':'Our properties','p-title':'Spaces designed for living well','p-btn':'View full catalog →',
+    'pq-label':'Why BairesRental?','pq-title':'We care for your property as if it were ours',
+    'f1-title':'Full management','f1-desc':'Photography, listing, inquiries, bookings, dynamic pricing, cleaning, laundry, check-in/out and more. You just enjoy the results.',
+    'f2-title':'Personalized care','f2-desc':'We manage your property ensuring trust, security and peace of mind. No surprises, with constant communication.',
+    'f3-title':'Income maximization','f3-desc':'Dynamic pricing and occupancy optimization so your property performs at its best every month of the year.',
+    'f4-title':'Tailored for you','f4-desc':'We personalize the service according to your preferences and property type. You choose the plan that best fits you.',
+    'pl-label':'Our plans','pl-title':'Choose the one that fits your property','pl-btn':'Learn more',
+    'pl1-name':'Online Management','pl1-sub':' of net','pl1-desc':'Ideal for owners who want online help.',
+    'pl1-i1':'Professional photography','pl1-i2':'Profile creation & optimization','pl1-i3':'Booking & inquiry management','pl1-i4':'Guest screening','pl1-i5':'Dynamic pricing','pl1-i6':'Online support 24/7',
+    'pl2-name':'Monthly Management','pl2-sub':' of contract','pl2-desc':'Perfect for monthly short-term rentals.',
+    'pl2-i1':'Photography & promotion','pl2-i2':'Tenant selection & screening','pl2-i3':'Visit coordination','pl2-i4':'Lease signing','pl2-i5':'Check-in & check-out','pl2-i6':'Monthly collections','pl2-i7':'Cleaning & laundry',
+    'pl3-name':'Airbnb Management','pl3-sub':' of net','pl3-desc':'For daily rentals on tourist platforms.',
+    'pl3-i1':'Photography & promotion','pl3-i2':'Listed on Airbnb, Booking & more','pl3-i3':'Check-in & check-out','pl3-i4':'Cleaning & laundry','pl3-i5':'Linen replacement','pl3-i6':'Essentials restocking','pl3-i7':'Online support 24/7',
+    'ca-label':'Calculate your earnings','ca-title':'Your home as a short-term rental','ca-sub':'Move the slider to estimate how much you can earn per month',
+    'ca-noches':'Nights','ca-precio':'Price/night','ca-nota':'* Price depends on the property\'s features and location',
+    'te-label':'Owners who choose us','te-title':'They already trust BairesRental',
+    'rv-label':'What our guests say',
+    'aw-eyebrow':'🏆 International recognition','aw-title':'Traveller Review Awards 2025 · Airbnb Superhost 2026',
+    'aw-desc':'Thanks to our guests\' reviews, we were recognized by Booking.com with the Traveller Review Award 2025 with a rating of 9.6/10, and we are certified Superhosts by Airbnb in 2026.',
+    'aw-b1':'🏅 Booking.com · 9.6/10','aw-b2':'⭐ Airbnb · Superhost 2026',
+    'co-label':'Let\'s work together','co-title':'Request your property evaluation','co-sub':'Fill out the form and we\'ll contact you within 24 hours.',
+    'co-f-nombre':'Name','co-ph-nombre':'Your name','co-f-tel':'Phone / WhatsApp',
+    'co-f-email':'Email','co-f-barrio':'Neighborhood / Address','co-ph-barrio':'Palermo, Recoleta, Belgrano...',
+    'co-f-amb':'Number of rooms','co-sel':'Select...','co-sel-plan':'Select plan...',
+    'co-amb1':'Studio','co-amb2':'2 rooms','co-amb3':'3 rooms','co-amb4':'4 rooms or more',
+    'co-f-amob':'Is it furnished?','co-amob1':'Yes, fully furnished','co-amob2':'Yes, partially furnished','co-amob3':'No, unfurnished',
+    'co-f-plan':'Plan of interest','co-plan-ns':'Not sure yet',
+    'co-f-msg':'Message (optional)','co-ph-msg':'Tell us a bit about your property...',
+    'co-submit':'Send inquiry →',
+    'ft-addr-idx':'Buenos Aires City (CABA), Argentina.',
+    'ft-h-serv':'Services','ft-planes-idx':'Our plans','ft-dept-idx':'Apartments',
+    'ft-h-cont':'Contact','ft-consultas':'Inquiries','ft-reviews-idx':'Reviews',
+    'ft-copy-idx':'Copyright © 2025 BairesRental. All rights reserved.',
+  }
+};
+
+let IDX_LANG = localStorage.getItem('brLang') || 'es';
+
+function idxT(k){ return (IDX_T_DATA[IDX_LANG] || IDX_T_DATA.es)[k] || k; }
+
+function idxSetLang(l) {
+  IDX_LANG = l;
+  localStorage.setItem('brLang', l);
+  document.documentElement.lang = l === 'en' ? 'en' : 'es';
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.dataset.lang = l);
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const val = idxT(el.dataset.i18n);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = val;
+    else el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = idxT(el.dataset.i18nPh);
+  });
+}
+
+function idxToggleLang() { idxSetLang(IDX_LANG === 'es' ? 'en' : 'es'); }
+
+// Aplicar idioma guardado al cargar
+if (IDX_LANG !== 'es') {
+  idxSetLang(IDX_LANG);
+} else {
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.dataset.lang = 'es');
 }
 </script>
 </body>

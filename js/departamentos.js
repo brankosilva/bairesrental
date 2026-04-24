@@ -406,20 +406,23 @@ function renderizarCatalogo() {
 
   const resultados = filtrarPropiedades();
   const total = catalogoActual.length;
-  if (contador) contador.textContent = `Mostrando ${resultados.length} de ${total} propiedades`;
+  if (contador) contador.textContent = `${window.BR_T ? BR_T('c-mostrando') : 'Mostrando'} ${resultados.length} ${window.BR_T ? BR_T('c-de') : 'de'} ${total} ${window.BR_T ? BR_T('c-propiedades') : 'propiedades'}`;
 
   grid.style.opacity = "0";
   setTimeout(() => {
     if (resultados.length === 0) {
+      const noTitle = window.BR_T ? BR_T('c-no-results-title') : 'No encontramos propiedades con esos filtros';
+      const noSub = window.BR_T ? BR_T('c-no-results-sub') : 'Probá ajustando los filtros o consultanos directamente';
+      const noWa = window.BR_T ? BR_T('c-no-results-wa') : 'Consultar por WhatsApp';
       grid.innerHTML = `
         <div class="br-grid-full">
           <div class="text-center py-5">
             <div class="mb-3" style="font-size:3rem">🔍</div>
-            <h4 class="mb-2" style="font-family:'DM Sans',sans-serif;">No encontramos propiedades con esos filtros</h4>
-            <p class="text-muted mb-4" style="font-family:'DM Sans',sans-serif;">Probá ajustando los filtros o consultanos directamente</p>
+            <h4 class="mb-2" style="font-family:'DM Sans',sans-serif;">${noTitle}</h4>
+            <p class="text-muted mb-4" style="font-family:'DM Sans',sans-serif;">${noSub}</p>
             <a href="${WA_BASE}?text=${encodeURIComponent('Hola! Estoy buscando un departamento en Buenos Aires. ¿Podrían ayudarme?')}"
                target="_blank" class="br-btn-wa d-inline-flex" style="width:auto;padding:.65rem 1.5rem;">
-              Consultar por WhatsApp
+              ${noWa}
             </a>
           </div>
         </div>`;
@@ -438,13 +441,14 @@ function formatearFecha(fechaStr) {
 }
 
 function crearCardHTML(p, idx) {
+  const t = window.BR_T || (k => k);
   let badgeDisp = "";
-  if (p.disponibilidad === "disponible") badgeDisp = `<span class="br-badge br-badge-disponible">● Disponible</span>`;
-  else if (p.disponibilidad === "reservado") badgeDisp = `<span class="br-badge br-badge-reservado">● Reservado</span>`;
-  else badgeDisp = `<span class="br-badge br-badge-nodisponible">● No disponible</span>`;
+  if (p.disponibilidad === "disponible") badgeDisp = `<span class="br-badge br-badge-disponible">${t('c-disp')}</span>`;
+  else if (p.disponibilidad === "reservado") badgeDisp = `<span class="br-badge br-badge-reservado">${t('c-res')}</span>`;
+  else badgeDisp = `<span class="br-badge br-badge-nodisponible">${t('c-no')}</span>`;
 
   const desdeHTML = (p.disponibilidad === "disponible" && p.disponibleDesde)
-    ? `<div class="br-prop-desde">📅 Disponible desde el <strong>${formatearFecha(p.disponibleDesde)}</strong></div>`
+    ? `<div class="br-prop-desde">${t('c-desde')} <strong>${formatearFecha(p.disponibleDesde)}</strong></div>`
     : "";
 
   const amenitiesHTML = p.amenities.slice(0, 4).map(a =>
@@ -453,13 +457,13 @@ function crearCardHTML(p, idx) {
 
   const badgePropio = p.esPropio ? `<span class="br-badge br-badge-propio">★ BairesRental</span>` : "";
   const serviciosLabel = p.serviciosIncluidos
-    ? `<span class="br-tag-servicios">Servicios incl.</span>`
-    : `<span class="br-tag-servicios-aparte">Servicios aparte</span>`;
-  const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">Mín. ${p.minimoMeses} meses</span>` : "";
+    ? `<span class="br-tag-servicios">${t('c-svc-incl')}</span>`
+    : `<span class="br-tag-servicios-aparte">${t('c-svc-extra')}</span>`;
+  const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">${t('c-min')} ${p.minimoMeses} ${p.minimoMeses === 1 ? t('c-mes') : t('c-meses')}</span>` : "";
 
   const precioHTML = p.precio > 0
     ? `<span class="br-precio">USD ${p.precio.toLocaleString()}</span><span class="br-precio-sub">/mes ${serviciosLabel}${minimoLabel}</span>`
-    : `<span class="br-precio" style="font-size:1rem;font-weight:700;">Consultar precio</span><span class="br-precio-sub">${serviciosLabel}${minimoLabel}</span>`;
+    : `<span class="br-precio" style="font-size:1rem;font-weight:700;">${t('c-consultar')}</span><span class="br-precio-sub">${serviciosLabel}${minimoLabel}</span>`;
 
   const waLink = p.fichaUrl || p.fotos || "";
   const waMsgCompleto = (waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg) + `\n\nCod: ${p.id}`;
@@ -471,7 +475,7 @@ function crearCardHTML(p, idx) {
           <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
             <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
           </svg>
-          ${p.direccion} — Ver mapa
+          ${p.direccion} — ${t('c-ver-mapa')}
         </a>
        </div>`
     : "";
@@ -492,11 +496,8 @@ function crearCardHTML(p, idx) {
         <div class="br-prop-body">
           <div class="br-prop-clickzone" onclick="verDetalle(${idx})">
             <div class="br-prop-location">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-              </svg>
               ${p.barrio} · <em style="font-style:normal;font-weight:500;">${p.tipo}</em>
-              ${p.mascotas ? `<span class="br-mascota-inline">🐾 Acepta mascotas</span>` : ""}
+              ${p.mascotas ? `<span class="br-mascota-inline">${t('c-mascotas')}</span>` : ""}
             </div>
             ${direccionHTML}
             <h3 class="br-prop-titulo">${p.titulo}</h3>
@@ -510,7 +511,7 @@ function crearCardHTML(p, idx) {
               <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
               </svg>
-              Consultar por WhatsApp
+              ${t('c-wa')}
             </a>
             <div class="br-btn-detalle-row">
               <button class="br-btn-detalle" onclick="event.stopPropagation(); verDetalle(${idx})">
@@ -518,7 +519,7 @@ function crearCardHTML(p, idx) {
                   <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                   <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
                 </svg>
-                Ver detalles
+                ${t('c-det')}
               </button>
               <button class="br-btn-compartir" title="Compartir enlace" onclick="event.stopPropagation(); compartirPropiedad('${p.id}')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
@@ -550,15 +551,16 @@ function verDetalle(ref) {
     ? catalogoActual[ref]
     : catalogoActual.find(x => x.id === ref);
   if (!p) return;
+  const t = window.BR_T || (k => k);
 
   // — Imagen —
   const imgWrap = document.getElementById("detalle-img-wrap");
   const badgesHTML = `
     <div class="detalle-img-badges">
       ${p.esPropio ? `<span class="br-badge br-badge-propio">★ BairesRental</span>` : ""}
-      ${p.disponibilidad === "disponible" ? `<span class="br-badge br-badge-disponible">● Disponible</span>`
-        : p.disponibilidad === "reservado" ? `<span class="br-badge br-badge-reservado">● Reservado</span>`
-        : `<span class="br-badge br-badge-nodisponible">● No disponible</span>`}
+      ${p.disponibilidad === "disponible" ? `<span class="br-badge br-badge-disponible">${t('c-disp')}</span>`
+        : p.disponibilidad === "reservado" ? `<span class="br-badge br-badge-reservado">${t('c-res')}</span>`
+        : `<span class="br-badge br-badge-nodisponible">${t('c-no')}</span>`}
     </div>
     ${p.mascotas ? `<div class="br-mascota-flag" style="position:absolute;bottom:.6rem;right:.6rem;">🐾</div>` : ""}
   `;
@@ -573,14 +575,11 @@ function verDetalle(ref) {
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
             <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
           </svg>
-          ${p.direccion} — Ver mapa
+          ${p.direccion} — ${t('c-ver-mapa')}
         </a>
        </div>`
     : "";
   document.getElementById("detalle-location").innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
-      <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-    </svg>
     ${p.barrio} · <em style="font-style:normal;font-weight:500;">${p.tipo}</em>
   `;
   // Inyectar dirección después del location (si existe el elemento)
@@ -606,18 +605,18 @@ function verDetalle(ref) {
 
   // — Precio —
   const serviciosLabel = p.serviciosIncluidos
-    ? `<span class="br-tag-servicios">Servicios incluidos</span>`
-    : `<span class="br-tag-servicios-aparte">Servicios aparte</span>`;
-  const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">Mín. ${p.minimoMeses} meses</span>` : "";
+    ? `<span class="br-tag-servicios">${t('c-svc-incl')}</span>`
+    : `<span class="br-tag-servicios-aparte">${t('c-svc-extra')}</span>`;
+  const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">${t('c-min')} ${p.minimoMeses} ${p.minimoMeses === 1 ? t('c-mes') : t('c-meses')}</span>` : "";
   document.getElementById("detalle-precio-row").innerHTML = p.precio > 0
     ? `<span class="detalle-precio">USD ${p.precio.toLocaleString()}</span>
        <span class="detalle-precio-sub">/mes ${serviciosLabel}${minimoLabel}</span>`
-    : `<span class="detalle-precio" style="font-size:1.2rem;">Consultar precio</span>`;
+    : `<span class="detalle-precio" style="font-size:1.2rem;">${t('c-consultar')}</span>`;
 
   // — Disponible desde —
   const desdeEl = document.getElementById("detalle-desde");
   if (p.disponibilidad === "disponible" && p.disponibleDesde) {
-    desdeEl.innerHTML = `<div class="detalle-desde">📅 Disponible desde el <strong>${formatearFecha(p.disponibleDesde)}</strong></div>`;
+    desdeEl.innerHTML = `<div class="detalle-desde">${t('c-desde')} <strong>${formatearFecha(p.disponibleDesde)}</strong></div>`;
   } else {
     desdeEl.innerHTML = "";
   }
@@ -641,10 +640,10 @@ function verDetalle(ref) {
   const opcionesSection = document.getElementById("detalle-opciones-section");
   const opcionesRow = document.getElementById("detalle-opciones-row");
   const opciones = [];
-  if (p.amueblado) opciones.push("🛋️ Amueblado");
-  if (p.mascotas) opciones.push("🐾 Acepta mascotas");
-  if (p.serviciosIncluidos) opciones.push("💡 Servicios incluidos");
-  if (p.minimoMeses > 1) opciones.push(`📅 Mínimo ${p.minimoMeses} meses`);
+  if (p.amueblado) opciones.push(window.BR_LANG === 'en' ? "🛋️ Furnished" : "🛋️ Amueblado");
+  if (p.mascotas) opciones.push(t('c-mascotas'));
+  if (p.serviciosIncluidos) opciones.push(window.BR_LANG === 'en' ? "💡 Services included" : "💡 Servicios incluidos");
+  if (p.minimoMeses > 1) opciones.push(`📅 ${t('c-min')} ${p.minimoMeses} ${p.minimoMeses === 1 ? t('c-mes') : t('c-meses')}`);
   if (opciones.length > 0) {
     opcionesRow.innerHTML = opciones.map(o => `<span class="detalle-opcion-tag">${o}</span>`).join("");
     opcionesSection.style.display = "block";
@@ -661,18 +660,18 @@ function verDetalle(ref) {
   const iconShare = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>`;
 
   document.getElementById("detalle-actions").innerHTML = `
-    <a href="${waUrl}" target="_blank" class="br-btn-wa">${iconWa} Consultar por WhatsApp</a>
+    <a href="${waUrl}" target="_blank" class="br-btn-wa">${iconWa} ${t('c-wa')}</a>
     ${linkFotos
       ? `<a href="${linkFotos}" target="_blank" class="detalle-btn-fotos">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
             <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
             <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
           </svg>
-          Ver fotos y detalles
+          ${window.BR_LANG === 'en' ? 'View photos & details' : 'Ver fotos y detalles'}
         </a>`
       : ""
     }
-    <button class="detalle-btn-compartir" onclick="compartirPropiedad('${p.id}')">${iconShare} Compartir</button>
+    <button class="detalle-btn-compartir" onclick="compartirPropiedad('${p.id}')">${iconShare} ${window.BR_LANG === 'en' ? 'Share' : 'Compartir'}</button>
   `;
 
   // — Mostrar —

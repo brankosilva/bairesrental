@@ -3325,7 +3325,7 @@ input[type="range"].br-range::-webkit-slider-thumb {
 #catalogo-grid {
   display: grid !important;
   grid-template-columns: 1fr;
-  grid-auto-rows: 480px;
+  grid-auto-rows: auto;
   gap: 1.5rem;
   transition: opacity .2s ease;
 }
@@ -3394,10 +3394,8 @@ input[type="range"].br-range::-webkit-slider-thumb {
   padding: 1.1rem 1.2rem 1.2rem;
   flex: 1; display: flex; flex-direction: column;
   font-family: 'DM Sans', sans-serif;
-  overflow: hidden;
-  min-height: 0;
 }
-.br-prop-clickzone { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.br-prop-clickzone { flex: 1; display: flex; flex-direction: column; }
 
 .br-prop-location {
   font-size: .83rem; color: var(--br-gris-txt);
@@ -3446,10 +3444,12 @@ input[type="range"].br-range::-webkit-slider-thumb {
 .br-prop-desc {
   font-size: .88rem; color: var(--br-gris-txt);
   line-height: 1.55; margin-bottom: 0;
-  overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+  padding-bottom: .75rem;
 }
 
-.br-prop-actions { }
+.br-prop-actions { margin-top: auto; padding-top: .5rem; }
 
 .br-btn-wa {
   background: var(--br-verde); color: #fff;

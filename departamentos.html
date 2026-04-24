@@ -37,63 +37,344 @@
 <!-- Modernizr JS -->
 <script src="js/modernizr-2.6.2.min.js"></script>
 
+<style>
+  /* ── NAVBAR (departamentos) ─────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --negro: #111111; --azul: #1A6FE8; --azul-dark: #1058c0;
+    --verde: #25D366; --blanco: #ffffff;
+  }
+  body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; }
+
+  .br-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    padding: 1.2rem 2rem;
+    display: flex; align-items: center; gap: 1.2rem;
+    transition: background 0.4s, backdrop-filter 0.4s, padding 0.3s;
+  }
+  .br-nav-logo { margin-right: auto; }
+  .br-nav.scrolled {
+    background: rgba(17,17,17,0.96);
+    backdrop-filter: blur(12px);
+    padding: 0.8rem 2rem;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .br-nav-logo img { height: 34px; }
+  .br-nav-links { display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0; }
+  .br-nav-links a {
+    font-family: 'DM Sans', sans-serif !important;
+    color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
+    font-size: 12.5px !important; font-weight: 600 !important;
+    letter-spacing: 0.08em !important; text-transform: uppercase !important;
+    transition: color 0.2s;
+  }
+  .br-nav-links a:hover, .br-nav-links a.active-link { color: #fff !important; }
+  .br-nav-cta {
+    font-family: 'DM Sans', sans-serif !important;
+    background: #1A6FE8 !important; color: #fff !important;
+    padding: 9px 19px !important; border-radius: 100px !important;
+    font-size: 13px !important; font-weight: 700 !important;
+    text-decoration: none !important; transition: background 0.2s, transform 0.15s;
+  }
+  .br-nav-cta:hover { background: #1058c0 !important; transform: translateY(-1px); }
+  .br-nav-toggle {
+    display: none; background: none !important; border: none !important;
+    color: white !important; cursor: pointer; font-size: 22px;
+    width: 40px; height: 40px; align-items: center; justify-content: center;
+    border-radius: 8px; transition: background 0.2s;
+  }
+  .br-nav-toggle:hover { background: rgba(255,255,255,0.1) !important; }
+  @media (max-width: 1060px) {
+    .br-nav-links, .br-nav-cta { display: none !important; }
+    .br-nav-toggle { display: flex !important; }
+  }
+
+  /* Mobile drawer */
+  .br-mob-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1001;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  }
+  .br-mob-overlay.open { display: block; }
+  .br-mob-drawer {
+    position: fixed; top: 0; right: -280px; bottom: 0; z-index: 1002;
+    width: 280px; background: #111118;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; padding: 1.5rem;
+    transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .br-mob-drawer.open { right: 0; }
+  .br-drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .br-drawer-header img { height: 28px; }
+  .br-drawer-close {
+    background: none !important; border: none !important; color: rgba(255,255,255,0.5);
+    font-size: 1.5rem; cursor: pointer; line-height: 1;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; transition: background 0.2s, color 0.2s;
+  }
+  .br-drawer-close:hover { background: rgba(255,255,255,0.08) !important; color: #fff; }
+  .br-drawer-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex: 1; margin: 0; padding: 0; }
+  .br-drawer-links a {
+    display: block !important; padding: 12px 16px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
+    font-size: 15px !important; font-weight: 600 !important;
+    border-radius: 10px; transition: background 0.2s, color 0.2s;
+  }
+  .br-drawer-links a:hover, .br-drawer-links a.active-link { background: rgba(255,255,255,0.06) !important; color: #fff !important; }
+  .br-drawer-cta {
+    display: block; text-align: center;
+    background: #1A6FE8 !important; color: #fff !important;
+    padding: 14px; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 700 !important; font-size: 14.5px !important;
+    text-decoration: none !important; margin-top: 1rem;
+    transition: background 0.2s;
+  }
+  .br-drawer-cta:hover { background: #1058c0 !important; }
+
+  /* ── HERO (departamentos) ─────────────────────── */
+  .br-dept-hero {
+    position: relative; height: 100vh; min-height: 500px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; overflow: hidden;
+    background: #0a0a12;
+    margin-bottom: 0 !important;
+  }
+  .br-dept-hero-bg { position: absolute; inset: 0; z-index: 0; }
+  .br-dept-hero-bg::after {
+    content: "";
+    position: absolute; inset: 0; z-index: 10;
+    background: linear-gradient(to bottom, rgba(10,10,18,0.55) 0%, rgba(10,10,18,0.72) 100%);
+  }
+  .br-slide {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    opacity: 0;
+    animation: brSlide 21s infinite;
+  }
+  .br-slide-1 { background-image: url(images/galeria-2.jpg); animation-delay: 0s; }
+  .br-slide-2 { background-image: url(images/galeria-4.jpg); animation-delay: 7s; }
+  .br-slide-3 { background-image: url(images/galeria-6.jpg); animation-delay: 14s; }
+  @keyframes brSlide {
+    0%   { opacity: 0; }
+    12%  { opacity: 1; }
+    26%  { opacity: 1; }
+    38%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  .br-dept-hero-content { position: relative; z-index: 11; max-width: 740px; padding: 80px 32px 112px; }
+  .br-dept-eyebrow {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 16px; border-radius: 100px; margin-bottom: 24px;
+  }
+  .br-dept-title {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: clamp(48px, 11vw, 100px) !important;
+    font-weight: 800; line-height: 1.0;
+    letter-spacing: -0.04em; color: #fff;
+    margin-bottom: 20px;
+  }
+  .br-dept-title .accent { color: #1A6FE8; }
+  .br-dept-sub {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: clamp(15px, 1.8vw, 19px);
+    color: rgba(255,255,255,0.55); font-weight: 400;
+    margin-bottom: 40px; line-height: 1.6;
+  }
+  .br-dept-scroll-hint {
+    position: absolute; bottom: 2.5rem; left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    color: rgba(255,255,255,0.35); font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase; z-index: 11;
+  }
+  .br-dept-scroll-hint svg { animation: bounceY 1.8s ease-in-out infinite; }
+  @keyframes bounceY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+  @media (max-width: 1060px) { .br-dept-scroll-hint { display: none; } }
+  @media (max-width: 992px) {
+    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 100px !important; }
+    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 24px !important; }
+  }
+  @media (max-width: 650px) {
+    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 72px !important; }
+    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 20px !important; }
+  }
+  @media (max-width: 480px) {
+    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 58px !important; }
+    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 17px !important; }
+  }
+  @media (max-width: 400px) {
+    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 48px !important; }
+    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 16px !important; }
+  }
+
+  /* Fix: filter bar sticky — top controlado por JS (sin !important para que el inline style gane) */
+  .br-filtros-wrapper { position: sticky !important; top: 64px; margin-top: 0 !important; }
+  @media (max-width: 1060px) {
+    .br-filtros-wrapper { position: sticky !important; top: 58px; }
+  }
+
+  /* Sin gap entre filtros y catálogo */
+  .br-catalogo-section  { padding-top: 0 !important; }
+  .br-catalogo-header   { display: none !important; }
+  /* Contador de resultados reubicado en la barra de filtros */
+  .br-contador-inline {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px; color: #888; margin-left: auto; align-self: center; white-space: nowrap;
+  }
+
+  /* ── Filtros compactos (px explícitos, independientes del rem base) ── */
+  .br-filtros-inner         { padding: 7px 24px !important; }
+  .br-filtros-row           { gap: 9px !important; }
+  .br-filtro-grupo          { gap: 2px !important; }
+  .br-filtro-label          { font-size: 10px !important; }
+  .br-pill-btn              { font-size: 11px !important; padding: 3px 9px !important; }
+  .br-filtro-select         { font-size: 11px !important; padding: 4px 10px !important; min-width: 110px !important; }
+  .br-toggle-wrap span      { font-size: 11px !important; }
+  #label-precio             { font-size: 11px !important; }
+  .br-precio-wrap           { min-width: 130px !important; }
+  .br-btn-limpiar           { font-size: 11px !important; }
+  /* Amenities segunda fila — más compacta */
+  .br-filtros-amenities     { margin-top: 5px !important; padding-top: 5px !important; }
+  .br-amenity-check         { font-size: 11px !important; padding: 3px 8px !important; }
+
+  /* ── FABs (departamentos) ─────────────────────── */
+  .br-fab-group {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 900;
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+  }
+  .br-wa-fab, .br-top-fab {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; transition: transform 0.2s, opacity 0.2s;
+    border: none; cursor: pointer;
+  }
+  .br-wa-fab {
+    background: rgba(20,20,24,0.72); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12) !important; color: #fff;
+  }
+  .br-wa-fab:hover { transform: scale(1.08); background: rgba(37,211,102,0.85); }
+  .br-top-fab {
+    background: rgba(20,20,24,0.60); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: rgba(255,255,255,0.7);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.2s;
+  }
+  .br-top-fab.visible { opacity: 1; pointer-events: auto; }
+  .br-top-fab:hover { transform: scale(1.08); color: #fff; }
+
+  /* ── Lang toggle ─────────────────────── */
+  .br-lang-btn {
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.18) !important;
+    border-radius: 100px !important;
+    color: rgba(255,255,255,0.45) !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    padding: 5px 11px !important;
+    cursor: pointer; display: flex; align-items: center; gap: 3px;
+    transition: background 0.2s;
+  }
+  .br-lang-btn:hover { background: rgba(255,255,255,0.14) !important; }
+  .br-lang-btn[data-lang="es"] .br-lang-es,
+  .br-lang-btn:not([data-lang]) .br-lang-es { color: #fff !important; }
+  .br-lang-btn[data-lang="en"] .br-lang-en  { color: #fff !important; }
+  .br-lang-sep { opacity: 0.35; }
+  @media (max-width: 1060px) { .br-lang-btn { display: none !important; } }
+
+  .br-drawer-lang-row {
+    display: flex; justify-content: center;
+    margin-top: 1rem; padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .br-drawer-lang-row .br-lang-btn { display: flex !important; }
+</style>
 
 </head>
 <body data-page="departamentos">
 
-<div class="fh5co-loader"></div>
-
-<div id="page" class="menumobile">
-<nav class="fh5co-nav" role="navigation">
-  <div class="top-menu">
-    <div class="container container-nav">
-      <div class="row menu-nav">
-        <div class="col-xs-2">
-          <div><a href="index.html"><img class="img-logo" src="./images/bairesrentallogo.png" alt="logo-Baires-Rental"></a></div>
-        </div>
-        <div class="col-xs-10 text-right menu-1">
-          <ul class="menu-lista">
-            <li><a href="index.html">HOME</a></li>
-            <li><a href="index.html#fh5co-testimony">REVIEWS</a></li>
-            <li><a href="index.html#fh5co-clientes">CLIENTES</a></li>
-            <li><a href="index.html#fh5co-pricing">NUESTROS PLANES</a></li>
-            <li class="active"><a href="departamentos.html">DEPARTAMENTOS</a></li>
-            <li><a href="faq.html">FAQ</a></li>
-            <li><a href="index.html#fh5co-contact">CONTACTO</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- ── NAVBAR ──────────────────────────────────── -->
+<nav class="br-nav" id="br-navbar">
+  <a href="index.html" class="br-nav-logo">
+    <img src="./images/bairesrentallogoblanco.png" alt="BairesRental" />
+  </a>
+  <ul class="br-nav-links">
+    <li><a href="index.html#propiedades" data-i18n="nav-prop">Propiedades</a></li>
+    <li><a href="index.html#por-que" data-i18n="nav-serv">Servicios</a></li>
+    <li><a href="index.html#planes" data-i18n="nav-planes">Planes</a></li>
+    <li><a href="index.html#testimonios" data-i18n="nav-owners">Propietarios</a></li>
+    <li><a href="departamentos.html" class="active-link" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="index.html#contacto" data-i18n="nav-cont">Contacto</a></li>
+  </ul>
+  <button class="br-lang-btn" id="br-lang-btn" data-lang="es" onclick="brToggleLang()">
+    <span class="br-lang-es">ES</span>
+    <span class="br-lang-sep">·</span>
+    <span class="br-lang-en">EN</span>
+  </button>
+  <a href="index.html#contacto" class="br-nav-cta" data-i18n="nav-cta">Sumate →</a>
+  <button class="br-nav-toggle" id="br-mob-toggle">☰</button>
 </nav>
 
-<!-- HERO -->
-<aside id="fh5co-hero">
-  <div class="flexslider">
-    <ul class="slides">
-      <li style="background-image: url(images/fondodepartments1.jpg);">
-        <div class="overlay-gradient"></div>
-        <div class="container">
-          <div class="row">
-            <div class="col-md-8 col-md-offset-2 text-center slider-text">
-              <div class="slider-text-inner">
-                <h1 class="slider-title title-page-departments">VIVÍ LA EXPERIENCIA</h1>
-                <div>
-                  <img class="img-logo logo-subtitle" src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental">
-                </div>
-                <button class="flecha">
-                  <div>
-                    <a class="flecha-button" href="#catalogo-departamentos"><i class="bi bi-chevron-double-down"></i></a>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </li>
-    </ul>
+<!-- Mobile drawer -->
+<div class="br-mob-overlay" id="br-mob-overlay"></div>
+<div class="br-mob-drawer" id="br-mob-drawer">
+  <div class="br-drawer-header">
+    <img src="./images/bairesrentallogoblanco.png" alt="BairesRental" />
+    <button class="br-drawer-close" id="br-drawer-close">✕</button>
   </div>
-</aside>
+  <ul class="br-drawer-links">
+    <li><a href="index.html#propiedades" data-i18n="nav-prop">Propiedades</a></li>
+    <li><a href="index.html#por-que" data-i18n="nav-serv">Servicios</a></li>
+    <li><a href="index.html#planes" data-i18n="nav-planes">Planes</a></li>
+    <li><a href="index.html#testimonios" data-i18n="nav-owners">Propietarios</a></li>
+    <li><a href="departamentos.html" class="active-link" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="index.html#contacto" data-i18n="nav-cont">Contacto</a></li>
+  </ul>
+  <a href="index.html#contacto" class="br-drawer-cta" data-i18n="drawer-cta">Sumate →</a>
+  <div class="br-drawer-lang-row">
+    <button class="br-lang-btn" data-lang="es" onclick="brToggleLang()">
+      <span class="br-lang-es">ES</span>
+      <span class="br-lang-sep">·</span>
+      <span class="br-lang-en">EN</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── HERO ──────────────────────────────────── -->
+<section class="br-dept-hero">
+  <div class="br-dept-hero-bg">
+    <div class="br-slide br-slide-1"></div>
+    <div class="br-slide br-slide-2"></div>
+    <div class="br-slide br-slide-3"></div>
+  </div>
+  <div class="br-dept-hero-content">
+    <span class="br-dept-eyebrow" data-i18n="hero-eyebrow">Catálogo de propiedades</span>
+    <h1 class="br-dept-title"><span data-i18n="hero-t1">Viví la</span><br><span class="accent" data-i18n="hero-t2">experiencia</span></h1>
+    <p class="br-dept-sub">
+      <span data-i18n="hero-sub1">Departamentos en alquiler temporario en Buenos Aires.</span><br>
+      <span data-i18n="hero-sub2">Palermo, Recoleta, Belgrano y más barrios.</span>
+    </p>
+  </div>
+  <div class="br-dept-scroll-hint">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+    <span data-i18n="hero-scroll">Explorar</span>
+  </div>
+</section>
 
 <!-- =====================================================
      BARRA DE FILTROS
@@ -102,7 +383,7 @@
   <div class="br-filtros-inner">
 
     <button class="br-filtros-toggle-mobile" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.br-toggle-arrow').textContent = this.nextElementSibling.classList.contains('open') ? '▲' : '▼'">
-      <span>🔍 Filtrar propiedades</span>
+      <span data-i18n="f-mobile">🔍 Filtrar propiedades</span>
       <span class="br-toggle-arrow">▼</span>
     </button>
 
@@ -110,14 +391,14 @@
       <div class="br-filtros-row">
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label">Barrio</span>
+          <span class="br-filtro-label" data-i18n="f-barrio">Barrio</span>
           <select class="br-filtro-select" id="filtro-barrio">
-            <option value="">Todos</option>
+            <option value="" data-i18n-opt="f-todos">Todos</option>
           </select>
         </div>
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label">Tipo</span>
+          <span class="br-filtro-label" data-i18n="f-tipo">Tipo</span>
           <div class="br-filtro-pills">
             <button class="br-pill-btn filtro-tipo-btn" data-tipo="monoambiente">Mono</button>
             <button class="br-pill-btn filtro-tipo-btn" data-tipo="2 ambientes">2 amb.</button>
@@ -129,63 +410,65 @@
 
         <div class="br-filtro-grupo br-precio-wrap">
           <div class="br-precio-top">
-            <span class="br-filtro-label">Precio máx.</span>
+            <span class="br-filtro-label" data-i18n="f-precio">Precio máx.</span>
             <span id="label-precio">USD 5.000</span>
           </div>
           <input type="range" class="br-range" id="filtro-precio" min="500" max="5000" step="100" value="5000" />
         </div>
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label">Disponibilidad</span>
+          <span class="br-filtro-label" data-i18n="f-disp">Disponibilidad</span>
           <label class="br-toggle-wrap">
             <input type="checkbox" id="filtro-disponible" />
-            <span>Solo disponibles</span>
+            <span data-i18n="f-solo-disp">Solo disponibles</span>
           </label>
         </div>
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label">Amueblado</span>
+          <span class="br-filtro-label" data-i18n="f-amueblado">Amueblado</span>
           <div class="br-filtro-pills">
-            <button class="br-pill-btn filtro-amueblado-btn" data-amueblado="si">Sí</button>
+            <button class="br-pill-btn filtro-amueblado-btn" data-amueblado="si" data-i18n="f-si">Sí</button>
             <button class="br-pill-btn filtro-amueblado-btn" data-amueblado="no">No</button>
           </div>
         </div>
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label">Mascotas</span>
+          <span class="br-filtro-label" data-i18n="f-mascotas">Mascotas</span>
           <label class="br-toggle-wrap">
             <input type="checkbox" id="filtro-mascotas" />
-            <span>Acepta mascotas</span>
+            <span data-i18n="f-acepta">Acepta mascotas</span>
           </label>
         </div>
 
         <div class="br-filtro-grupo">
           <span class="br-filtro-label">BairesRental</span>
           <div class="br-filtro-pills">
-            <button class="br-pill-btn br-pill-btn-baires" id="filtro-bairesrental">★ Solo BairesRental</button>
+            <button class="br-pill-btn br-pill-btn-baires" id="filtro-bairesrental" data-i18n="f-baires">★ Solo BairesRental</button>
           </div>
         </div>
 
         <div class="br-filtro-grupo" style="margin-left:auto;">
           <span class="br-filtro-label">&nbsp;</span>
-          <button class="br-btn-limpiar" id="btn-limpiar-filtros">✕ Limpiar</button>
+          <button class="br-btn-limpiar" id="btn-limpiar-filtros" data-i18n="f-limpiar">✕ Limpiar</button>
         </div>
+
+        <span class="br-contador-inline" id="contador-resultados-inline"></span>
 
       </div>
 
       <div class="br-filtros-amenities">
-        <span class="br-filtro-label" style="display:block;margin-bottom:.45rem;">Amenities</span>
+        <span class="br-filtro-label" style="display:block;margin-bottom:.45rem;" data-i18n="f-amenities">Amenities</span>
         <div class="br-filtro-pills">
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> 🏊 Pileta</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> 🏋️ Gimnasio</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> 🫧 Laundry</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="parrilla" /> 🔥 Parrilla</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="terraza" /> 🌿 Terraza</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="cochera" /> 🚗 Cochera</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="sauna" /> ♨️ Sauna</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="solárium" /> ☀️ Solárium</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="seguridad 24hs" /> 🔒 Seguridad 24hs</label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="jacuzzi" /> 🛁 Jacuzzi</label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> <span data-i18n="am-pileta">🏊 Pileta</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> <span data-i18n="am-gym">🏋️ Gimnasio</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> <span data-i18n="am-laundry">🫧 Laundry</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="parrilla" /> <span data-i18n="am-parrilla">🔥 Parrilla</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="terraza" /> <span data-i18n="am-terraza">🌿 Terraza</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="cochera" /> <span data-i18n="am-cochera">🚗 Cochera</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="sauna" /> <span data-i18n="am-sauna">♨️ Sauna</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="solárium" /> <span data-i18n="am-solarium">☀️ Solárium</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="seguridad 24hs" /> <span data-i18n="am-seg">🔒 Seguridad 24hs</span></label>
+          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="jacuzzi" /> <span data-i18n="am-jacuzzi">🛁 Jacuzzi</span></label>
         </div>
       </div>
     </div>
@@ -211,24 +494,23 @@
       <div id="footer-logo">
         <img src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental" class="img-logo">
       </div>
-      <p class="footer-address">Ciudad Autónoma de Buenos Aires (CABA) - Argentina.</p>
-      <p class="copyright">Copyright © 2025 BairesRental Todos los derechos reservados</p>
+      <p class="footer-address" data-i18n="ft-addr">Ciudad Autónoma de Buenos Aires (CABA) - Argentina.</p>
+      <p class="copyright" data-i18n="ft-copy">Copyright © 2025 BairesRental Todos los derechos reservados</p>
       <div>
         <button class="btn-admin-discreto" id="btn-admin-access">Administrar catálogo</button>
       </div>
     </div>
     <div class="footer-column">
-      <h5 class="footer-title">SERVICIOS</h5>
+      <h5 class="footer-title" data-i18n="ft-serv">SERVICIOS</h5>
       <ul class="footer-list">
-        <li><a href="index.html#fh5co-testimony" class="footer-link">Reviews</a></li>
-        <li><a href="index.html#fh5co-pricing" class="footer-link">Nuestros planes</a></li>
-        <li><a href="departamentos.html" class="footer-link">Departamentos</a></li>
-        <li><a href="faq.html" class="footer-link">FAQ</a></li>
-        <li><a href="index.html#fh5co-contact" class="footer-link">Contacto</a></li>
+        <li><a href="index.html#reviews" class="footer-link" data-i18n="ft-reviews">Reviews</a></li>
+        <li><a href="index.html#planes" class="footer-link" data-i18n="ft-planes">Nuestros planes</a></li>
+        <li><a href="departamentos.html" class="footer-link" data-i18n="ft-dept">Departamentos</a></li>
+        <li><a href="index.html#contacto" class="footer-link" data-i18n="ft-cont">Contacto</a></li>
       </ul>
     </div>
     <div class="footer-column">
-      <h5 class="footer-title">CONTACTANOS</h5>
+      <h5 class="footer-title" data-i18n="ft-contactanos">CONTACTANOS</h5>
       <div class="footer-social">
         <a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
         <a href="https://www.instagram.com/bairesrentalok/" target="_blank" class="footer-icon-link"><i class="bi bi-instagram"></i></a>
@@ -238,9 +520,18 @@
   </div>
 </footer>
 
-<div class="gototop js-top">
-  <a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
-  <a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
+<!-- FABs -->
+<div class="br-fab-group">
+  <button class="br-top-fab" id="br-top-fab" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Volver al inicio">
+    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/>
+    </svg>
+  </button>
+  <a href="https://wa.me/5491173735757?text=Hola!%20Quiero%20información%20sobre%20los%20departamentos." target="_blank" class="br-wa-fab" title="WhatsApp">
+    <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+    </svg>
+  </a>
 </div>
 
 <!-- =====================================================
@@ -488,9 +779,150 @@
 <script src="js/simplyCountdown.js"></script>
 <script src="js/main.js"></script>
 
+<!-- Traducciones ES/EN -->
+<script>
+(function(){
+  const T = {
+    es: {
+      'nav-prop':'Propiedades','nav-serv':'Servicios','nav-planes':'Planes',
+      'nav-owners':'Propietarios','nav-dept':'Departamentos','nav-cont':'Contacto',
+      'nav-cta':'Sumate →','drawer-cta':'Sumate →',
+      'hero-eyebrow':'Catálogo de propiedades',
+      'hero-t1':'Viví la','hero-t2':'experiencia',
+      'hero-sub1':'Departamentos en alquiler temporario en Buenos Aires.',
+      'hero-sub2':'Palermo, Recoleta, Belgrano y más barrios.',
+      'hero-scroll':'Explorar',
+      'f-mobile':'🔍 Filtrar propiedades',
+      'f-barrio':'Barrio','f-todos':'Todos','f-tipo':'Tipo',
+      'f-precio':'Precio máx.','f-disp':'Disponibilidad',
+      'f-solo-disp':'Solo disponibles','f-amueblado':'Amueblado',
+      'f-si':'Sí','f-mascotas':'Mascotas','f-acepta':'Acepta mascotas',
+      'f-baires':'★ Solo BairesRental','f-limpiar':'✕ Limpiar',
+      'f-amenities':'Amenities',
+      'am-pileta':'🏊 Pileta','am-gym':'🏋️ Gimnasio','am-laundry':'🫧 Laundry',
+      'am-parrilla':'🔥 Parrilla','am-terraza':'🌿 Terraza','am-cochera':'🚗 Cochera',
+      'am-sauna':'♨️ Sauna','am-solarium':'☀️ Solárium','am-seg':'🔒 Seguridad 24hs','am-jacuzzi':'🛁 Jacuzzi',
+      'ft-serv':'SERVICIOS','ft-reviews':'Reviews','ft-planes':'Nuestros planes',
+      'ft-dept':'Departamentos','ft-cont':'Contacto','ft-contactanos':'CONTACTANOS',
+      'ft-addr':'Ciudad Autónoma de Buenos Aires (CABA) - Argentina.',
+      'ft-copy':'Copyright © 2025 BairesRental Todos los derechos reservados',
+      // card dynamic
+      'c-disp':'● Disponible','c-res':'● Reservado','c-no':'● No disponible',
+      'c-svc-incl':'Servicios incl.','c-svc-extra':'Servicios aparte',
+      'c-consultar':'Consultar precio','c-desde':'📅 Disponible desde el',
+      'c-mascotas':'🐾 Acepta mascotas','c-ver-mapa':'Ver mapa',
+      'c-wa':'Consultar por WhatsApp','c-det':'Ver detalles',
+      'c-min':'Mín.','c-meses':'meses','c-mes':'mes',
+      'c-no-results-title':'No encontramos propiedades con esos filtros',
+      'c-no-results-sub':'Probá ajustando los filtros o consultanos directamente',
+      'c-no-results-wa':'Consultar por WhatsApp',
+      'c-mostrando':'Mostrando','c-de':'de','c-propiedades':'propiedades',
+    },
+    en: {
+      'nav-prop':'Properties','nav-serv':'Services','nav-planes':'Pricing',
+      'nav-owners':'Owners','nav-dept':'Apartments','nav-cont':'Contact',
+      'nav-cta':'Get started →','drawer-cta':'Get started →',
+      'hero-eyebrow':'Property catalog',
+      'hero-t1':'Live the','hero-t2':'experience',
+      'hero-sub1':'Short-term rental apartments in Buenos Aires.',
+      'hero-sub2':'Palermo, Recoleta, Belgrano and more.',
+      'hero-scroll':'Explore',
+      'f-mobile':'🔍 Filter properties',
+      'f-barrio':'Neighborhood','f-todos':'All','f-tipo':'Type',
+      'f-precio':'Max. price','f-disp':'Availability',
+      'f-solo-disp':'Available only','f-amueblado':'Furnished',
+      'f-si':'Yes','f-mascotas':'Pets','f-acepta':'Pets allowed',
+      'f-baires':'★ BairesRental only','f-limpiar':'✕ Clear',
+      'f-amenities':'Amenities',
+      'am-pileta':'🏊 Pool','am-gym':'🏋️ Gym','am-laundry':'🫧 Laundry',
+      'am-parrilla':'🔥 BBQ','am-terraza':'🌿 Rooftop','am-cochera':'🚗 Parking',
+      'am-sauna':'♨️ Sauna','am-solarium':'☀️ Solarium','am-seg':'🔒 24h Security','am-jacuzzi':'🛁 Jacuzzi',
+      'ft-serv':'SERVICES','ft-reviews':'Reviews','ft-planes':'Our plans',
+      'ft-dept':'Apartments','ft-cont':'Contact','ft-contactanos':'CONTACT US',
+      'ft-addr':'Buenos Aires City (CABA) - Argentina.',
+      'ft-copy':'Copyright © 2025 BairesRental All rights reserved',
+      // card dynamic
+      'c-disp':'● Available','c-res':'● Reserved','c-no':'● Not available',
+      'c-svc-incl':'Services incl.','c-svc-extra':'Services extra',
+      'c-consultar':'Ask for price','c-desde':'📅 Available from',
+      'c-mascotas':'🐾 Pets allowed','c-ver-mapa':'View map',
+      'c-wa':'Ask on WhatsApp','c-det':'View details',
+      'c-min':'Min.','c-meses':'months','c-mes':'month',
+      'c-no-results-title':'No properties found with those filters',
+      'c-no-results-sub':'Try adjusting the filters or contact us directly',
+      'c-no-results-wa':'Ask on WhatsApp',
+      'c-mostrando':'Showing','c-de':'of','c-propiedades':'properties',
+    }
+  };
+  let lang = localStorage.getItem('brLang') || 'es';
+  window.BR_LANG = lang;
+  window.BR_T = function(k){ return (T[window.BR_LANG]||T.es)[k] || k; };
+  window.brSetLang = function(l){
+    window.BR_LANG = l;
+    localStorage.setItem('brLang', l);
+    document.documentElement.lang = l === 'en' ? 'en' : 'es';
+    document.querySelectorAll('.br-lang-btn').forEach(btn => btn.dataset.lang = l);
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = window.BR_T(el.dataset.i18n);
+    });
+    const opt = document.querySelector('#filtro-barrio option[value=""]');
+    if (opt) opt.textContent = window.BR_T('f-todos');
+    if (typeof renderizarCatalogo === 'function') renderizarCatalogo();
+  };
+  window.brToggleLang = function(){
+    window.brSetLang(window.BR_LANG === 'es' ? 'en' : 'es');
+  };
+})();
+</script>
+
 <!-- Catálogo -->
 <script src="js/departamentos.js"></script>
 
-</div><!-- /#page -->
+<script>
+// ── NAVBAR SCROLL ──────────────────────────────────
+const brNavbar = document.getElementById('br-navbar');
+const brTopFab = document.getElementById('br-top-fab');
+const brFiltros = document.querySelector('.br-filtros-wrapper');
+
+function brSyncFilterTop() {
+  if (brFiltros) brFiltros.style.top = brNavbar.getBoundingClientRect().height + 'px';
+}
+
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  brNavbar.classList.toggle('scrolled', y > 60);
+  brTopFab.classList.toggle('visible', y > 400);
+  brSyncFilterTop();
+}, { passive: true });
+
+brSyncFilterTop(); // set on load
+
+// ── CONTADOR INLINE ────────────────────────────────
+const brContadorOrig   = document.getElementById('contador-resultados');
+const brContadorInline = document.getElementById('contador-resultados-inline');
+if (brContadorOrig && brContadorInline) {
+  new MutationObserver(() => {
+    brContadorInline.textContent = brContadorOrig.textContent;
+  }).observe(brContadorOrig, { childList: true, characterData: true, subtree: true });
+}
+
+// ── MOBILE DRAWER ──────────────────────────────────
+const brDrawer  = document.getElementById('br-mob-drawer');
+const brOverlay = document.getElementById('br-mob-overlay');
+function brOpenDrawer()  { brDrawer.classList.add('open'); brOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
+function brCloseDrawer() { brDrawer.classList.remove('open'); brOverlay.classList.remove('open'); document.body.style.overflow=''; }
+document.getElementById('br-mob-toggle').addEventListener('click', brOpenDrawer);
+document.getElementById('br-drawer-close').addEventListener('click', brCloseDrawer);
+brOverlay.addEventListener('click', brCloseDrawer);
+brDrawer.querySelectorAll('a').forEach(a => a.addEventListener('click', brCloseDrawer));
+
+// ── INIT LANG ──────────────────────────────────────
+if (window.BR_LANG && window.BR_LANG !== 'es') {
+  window.brSetLang(window.BR_LANG);
+} else {
+  document.querySelectorAll('.br-lang-btn').forEach(btn => btn.dataset.lang = 'es');
+}
+</script>
+
 </body>
 </html>

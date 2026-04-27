@@ -1107,28 +1107,32 @@
     <p class="contacto-sub reveal" data-i18n="co-sub">Completá el formulario y te contactamos en menos de 24 hs.</p>
 
     <form class="contacto-form reveal" onsubmit="handleSubmit(event)">
+      <!-- Web3Forms: reemplazá el value con tu access key de web3forms.com -->
+      <input type="hidden" name="access_key" value="03fc5068-3ee9-4814-bb0f-7d9e889cece0" />
+      <input type="hidden" name="subject" value="Nueva consulta desde BairesRental" />
+      <input type="hidden" name="from_name" value="BairesRental Web" />
       <div class="form-row">
         <div class="form-field">
           <label data-i18n="co-f-nombre">Nombre</label>
-          <input type="text" placeholder="Tu nombre" data-i18n-ph="co-ph-nombre" required />
+          <input type="text" name="nombre" placeholder="Tu nombre" data-i18n-ph="co-ph-nombre" required />
         </div>
         <div class="form-field">
           <label data-i18n="co-f-tel">Teléfono / WhatsApp</label>
-          <input type="tel" placeholder="+54 11 ..." />
+          <input type="tel" name="telefono" placeholder="+54 11 ..." />
         </div>
       </div>
       <div class="form-field">
         <label data-i18n="co-f-email">Email</label>
-        <input type="email" placeholder="tu@email.com" required />
+        <input type="email" name="email" placeholder="tu@email.com" required />
       </div>
       <div class="form-row">
         <div class="form-field">
           <label data-i18n="co-f-barrio">Barrio / Dirección</label>
-          <input type="text" placeholder="Palermo, Recoleta, Belgrano..." data-i18n-ph="co-ph-barrio" />
+          <input type="text" name="barrio" placeholder="Palermo, Recoleta, Belgrano..." data-i18n-ph="co-ph-barrio" />
         </div>
         <div class="form-field">
           <label data-i18n="co-f-amb">Cantidad de ambientes</label>
-          <select>
+          <select name="ambientes">
             <option value="" data-i18n="co-sel">Seleccionar...</option>
             <option data-i18n="co-amb1">Monoambiente</option>
             <option data-i18n="co-amb2">2 ambientes</option>
@@ -1140,7 +1144,7 @@
       <div class="form-row">
         <div class="form-field">
           <label data-i18n="co-f-amob">¿Está amoblado?</label>
-          <select>
+          <select name="amoblado">
             <option value="" data-i18n="co-sel">Seleccionar...</option>
             <option data-i18n="co-amob1">Sí, completamente amoblado</option>
             <option data-i18n="co-amob2">Sí, parcialmente amoblado</option>
@@ -1149,7 +1153,7 @@
         </div>
         <div class="form-field">
           <label data-i18n="co-f-plan">Plan de interés</label>
-          <select>
+          <select name="plan">
             <option value="" data-i18n="co-sel-plan">Seleccionar plan...</option>
             <option>Gestión Online (12%)</option>
             <option>Gestión Mensual (15%)</option>
@@ -1160,7 +1164,7 @@
       </div>
       <div class="form-field">
         <label data-i18n="co-f-msg">Mensaje (opcional)</label>
-        <textarea placeholder="Contanos un poco sobre tu propiedad..." data-i18n-ph="co-ph-msg"></textarea>
+        <textarea name="mensaje" placeholder="Contanos un poco sobre tu propiedad..." data-i18n-ph="co-ph-msg"></textarea>
       </div>
       <button type="submit" class="form-submit" data-i18n="co-submit">Enviar consulta →</button>
     </form>
@@ -1337,10 +1341,33 @@ document.querySelectorAll('.form-field select').forEach(sel => {
 // ── FORM ───────────────────────────────────────────
 function handleSubmit(e) {
   e.preventDefault();
-  const btn = e.target.querySelector('.form-submit');
-  btn.textContent = IDX_LANG === 'en' ? '✓ Sent — we\'ll contact you soon!' : '✓ Enviado — te contactamos pronto!';
-  btn.style.background = '#22c55e';
+  const form = e.target;
+  const btn = form.querySelector('.form-submit');
+
+  // Enviar email via Web3Forms
+  btn.textContent = IDX_LANG === 'en' ? 'Sending...' : 'Enviando...';
   btn.disabled = true;
+
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    body: new FormData(form)
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      btn.textContent = IDX_LANG === 'en' ? '✓ Sent — we\'ll contact you soon!' : '✓ Enviado — te contactamos pronto!';
+      btn.style.background = '#22c55e';
+    } else {
+      btn.textContent = IDX_LANG === 'en' ? 'Error. Try again.' : 'Error. Intentá de nuevo.';
+      btn.style.background = '#ef4444';
+      btn.disabled = false;
+    }
+  })
+  .catch(() => {
+    btn.textContent = IDX_LANG === 'en' ? 'Error. Try again.' : 'Error. Intentá de nuevo.';
+    btn.style.background = '#ef4444';
+    btn.disabled = false;
+  });
 }
 
 // ── TRADUCCIONES ES / EN ────────────────────────────

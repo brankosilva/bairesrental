@@ -2865,11 +2865,6 @@ a, a:hover {
     width: 29rem;
   }
 
-  span {
-    padding: 4px 0px;
-    font-size: 17px;
-  }
-
   .button-plans {
     width: 45%!important;
     padding: 5px 14px!important;
@@ -2961,10 +2956,6 @@ a, a:hover {
     width: 32rem;
   }
 
-  span {
-    padding: 4px px;
-    font-size: 18px;
-  }
 
   .registration-form form {
     padding: 35px 20px;
@@ -3223,6 +3214,8 @@ label {
 .br-pill-btn.active { background: var(--br-azul); border-color: var(--br-azul); color: #fff; }
 .br-pill-btn-baires.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
 .br-pill-btn-baires:not(.active):hover { border-color: #1d4ed8; color: #1d4ed8; }
+.br-pill-btn-mascotas.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+.br-pill-btn-mascotas:not(.active):hover { border-color: #16a34a; color: #16a34a; }
 
 .br-precio-wrap { display: flex; flex-direction: column; gap: .2rem; min-width: 170px; }
 .br-precio-top { display: flex; justify-content: space-between; align-items: center; }
@@ -3279,16 +3272,21 @@ input[type="range"].br-range::-webkit-slider-thumb {
 .br-amenity-check:has(input:checked) { background: var(--br-azul); border-color: var(--br-azul); color: #fff; }
 
 .br-btn-limpiar {
-  background: none; border: none;
+  background: none;
+  border: 1.5px solid var(--br-gris-borde);
+  border-radius: 20px;
   font-family: 'DM Sans', sans-serif;
   color: var(--br-gris-txt);
-  font-size: .88rem; cursor: pointer;
-  padding: .4rem .5rem;
-  text-decoration: underline; transition: color .2s; white-space: nowrap;
+  font-size: .88rem; font-weight: 500;
+  cursor: pointer;
+  padding: .32rem .8rem;
+  transition: all .18s; white-space: nowrap;
+  text-decoration: none;
 }
-.br-btn-limpiar:hover { color: #111; }
+.br-btn-limpiar:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
 
 .br-filtros-amenities { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--br-gris-borde); }
+.br-amenities-inline-label { align-self: center; white-space: nowrap; margin-right: .2rem; }
 
 .br-filtros-toggle-mobile {
   display: none; width: 100%; background: none; border: none;
@@ -3840,4 +3838,9 @@ input[type="range"].br-range::-webkit-slider-thumb {
     font-size: .65rem;
     padding: .05rem .3rem;
   }
+}
+
+/* Amenity filter — compact mobile fix */
+@media (max-width: 768px) {
+  .br-filtros-amenities .br-amenity-check { font-size: 9px !important; padding: 2px 6px !important; line-height: 1.2 !important; }
 }

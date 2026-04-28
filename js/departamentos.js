@@ -323,10 +323,11 @@ function inicializarFiltros() {
     });
   });
 
-  const toggleMascotas = document.getElementById("filtro-mascotas");
-  if (toggleMascotas) {
-    toggleMascotas.addEventListener("change", () => {
-      filtrosActivos.mascotas = toggleMascotas.checked;
+  const btnMascotas = document.getElementById("filtro-mascotas");
+  if (btnMascotas) {
+    btnMascotas.addEventListener("click", () => {
+      filtrosActivos.mascotas = !filtrosActivos.mascotas;
+      btnMascotas.classList.toggle("active", filtrosActivos.mascotas);
       aplicarFiltros();
     });
   }
@@ -358,6 +359,7 @@ function aplicarFiltros() {
 function limpiarFiltros() {
   filtrosActivos = { barrio: "", tipo: "", precioMax: 5000, soloDisponibles: false, amueblado: "", amenities: [], mascotas: false, soloBairesRental: false };
   document.getElementById("filtro-bairesrental")?.classList.remove("active");
+  document.getElementById("filtro-mascotas")?.classList.remove("active");
   const sb = document.getElementById("filtro-barrio");
   if (sb) sb.value = "";
   document.querySelectorAll(".filtro-tipo-btn, .filtro-amueblado-btn").forEach(b => b.classList.remove("active"));
@@ -365,8 +367,7 @@ function limpiarFiltros() {
   if (sp) { sp.value = 5000; document.getElementById("label-precio").textContent = "USD 5.000"; }
   const td = document.getElementById("filtro-disponible");
   if (td) td.checked = false;
-  const tm = document.getElementById("filtro-mascotas");
-  if (tm) tm.checked = false;
+  document.getElementById("filtro-mascotas")?.classList.remove("active");
   document.querySelectorAll(".filtro-amenity").forEach(c => c.checked = false);
   renderizarCatalogo();
   actualizarQueryParams();

@@ -248,8 +248,11 @@
   /* Amenities segunda fila — más compacta */
   .br-filtros-amenities     { margin-top: 5px !important; padding-top: 5px !important; }
   .br-amenity-check         { font-size: 11px !important; padding: 3px 8px !important; }
-  @media (max-width: 720px) {
-    .br-amenity-check       { font-size: 9.5px !important; padding: 2px 6px !important; }
+  @media (max-width: 768px) {
+    .br-amenity-check       { font-size: 9px !important; padding: 2px 6px !important; line-height: 1.2 !important; }
+    .br-filtros-amenities   { border-top: none !important; margin-top: 8px !important; padding-top: 0 !important; }
+    .br-amenities-inline-label { display: none !important; }
+    .br-filtro-grupo[style*="margin-left:auto"] { margin-left: 0 !important; }
   }
 
   /* ── FABs (departamentos) ─────────────────────── */
@@ -437,10 +440,9 @@
 
         <div class="br-filtro-grupo">
           <span class="br-filtro-label" data-i18n="f-mascotas">Mascotas</span>
-          <label class="br-toggle-wrap">
-            <input type="checkbox" id="filtro-mascotas" />
-            <span data-i18n="f-acepta">Acepta mascotas</span>
-          </label>
+          <div class="br-filtro-pills">
+            <button class="br-pill-btn br-pill-btn-mascotas" id="filtro-mascotas" data-i18n="f-acepta">🐾 Acepta mascotas</button>
+          </div>
         </div>
 
         <div class="br-filtro-grupo">
@@ -450,18 +452,16 @@
           </div>
         </div>
 
-        <div class="br-filtro-grupo" style="margin-left:auto;">
-          <span class="br-filtro-label">&nbsp;</span>
+        <div class="br-filtro-grupo" style="margin-left:auto; align-items:flex-end;">
+          <span class="br-contador-inline" id="contador-resultados-inline"></span>
           <button class="br-btn-limpiar" id="btn-limpiar-filtros" data-i18n="f-limpiar">✕ Limpiar</button>
         </div>
-
-        <span class="br-contador-inline" id="contador-resultados-inline"></span>
 
       </div>
 
       <div class="br-filtros-amenities">
-        <span class="br-filtro-label" style="display:block;margin-bottom:.45rem;" data-i18n="f-amenities">Amenities</span>
         <div class="br-filtro-pills">
+          <span class="br-filtro-label br-amenities-inline-label" data-i18n="f-amenities">Amenities</span>
           <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> <span data-i18n="am-pileta">🏊 Pileta</span></label>
           <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> <span data-i18n="am-gym">🏋️ Gimnasio</span></label>
           <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> <span data-i18n="am-laundry">🫧 Laundry</span></label>
@@ -800,7 +800,7 @@
       'f-barrio':'Barrio','f-todos':'Todos','f-tipo':'Tipo',
       'f-precio':'Precio máx.','f-disp':'Disponibilidad',
       'f-solo-disp':'Solo disponibles','f-amueblado':'Amueblado',
-      'f-si':'Sí','f-mascotas':'Mascotas','f-acepta':'Acepta mascotas',
+      'f-si':'Sí','f-mascotas':'Mascotas','f-acepta':'🐾 Acepta mascotas',
       'f-baires':'★ Solo BairesRental','f-limpiar':'✕ Limpiar',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pileta','am-gym':'🏋️ Gimnasio','am-laundry':'🫧 Laundry',
@@ -835,7 +835,7 @@
       'f-barrio':'Neighborhood','f-todos':'All','f-tipo':'Type',
       'f-precio':'Max. price','f-disp':'Availability',
       'f-solo-disp':'Available only','f-amueblado':'Furnished',
-      'f-si':'Yes','f-mascotas':'Pets','f-acepta':'Pets allowed',
+      'f-si':'Yes','f-mascotas':'Pets','f-acepta':'🐾 Pets allowed',
       'f-baires':'★ BairesRental only','f-limpiar':'✕ Clear',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pool','am-gym':'🏋️ Gym','am-laundry':'🫧 Laundry',

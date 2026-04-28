@@ -204,6 +204,7 @@ let filtrosActivos = {
 };
 let adminLogueado = false;
 let propiedadEditando = null;
+let filtrosListenersRegistrados = false;
 
 // ======================================================
 // INICIALIZACIÓN
@@ -261,6 +262,7 @@ function guardarCatalogo() {
 // FILTROS
 // ======================================================
 function inicializarFiltros() {
+  // Actualizar el dropdown de barrios (el catálogo puede haber cambiado)
   const barrios = [...new Set(catalogoActual.map(p => p.barrio))].sort();
   const selectBarrio = document.getElementById("filtro-barrio");
   if (selectBarrio) {
@@ -270,6 +272,13 @@ function inicializarFiltros() {
       opt.value = b; opt.textContent = b;
       selectBarrio.appendChild(opt);
     });
+  }
+
+  // Los event listeners solo se registran una vez
+  if (filtrosListenersRegistrados) return;
+  filtrosListenersRegistrados = true;
+
+  if (selectBarrio) {
     selectBarrio.addEventListener("change", () => {
       filtrosActivos.barrio = selectBarrio.value;
       aplicarFiltros();

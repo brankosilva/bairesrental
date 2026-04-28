@@ -851,7 +851,7 @@ function renderizarTablaAdmin() {
     .filter(({ p }) => {
       if (q && !p.titulo.toLowerCase().includes(q) && !p.barrio.toLowerCase().includes(q)) return false;
       if (adminFiltroTipo === "3+") {
-        const tipos3 = ["3 ambientes", "4 ambientes", "5 ambientes"];
+        const tipos3 = ["3 ambientes", "4 ambientes", "5 ambientes", "4+ ambientes"];
         if (!tipos3.includes(p.tipo)) return false;
       } else if (adminFiltroTipo === "sin-amoblar") {
         if (p.amueblado !== false) return false;

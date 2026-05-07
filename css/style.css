@@ -3748,8 +3748,9 @@ input[type="range"].br-range::-webkit-slider-thumb {
 .admin-prop-btns { display: flex; gap: .35rem; flex-shrink: 0; }
 .btn-admin-edit { padding: .3rem .7rem; border-radius: 7px; border: 1px solid var(--br-azul); background: #fff; color: var(--br-azul); font-size: .78rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
 .btn-admin-edit:hover { background: var(--br-azul); color: #fff; }
-.btn-admin-dup { padding: .3rem .6rem; border-radius: 7px; border: 1px solid var(--br-gris-borde); background: #fff; font-size: .85rem; cursor: pointer; transition: all .15s; }
-.btn-admin-dup:hover { border-color: #555; }
+.btn-admin-album { padding: .3rem .6rem; border-radius: 7px; border: 1px solid var(--br-gris-borde); background: #fff; font-size: .85rem; cursor: pointer; transition: all .15s; text-decoration: none; display: inline-flex; align-items: center; }
+.btn-admin-album:hover { border-color: #555; }
+.btn-admin-album-disabled { opacity: .4; cursor: not-allowed; }
 .btn-admin-del { padding: .3rem .6rem; border-radius: 7px; border: 1px solid #fca5a5; background: #fff; font-size: .85rem; cursor: pointer; transition: all .15s; }
 .btn-admin-del:hover { background: #fee2e2; border-color: #dc2626; }
 

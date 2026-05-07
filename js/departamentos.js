@@ -861,8 +861,7 @@ function renderizarTablaAdmin() {
     .filter(({ p }) => {
       if (q && !p.titulo.toLowerCase().includes(q) && !p.barrio.toLowerCase().includes(q)) return false;
       if (adminFiltroTipo === "3+") {
-        const tipos3 = ["3 ambientes", "4 ambientes", "5 ambientes", "4+ ambientes"];
-        if (!tipos3.includes(p.tipo)) return false;
+        if (p.tipo !== "3 ambientes") return false;
       } else if (adminFiltroTipo === "sin-amoblar") {
         if (p.amueblado !== false) return false;
       } else if (adminFiltroTipo && p.tipo !== adminFiltroTipo) {
@@ -894,7 +893,10 @@ function renderizarTablaAdmin() {
         </div>
         <div class="admin-prop-btns">
           <button class="btn-admin-edit" onclick="abrirFormulario(${idx})">✏️ Editar</button>
-          <button class="btn-admin-dup" onclick="duplicarPropiedad(${idx})">⧉</button>
+          ${p.fotos
+            ? `<a href="${p.fotos}" target="_blank" class="btn-admin-album" title="Ver álbum de fotos">📷</a>`
+            : `<button class="btn-admin-album btn-admin-album-disabled" disabled title="Sin álbum de fotos">📷</button>`
+          }
           <button class="btn-admin-del" onclick="eliminarPropiedad(${idx})">🗑</button>
         </div>
       </div>`;

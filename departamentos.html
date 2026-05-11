@@ -247,12 +247,12 @@
   .br-btn-limpiar           { font-size: 11px !important; }
   /* Amenities segunda fila — más compacta */
   .br-filtros-amenities     { margin-top: 5px !important; padding-top: 5px !important; }
-  .br-amenity-check         { font-size: 11px !important; padding: 3px 8px !important; }
+  .br-filtros-amenities .br-filtro-pills { align-items: flex-start !important; gap: 5px !important; }
   @media (max-width: 768px) {
-    .br-amenity-check       { font-size: 9px !important; padding: 2px 6px !important; line-height: 1.2 !important; }
-    .br-filtros-amenities   { border-top: none !important; margin-top: 8px !important; padding-top: 0 !important; }
-    .br-amenities-inline-label { display: none !important; }
-    .br-filtro-grupo[style*="margin-left:auto"] { margin-left: 0 !important; }
+    .br-filtros-amenities .br-amenity-check {
+      font-size: 9px !important; padding: 2px 6px !important;
+      line-height: 1.2 !important;
+    }
   }
 
   /* ── FABs (departamentos) ─────────────────────── */
@@ -309,6 +309,24 @@
   .br-drawer-lang-row .br-lang-btn { display: flex !important; }
 </style>
 
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1704524150703684');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
 </head>
 <body data-page="departamentos">
 
@@ -322,7 +340,7 @@
     <li><a href="index.html#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="index.html#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="index.html#testimonios" data-i18n="nav-owners">Propietarios</a></li>
-    <li><a href="departamentos.html" class="active-link" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="departamentos.html" class="active-link" data-i18n="nav-dept">Alquileres</a></li>
     <li><a href="index.html#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
   <button class="br-lang-btn" id="br-lang-btn" data-lang="es" onclick="brToggleLang()">
@@ -440,9 +458,10 @@
 
         <div class="br-filtro-grupo">
           <span class="br-filtro-label" data-i18n="f-mascotas">Mascotas</span>
-          <div class="br-filtro-pills">
-            <button class="br-pill-btn br-pill-btn-mascotas" id="filtro-mascotas" data-i18n="f-acepta">🐾 Acepta mascotas</button>
-          </div>
+          <label class="br-toggle-wrap">
+            <input type="checkbox" id="filtro-mascotas" />
+            <span data-i18n="f-acepta">Acepta mascotas</span>
+          </label>
         </div>
 
         <div class="br-filtro-grupo">
@@ -452,16 +471,18 @@
           </div>
         </div>
 
-        <div class="br-filtro-grupo" style="margin-left:auto; align-items:flex-end;">
-          <span class="br-contador-inline" id="contador-resultados-inline"></span>
+        <div class="br-filtro-grupo" style="margin-left:auto;">
+          <span class="br-filtro-label">&nbsp;</span>
           <button class="br-btn-limpiar" id="btn-limpiar-filtros" data-i18n="f-limpiar">✕ Limpiar</button>
         </div>
+
+        <span class="br-contador-inline" id="contador-resultados-inline"></span>
 
       </div>
 
       <div class="br-filtros-amenities">
+        <span class="br-filtro-label" style="display:block;margin-bottom:.45rem;" data-i18n="f-amenities">Amenities</span>
         <div class="br-filtro-pills">
-          <span class="br-filtro-label br-amenities-inline-label" data-i18n="f-amenities">Amenities</span>
           <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> <span data-i18n="am-pileta">🏊 Pileta</span></label>
           <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> <span data-i18n="am-gym">🏋️ Gimnasio</span></label>
           <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> <span data-i18n="am-laundry">🫧 Laundry</span></label>
@@ -595,7 +616,7 @@
       <button class="admin-tipo-btn active" data-tipo="">Todos</button>
       <button class="admin-tipo-btn" data-tipo="monoambiente">Monoambiente</button>
       <button class="admin-tipo-btn" data-tipo="2 ambientes">2 ambientes</button>
-      <button class="admin-tipo-btn" data-tipo="3+">3 ambientes</button>
+      <button class="admin-tipo-btn" data-tipo="3+">3+ ambientes</button>
       <button class="admin-tipo-btn" data-tipo="4+ ambientes">4+ ambientes</button>
       <button class="admin-tipo-btn" data-tipo="casa">Casa</button>
       <button class="admin-tipo-btn" data-tipo="sin-amoblar">Sin amoblar</button>
@@ -800,7 +821,7 @@
       'f-barrio':'Barrio','f-todos':'Todos','f-tipo':'Tipo',
       'f-precio':'Precio máx.','f-disp':'Disponibilidad',
       'f-solo-disp':'Solo disponibles','f-amueblado':'Amueblado',
-      'f-si':'Sí','f-mascotas':'Mascotas','f-acepta':'🐾 Acepta mascotas',
+      'f-si':'Sí','f-mascotas':'Mascotas','f-acepta':'Acepta mascotas',
       'f-baires':'★ Solo BairesRental','f-limpiar':'✕ Limpiar',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pileta','am-gym':'🏋️ Gimnasio','am-laundry':'🫧 Laundry',
@@ -835,7 +856,7 @@
       'f-barrio':'Neighborhood','f-todos':'All','f-tipo':'Type',
       'f-precio':'Max. price','f-disp':'Availability',
       'f-solo-disp':'Available only','f-amueblado':'Furnished',
-      'f-si':'Yes','f-mascotas':'Pets','f-acepta':'🐾 Pets allowed',
+      'f-si':'Yes','f-mascotas':'Pets','f-acepta':'Pets allowed',
       'f-baires':'★ BairesRental only','f-limpiar':'✕ Clear',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pool','am-gym':'🏋️ Gym','am-laundry':'🫧 Laundry',
@@ -897,6 +918,7 @@ window.addEventListener('scroll', () => {
   brNavbar.classList.toggle('scrolled', y > 60);
   brTopFab.classList.toggle('visible', y > 400);
   brSyncFilterTop();
+
 }, { passive: true });
 
 brSyncFilterTop(); // set on load

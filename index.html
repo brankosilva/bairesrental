@@ -46,7 +46,7 @@
       box-shadow: 0 1px 0 rgba(255,255,255,0.08);
     }
     .nav-logo img { height: 34px; }
-    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links { display: flex; gap: 1.45rem; list-style: none; }
     .nav-links a {
       color: rgba(255,255,255,0.7);
       text-decoration: none;
@@ -71,7 +71,7 @@
       border-radius: 8px; transition: background 0.2s;
     }
     .nav-mobile-toggle:hover { background: rgba(255,255,255,0.1); }
-    @media (max-width: 1060px) {
+    @media (max-width: 1100px) {
       .nav-links, .nav-cta { display: none; }
       .nav-mobile-toggle { display: flex; }
     }
@@ -87,7 +87,7 @@
     .lang-btn:not([data-lang]) .l-es { color: #fff; }
     .lang-btn[data-lang="en"] .l-en  { color: #fff; }
     .lang-sep { opacity: 0.35; }
-    @media (max-width: 1060px) { .lang-btn { display: none; } }
+    @media (max-width: 1100px) { .lang-btn { display: none; } }
     /* Mobile drawer */
     .mobile-overlay {
       display: none; position: fixed; inset: 0; z-index: 1001;
@@ -709,6 +709,7 @@
     footer {
       background: #0a0a0f; padding: 3rem 2rem 2rem;
       border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'DM Sans', sans-serif;
     }
     .footer-inner {
       max-width: 1100px; margin: 0 auto;
@@ -716,15 +717,15 @@
       align-items: flex-start; flex-wrap: wrap; gap: 2rem;
     }
     .footer-brand img { height: 32px; margin-bottom: 0.75rem; }
-    .footer-brand p { font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+    .footer-brand p { font-size: 0.8rem; color: rgba(255,255,255,0.3); font-family: 'DM Sans', sans-serif !important; }
     .footer-links h4 {
       font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
-      color: rgba(255,255,255,0.4); margin-bottom: 0.75rem;
+      color: rgba(255,255,255,0.4); margin-bottom: 0.75rem; font-family: 'DM Sans', sans-serif !important;
     }
     .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
     .footer-links a {
       color: rgba(255,255,255,0.45); font-size: 0.85rem;
-      text-decoration: none; transition: color 0.2s;
+      text-decoration: none; transition: color 0.2s; font-family: 'DM Sans', sans-serif !important;
     }
     .footer-links a:hover { color: #fff; }
     .footer-bottom {
@@ -732,7 +733,7 @@
       padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06);
       display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
     }
-    .footer-bottom p { font-size: 0.75rem; color: rgba(255,255,255,0.25); }
+    .footer-bottom p { font-size: 0.75rem; color: rgba(255,255,255,0.25); font-family: 'DM Sans', sans-serif !important; }
 
     /* FABs (WhatsApp + scroll top) */
     .fab-group {
@@ -797,11 +798,12 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <img src="images/bairesrentallogoblanco.png" alt="BairesRental" />
   </a>
   <ul class="nav-links">
-    <li><a href="#propiedades" data-i18n="nav-prop">Propiedades</a></li>
     <li><a href="#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="#testimonios" data-i18n="nav-owners">Propietarios</a></li>
     <li><a href="departamentos.html" data-i18n="nav-dept">Alquileres</a></li>
+    <li><a href="ventas.html" data-i18n="nav-ventas">Ventas</a></li>
+    <li><a href="tickets.html" data-i18n="nav-tickets">Tickets Fútbol</a></li>
     <li><a href="#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
   <button class="lang-btn" id="lang-btn" data-lang="es" onclick="idxToggleLang()">
@@ -819,11 +821,12 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <button class="drawer-close" id="drawer-close">✕</button>
   </div>
   <ul class="drawer-links">
-    <li><a href="#propiedades" data-i18n="nav-prop">Propiedades</a></li>
     <li><a href="#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="#testimonios" data-i18n="nav-owners">Propietarios</a></li>
     <li><a href="departamentos.html" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="ventas.html" data-i18n="nav-ventas">Ventas</a></li>
+    <li><a href="tickets.html" data-i18n="nav-tickets">Tickets Fútbol</a></li>
     <li><a href="#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
   <a href="#contacto" class="drawer-cta" data-i18n="nav-cta">Sumate →</a>
@@ -1198,11 +1201,13 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       <p data-i18n="ft-addr-idx">Ciudad Autónoma de Buenos Aires (CABA), Argentina.</p>
     </div>
     <div class="footer-links">
-      <h4 data-i18n="ft-h-serv">Servicios</h4>
+      <h4>PÁGINAS</h4>
       <ul>
+        <li><a href="departamentos.html">Alquileres</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="tickets.html">Tickets Fútbol</a></li>
         <li><a href="#planes" data-i18n="ft-planes-idx">Nuestros planes</a></li>
-        <li><a href="departamentos.html" data-i18n="ft-dept-idx">Departamentos</a></li>
-        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="#contacto">Tasación gratuita</a></li>
       </ul>
     </div>
     <div class="footer-links">
@@ -1216,7 +1221,6 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
   </div>
   <div class="footer-bottom">
     <p data-i18n="ft-copy-idx">Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
-    <p>🏆 Booking.com Traveller Review Award 2025 · 9,6/10</p>
   </div>
 </footer>
 
@@ -1392,8 +1396,9 @@ function handleSubmit(e) {
 // ── TRADUCCIONES ES / EN ────────────────────────────
 const IDX_T_DATA = {
   es: {
-    'nav-prop':'Propiedades','nav-serv':'Servicios','nav-planes':'Planes',
+    'nav-serv':'Servicios','nav-planes':'Planes',
     'nav-owners':'Propietarios','nav-dept':'Departamentos','nav-cont':'Contacto',
+    'nav-ventas':'Ventas','nav-tickets':'Tickets Fútbol',
     'nav-cta':'Sumate →',
     'h-eyebrow':'Gestión profesional de propiedades · Buenos Aires',
     'h-w1':'Tu','h-w2':'hogar,','h-w3':'nuestro','h-w4':'cuidado.',
@@ -1437,8 +1442,9 @@ const IDX_T_DATA = {
     'ft-copy-idx':'Copyright © 2025 BairesRental. Todos los derechos reservados.',
   },
   en: {
-    'nav-prop':'Properties','nav-serv':'Services','nav-planes':'Pricing',
+    'nav-serv':'Services','nav-planes':'Pricing',
     'nav-owners':'Owners','nav-dept':'Apartments','nav-cont':'Contact',
+    'nav-ventas':'Sales','nav-tickets':'Football Tickets',
     'nav-cta':'Get started →',
     'h-eyebrow':'Professional property management · Buenos Aires',
     'h-w1':'Your','h-w2':'home,','h-w3':'our','h-w4':'care.',

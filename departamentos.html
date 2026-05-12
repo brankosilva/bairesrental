@@ -60,7 +60,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.08);
   }
   .br-nav-logo img { height: 34px; }
-  .br-nav-links { display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0; }
+  .br-nav-links { display: flex; gap: 1.45rem; list-style: none; margin: 0; padding: 0; }
   .br-nav-links a {
     font-family: 'DM Sans', sans-serif !important;
     color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
@@ -84,7 +84,7 @@
     border-radius: 8px; transition: background 0.2s;
   }
   .br-nav-toggle:hover { background: rgba(255,255,255,0.1) !important; }
-  @media (max-width: 1060px) {
+  @media (max-width: 1100px) {
     .br-nav-links, .br-nav-cta { display: none !important; }
     .br-nav-toggle { display: flex !important; }
   }
@@ -190,6 +190,52 @@
     color: rgba(255,255,255,0.55); font-weight: 400;
     margin-bottom: 40px; line-height: 1.6;
   }
+  .br-dept-req-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 7px 16px; border-radius: 100px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+  .br-dept-req-btn:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  footer {
+    background: #0a0a0f; padding: 3rem 2rem 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .footer-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; justify-content: space-between;
+    align-items: flex-start; flex-wrap: wrap; gap: 2rem;
+  }
+  .footer-brand img { height: 32px; margin-bottom: 0.75rem; }
+  .footer-brand p { font-size: 13px !important; color: rgba(255,255,255,0.3); font-family: 'DM Sans', sans-serif !important; }
+  .footer-links h4 {
+    font-size: 11px !important; letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); margin-bottom: 12px; font-family: 'DM Sans', sans-serif !important;
+  }
+  .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; }
+  .footer-links a {
+    color: rgba(255,255,255,0.45); font-size: 14px !important;
+    text-decoration: none; transition: color 0.2s; font-family: 'DM Sans', sans-serif !important;
+  }
+  .footer-links a:hover { color: #fff; }
+  .footer-bottom {
+    max-width: 1100px; margin: 32px auto 0;
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .footer-bottom p { font-size: 12px !important; color: rgba(255,255,255,0.25); font-family: 'DM Sans', sans-serif !important; }
+
   .br-dept-scroll-hint {
     position: absolute; bottom: 2.5rem; left: 0; right: 0;
     display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
@@ -299,7 +345,7 @@
   .br-lang-btn:not([data-lang]) .br-lang-es { color: #fff !important; }
   .br-lang-btn[data-lang="en"] .br-lang-en  { color: #fff !important; }
   .br-lang-sep { opacity: 0.35; }
-  @media (max-width: 1060px) { .br-lang-btn { display: none !important; } }
+  @media (max-width: 1100px) { .br-lang-btn { display: none !important; } }
 
   .br-drawer-lang-row {
     display: flex; justify-content: center;
@@ -336,11 +382,12 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <img src="./images/bairesrentallogoblanco.png" alt="BairesRental" />
   </a>
   <ul class="br-nav-links">
-    <li><a href="index.html#propiedades" data-i18n="nav-prop">Propiedades</a></li>
     <li><a href="index.html#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="index.html#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="index.html#testimonios" data-i18n="nav-owners">Propietarios</a></li>
     <li><a href="departamentos.html" class="active-link" data-i18n="nav-dept">Alquileres</a></li>
+    <li><a href="ventas.html" data-i18n="nav-ventas">Ventas</a></li>
+    <li><a href="tickets.html" data-i18n="nav-tickets">Tickets Fútbol</a></li>
     <li><a href="index.html#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
   <button class="br-lang-btn" id="br-lang-btn" data-lang="es" onclick="brToggleLang()">
@@ -360,11 +407,12 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <button class="br-drawer-close" id="br-drawer-close">✕</button>
   </div>
   <ul class="br-drawer-links">
-    <li><a href="index.html#propiedades" data-i18n="nav-prop">Propiedades</a></li>
     <li><a href="index.html#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="index.html#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="index.html#testimonios" data-i18n="nav-owners">Propietarios</a></li>
     <li><a href="departamentos.html" class="active-link" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="ventas.html" data-i18n="nav-ventas">Ventas</a></li>
+    <li><a href="tickets.html" data-i18n="nav-tickets">Tickets Fútbol</a></li>
     <li><a href="index.html#contacto" data-i18n="nav-cont">Contacto</a></li>
   </ul>
   <a href="index.html#contacto" class="br-drawer-cta" data-i18n="drawer-cta">Sumate →</a>
@@ -391,6 +439,10 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       <span data-i18n="hero-sub1">Departamentos en alquiler temporario en Buenos Aires.</span><br>
       <span data-i18n="hero-sub2">Palermo, Recoleta, Belgrano y más barrios.</span>
     </p>
+    <a href="docs/requisitos-alquiler.pdf" target="_blank" class="br-dept-req-btn" data-i18n="hero-req-btn">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Requisitos de alquiler
+    </a>
   </div>
   <div class="br-dept-scroll-hint">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -512,35 +564,33 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
 <!-- =====================================================
      FOOTER
 ===================================================== -->
-<footer class="footer">
-  <div class="footer-container">
-    <div class="footer-column">
-      <div id="footer-logo">
-        <img src="./images/bairesrentallogoblanco.png" alt="logo-Baires-Rental" class="img-logo">
-      </div>
-      <p class="footer-address" data-i18n="ft-addr">Ciudad Autónoma de Buenos Aires (CABA) - Argentina.</p>
-      <p class="copyright" data-i18n="ft-copy">Copyright © 2025 BairesRental Todos los derechos reservados</p>
-      <div>
-        <button class="btn-admin-discreto" id="btn-admin-access">Administrar catálogo</button>
-      </div>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="./images/bairesrentallogoblanco.png" alt="BairesRental" />
+      <p>Ciudad Autónoma de Buenos Aires (CABA), Argentina.</p>
     </div>
-    <div class="footer-column">
-      <h5 class="footer-title" data-i18n="ft-serv">SERVICIOS</h5>
-      <ul class="footer-list">
-        <li><a href="index.html#reviews" class="footer-link" data-i18n="ft-reviews">Reviews</a></li>
-        <li><a href="index.html#planes" class="footer-link" data-i18n="ft-planes">Nuestros planes</a></li>
-        <li><a href="departamentos.html" class="footer-link" data-i18n="ft-dept">Departamentos</a></li>
-        <li><a href="index.html#contacto" class="footer-link" data-i18n="ft-cont">Contacto</a></li>
+    <div class="footer-links">
+      <h4>PÁGINAS</h4>
+      <ul>
+        <li><a href="departamentos.html">Alquileres</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="tickets.html">Tickets Fútbol</a></li>
+        <li><a href="index.html#planes">Nuestros planes</a></li>
+        <li><a href="index.html#contacto">Tasación gratuita</a></li>
       </ul>
     </div>
-    <div class="footer-column">
-      <h5 class="footer-title" data-i18n="ft-contactanos">CONTACTANOS</h5>
-      <div class="footer-social">
-        <a class="footer-icon-link" href="https://wa.me/5491173735757" target="_blank"><i class="bi bi-whatsapp"></i></a>
-        <a href="https://www.instagram.com/bairesrentalok/" target="_blank" class="footer-icon-link"><i class="bi bi-instagram"></i></a>
-        <a href="https://www.facebook.com/profile.php?id=61566568521787" target="_blank" class="footer-icon-link"><i class="bi bi-facebook"></i></a>
-      </div>
+    <div class="footer-links">
+      <h4>Contacto</h4>
+      <ul>
+        <li><a href="index.html#contacto">Consultas</a></li>
+        <li><a href="https://wa.me/5491173735757" target="_blank">WhatsApp</a></li>
+        <li><a href="index.html#reviews">Reviews</a></li>
+      </ul>
     </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
   </div>
 </footer>
 
@@ -812,10 +862,12 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'nav-prop':'Propiedades','nav-serv':'Servicios','nav-planes':'Planes',
       'nav-owners':'Propietarios','nav-dept':'Departamentos','nav-cont':'Contacto',
       'nav-cta':'Sumate →','drawer-cta':'Sumate →',
+      'nav-ventas':'Ventas','nav-tickets':'Tickets Fútbol',
       'hero-eyebrow':'Catálogo de propiedades',
       'hero-t1':'Viví la','hero-t2':'experiencia',
       'hero-sub1':'Departamentos en alquiler temporario en Buenos Aires.',
       'hero-sub2':'Palermo, Recoleta, Belgrano y más barrios.',
+      'hero-req-btn':'Requisitos de alquiler',
       'hero-scroll':'Explorar',
       'f-mobile':'🔍 Filtrar propiedades',
       'f-barrio':'Barrio','f-todos':'Todos','f-tipo':'Tipo',
@@ -851,6 +903,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'hero-t1':'Live the','hero-t2':'experience',
       'hero-sub1':'Short-term rental apartments in Buenos Aires.',
       'hero-sub2':'Palermo, Recoleta, Belgrano and more.',
+      'hero-req-btn':'Rental requirements',
       'hero-scroll':'Explore',
       'f-mobile':'🔍 Filter properties',
       'f-barrio':'Neighborhood','f-todos':'All','f-tipo':'Type',

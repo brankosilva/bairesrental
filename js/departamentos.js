@@ -198,9 +198,9 @@ const WA_BASE = "https://wa.me/5491173735757";
 // ======================================================
 let catalogoActual = [];
 let filtrosActivos = {
-  barrio: "", tipo: "", precioMax: 5000,
+  barrio: "", tipo: [], precioMax: 5000,
   soloDisponibles: false, amueblado: "", amenities: [], mascotas: false,
-  soloBairesRental: false
+  soloBairesRental: false, busqueda: ""
 };
 let adminLogueado = false;
 let propiedadEditando = null;
@@ -261,9 +261,13 @@ function guardarCatalogo() {
 // ======================================================
 // FILTROS
 // ======================================================
+function normalizarBarrio(b) {
+  return b.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
 function inicializarFiltros() {
-  // Actualizar el dropdown de barrios (el catálogo puede haber cambiado)
-  const barrios = [...new Set(catalogoActual.map(p => p.barrio))].sort();
+  // Actualizar el dropdown de barrios (normalizado para evitar duplicados por mayúsculas)
+  const barrios = [...new Set(catalogoActual.map(p => normalizarBarrio(p.barrio)))].sort();
   const selectBarrio = document.getElementById("filtro-barrio");
   if (selectBarrio) {
     while (selectBarrio.options.length > 1) selectBarrio.remove(1);
@@ -287,10 +291,14 @@ function inicializarFiltros() {
 
   document.querySelectorAll(".filtro-tipo-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      const mismo = filtrosActivos.tipo === btn.dataset.tipo;
-      document.querySelectorAll(".filtro-tipo-btn").forEach(b => b.classList.remove("active"));
-      filtrosActivos.tipo = mismo ? "" : btn.dataset.tipo;
-      if (!mismo) btn.classList.add("active");
+      const idx = filtrosActivos.tipo.indexOf(btn.dataset.tipo);
+      if (idx === -1) {
+        filtrosActivos.tipo.push(btn.dataset.tipo);
+        btn.classList.add("active");
+      } else {
+        filtrosActivos.tipo.splice(idx, 1);
+        btn.classList.remove("active");
+      }
       aplicarFiltros();
     });
   });
@@ -349,6 +357,14 @@ function inicializarFiltros() {
   }
 
   document.getElementById("btn-limpiar-filtros")?.addEventListener("click", limpiarFiltros);
+
+  const inputBusqueda = document.getElementById("filtro-busqueda");
+  if (inputBusqueda) {
+    inputBusqueda.addEventListener("input", () => {
+      filtrosActivos.busqueda = inputBusqueda.value.trim();
+      aplicarFiltros();
+    });
+  }
 }
 
 function aplicarFiltros() {
@@ -357,17 +373,18 @@ function aplicarFiltros() {
 }
 
 function limpiarFiltros() {
-  filtrosActivos = { barrio: "", tipo: "", precioMax: 5000, soloDisponibles: false, amueblado: "", amenities: [], mascotas: false, soloBairesRental: false };
+  filtrosActivos = { barrio: "", tipo: [], precioMax: 8000, soloDisponibles: false, amueblado: "", amenities: [], mascotas: false, soloBairesRental: false, busqueda: "" };
   document.getElementById("filtro-bairesrental")?.classList.remove("active");
   document.getElementById("filtro-mascotas")?.classList.remove("active");
   const sb = document.getElementById("filtro-barrio");
   if (sb) sb.value = "";
   document.querySelectorAll(".filtro-tipo-btn, .filtro-amueblado-btn").forEach(b => b.classList.remove("active"));
   const sp = document.getElementById("filtro-precio");
-  if (sp) { sp.value = 5000; document.getElementById("label-precio").textContent = "USD 5.000"; }
+  if (sp) { sp.value = 8000; document.getElementById("label-precio").textContent = "USD 8.000"; }
   const td = document.getElementById("filtro-disponible");
   if (td) td.checked = false;
-  document.getElementById("filtro-mascotas")?.classList.remove("active");
+  const ib = document.getElementById("filtro-busqueda");
+  if (ib) ib.value = "";
   document.querySelectorAll(".filtro-amenity").forEach(c => c.checked = false);
   renderizarCatalogo();
   actualizarQueryParams();
@@ -376,9 +393,14 @@ function limpiarFiltros() {
 function filtrarPropiedades() {
   return catalogoActual
     .filter(p => {
-      if (filtrosActivos.barrio && p.barrio !== filtrosActivos.barrio) return false;
-      if (filtrosActivos.tipo && p.tipo !== filtrosActivos.tipo) return false;
+      if (filtrosActivos.barrio && normalizarBarrio(p.barrio) !== filtrosActivos.barrio) return false;
+      if (filtrosActivos.tipo.length > 0 && !filtrosActivos.tipo.includes(p.tipo)) return false;
       if (p.precio > 0 && p.precio > filtrosActivos.precioMax) return false;
+      if (filtrosActivos.busqueda) {
+        const q = filtrosActivos.busqueda.toLowerCase();
+        const hayCoincidencia = [p.titulo, p.barrio, p.tipo, p.descripcion].some(c => c && c.toLowerCase().includes(q));
+        if (!hayCoincidencia) return false;
+      }
       if (filtrosActivos.soloDisponibles && p.disponibilidad !== "disponible") return false;
       if (filtrosActivos.amueblado === "si" && !p.amueblado) return false;
       if (filtrosActivos.amueblado === "no" && p.amueblado) return false;
@@ -702,8 +724,8 @@ function cerrarDetalle() {
 function actualizarQueryParams() {
   const params = new URLSearchParams();
   if (filtrosActivos.barrio) params.set("barrio", filtrosActivos.barrio);
-  if (filtrosActivos.tipo) params.set("tipo", filtrosActivos.tipo);
-  if (filtrosActivos.precioMax < 5000) params.set("precioMax", filtrosActivos.precioMax);
+  if (filtrosActivos.tipo.length) params.set("tipo", filtrosActivos.tipo.join(","));
+  if (filtrosActivos.precioMax < 8000) params.set("precioMax", filtrosActivos.precioMax);
   if (filtrosActivos.soloDisponibles) params.set("disponibles", "1");
   if (filtrosActivos.amueblado) params.set("amueblado", filtrosActivos.amueblado);
   if (filtrosActivos.amenities.length) params.set("amenities", filtrosActivos.amenities.join(","));
@@ -730,15 +752,15 @@ function leerQueryParams() {
     if (sel) sel.value = filtrosActivos.barrio;
   }
   if (params.get("tipo")) {
-    filtrosActivos.tipo = params.get("tipo");
+    filtrosActivos.tipo = params.get("tipo").split(",");
     document.querySelectorAll(".filtro-tipo-btn").forEach(btn => {
-      if (btn.dataset.tipo === filtrosActivos.tipo) btn.classList.add("active");
+      if (filtrosActivos.tipo.includes(btn.dataset.tipo)) btn.classList.add("active");
     });
   }
   if (params.get("precioMax")) {
     filtrosActivos.precioMax = parseInt(params.get("precioMax"));
     const sl = document.getElementById("filtro-precio");
-    if (sl) { sl.value = filtrosActivos.precioMax; document.getElementById("label-precio").textContent = `USD ${filtrosActivos.precioMax.toLocaleString()}`; }
+    if (sl) { sl.value = filtrosActivos.precioMax; document.getElementById("label-precio").textContent = `USD ${filtrosActivos.precioMax.toLocaleString('es-AR')}`; }
   }
   if (params.get("disponibles") === "1") {
     filtrosActivos.soloDisponibles = true;

@@ -265,6 +265,23 @@
     [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 16px !important; }
   }
 
+  /* ── Buscador libre ─────────────────────── */
+  .br-filtro-search {
+    background: #f7f7f8;
+    border: 1.5px solid #e4e4e7;
+    border-radius: 8px;
+    color: #111;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    min-width: 160px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .br-filtro-search::placeholder { color: #9ca3af; }
+  .br-filtro-search:focus { border-color: #1A6FE8; }
+  .br-filtro-search::-webkit-search-cancel-button { cursor: pointer; }
+
   /* Fix: filter bar sticky — top controlado por JS (sin !important para que el inline style gane) */
   .br-filtros-wrapper { position: sticky !important; top: 64px; margin-top: 0 !important; }
   @media (max-width: 1060px) {
@@ -471,6 +488,11 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <div class="br-filtros-collapsible">
       <div class="br-filtros-row">
 
+        <div class="br-filtro-grupo br-busqueda-wrap">
+          <span class="br-filtro-label" data-i18n="f-busqueda">Buscar</span>
+          <input type="search" class="br-filtro-search" id="filtro-busqueda" placeholder="Título, barrio, descripción..." autocomplete="off" />
+        </div>
+
         <div class="br-filtro-grupo">
           <span class="br-filtro-label" data-i18n="f-barrio">Barrio</span>
           <select class="br-filtro-select" id="filtro-barrio">
@@ -492,9 +514,9 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
         <div class="br-filtro-grupo br-precio-wrap">
           <div class="br-precio-top">
             <span class="br-filtro-label" data-i18n="f-precio">Precio máx.</span>
-            <span id="label-precio">USD 5.000</span>
+            <span id="label-precio">USD 8.000</span>
           </div>
-          <input type="range" class="br-range" id="filtro-precio" min="500" max="5000" step="100" value="5000" />
+          <input type="range" class="br-range" id="filtro-precio" min="500" max="8000" step="100" value="8000" />
         </div>
 
         <div class="br-filtro-grupo">
@@ -596,6 +618,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
   </div>
   <div class="footer-bottom">
     <p>Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
+    <a href="#" id="btn-admin-access" style="font-size:11px;color:rgba(255,255,255,0.15);text-decoration:none;user-select:none;">Admin</a>
   </div>
 </footer>
 
@@ -880,6 +903,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'hero-req-btn':'Requisitos de alquiler',
       'hero-scroll':'Explorar',
       'f-mobile':'🔍 Filtrar propiedades',
+      'f-busqueda':'Buscar',
       'f-barrio':'Barrio','f-todos':'Todos','f-tipo':'Tipo',
       'f-precio':'Precio máx.','f-disp':'Disponibilidad',
       'f-solo-disp':'Solo disponibles','f-amueblado':'Amueblado',
@@ -916,6 +940,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'hero-req-btn':'Rental requirements',
       'hero-scroll':'Explore',
       'f-mobile':'🔍 Filter properties',
+      'f-busqueda':'Search',
       'f-barrio':'Neighborhood','f-todos':'All','f-tipo':'Type',
       'f-precio':'Max. price','f-disp':'Availability',
       'f-solo-disp':'Available only','f-amueblado':'Furnished',

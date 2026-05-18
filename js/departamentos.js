@@ -199,7 +199,7 @@ const WA_BASE = "https://wa.me/5491173735757";
 let catalogoActual = [];
 let filtrosActivos = {
   barrio: "", tipo: [], precioMax: 5000,
-  soloDisponibles: false, amueblado: "", amenities: [], mascotas: false,
+  amueblado: "", amenities: [], mascotas: false,
   soloBairesRental: false, busqueda: ""
 };
 let adminLogueado = false;
@@ -313,14 +313,6 @@ function inicializarFiltros() {
     });
   }
 
-  const toggleDisp = document.getElementById("filtro-disponible");
-  if (toggleDisp) {
-    toggleDisp.addEventListener("change", () => {
-      filtrosActivos.soloDisponibles = toggleDisp.checked;
-      aplicarFiltros();
-    });
-  }
-
   document.querySelectorAll(".filtro-amueblado-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const mismo = filtrosActivos.amueblado === btn.dataset.amueblado;
@@ -381,8 +373,6 @@ function limpiarFiltros() {
   document.querySelectorAll(".filtro-tipo-btn, .filtro-amueblado-btn").forEach(b => b.classList.remove("active"));
   const sp = document.getElementById("filtro-precio");
   if (sp) { sp.value = 8000; document.getElementById("label-precio").textContent = "USD 8.000"; }
-  const td = document.getElementById("filtro-disponible");
-  if (td) td.checked = false;
   const ib = document.getElementById("filtro-busqueda");
   if (ib) ib.value = "";
   document.querySelectorAll(".filtro-amenity").forEach(c => c.checked = false);
@@ -401,7 +391,6 @@ function filtrarPropiedades() {
         const hayCoincidencia = [p.titulo, p.barrio, p.tipo, p.descripcion].some(c => c && c.toLowerCase().includes(q));
         if (!hayCoincidencia) return false;
       }
-      if (filtrosActivos.soloDisponibles && p.disponibilidad !== "disponible") return false;
       if (filtrosActivos.amueblado === "si" && !p.amueblado) return false;
       if (filtrosActivos.amueblado === "no" && p.amueblado) return false;
       if (filtrosActivos.mascotas && !p.mascotas) return false;
@@ -439,6 +428,8 @@ function renderizarCatalogo() {
   const resultados = filtrarPropiedades();
   const total = catalogoActual.length;
   if (contador) contador.textContent = `${window.BR_T ? BR_T('c-mostrando') : 'Mostrando'} ${resultados.length} ${window.BR_T ? BR_T('c-de') : 'de'} ${total} ${window.BR_T ? BR_T('c-propiedades') : 'propiedades'}`;
+  const contadorInline = document.getElementById("contador-resultados-inline");
+  if (contadorInline) contadorInline.textContent = `${resultados.length}/${total} props.`;
 
   grid.style.opacity = "0";
   setTimeout(() => {
@@ -726,7 +717,6 @@ function actualizarQueryParams() {
   if (filtrosActivos.barrio) params.set("barrio", filtrosActivos.barrio);
   if (filtrosActivos.tipo.length) params.set("tipo", filtrosActivos.tipo.join(","));
   if (filtrosActivos.precioMax < 8000) params.set("precioMax", filtrosActivos.precioMax);
-  if (filtrosActivos.soloDisponibles) params.set("disponibles", "1");
   if (filtrosActivos.amueblado) params.set("amueblado", filtrosActivos.amueblado);
   if (filtrosActivos.amenities.length) params.set("amenities", filtrosActivos.amenities.join(","));
   const nuevaURL = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
@@ -761,11 +751,6 @@ function leerQueryParams() {
     filtrosActivos.precioMax = parseInt(params.get("precioMax"));
     const sl = document.getElementById("filtro-precio");
     if (sl) { sl.value = filtrosActivos.precioMax; document.getElementById("label-precio").textContent = `USD ${filtrosActivos.precioMax.toLocaleString('es-AR')}`; }
-  }
-  if (params.get("disponibles") === "1") {
-    filtrosActivos.soloDisponibles = true;
-    const td = document.getElementById("filtro-disponible");
-    if (td) td.checked = true;
   }
   if (params.get("amueblado")) {
     filtrosActivos.amueblado = params.get("amueblado");

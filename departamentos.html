@@ -291,11 +291,12 @@
   /* Sin gap entre filtros y catálogo */
   .br-catalogo-section  { padding-top: 0 !important; }
   .br-catalogo-header   { display: none !important; }
-  /* Contador de resultados reubicado en la barra de filtros */
   .br-contador-inline {
     font-family: 'DM Sans', sans-serif;
-    font-size: 10px; color: #888; margin-left: auto; align-self: center; white-space: nowrap;
+    font-size: 10px; color: #888; white-space: nowrap;
+    margin-left: auto; align-self: center; flex-shrink: 0;
   }
+  .br-btn-limpiar { align-self: center; flex-shrink: 0; }
 
   /* ── Filtros compactos (px explícitos, independientes del rem base) ── */
   .br-filtros-inner         { padding: 7px 24px !important; }
@@ -520,14 +521,6 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
         </div>
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label" data-i18n="f-disp">Disponibilidad</span>
-          <label class="br-toggle-wrap">
-            <input type="checkbox" id="filtro-disponible" />
-            <span data-i18n="f-solo-disp">Solo disponibles</span>
-          </label>
-        </div>
-
-        <div class="br-filtro-grupo">
           <span class="br-filtro-label" data-i18n="f-amueblado">Amueblado</span>
           <div class="br-filtro-pills">
             <button class="br-pill-btn filtro-amueblado-btn" data-amueblado="si" data-i18n="f-si">Sí</button>
@@ -536,10 +529,9 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
         </div>
 
         <div class="br-filtro-grupo">
-          <span class="br-filtro-label" data-i18n="f-mascotas">Mascotas</span>
+          <span class="br-filtro-label" data-i18n="f-mascotas">Acepta mascotas</span>
           <label class="br-toggle-wrap">
             <input type="checkbox" id="filtro-mascotas" />
-            <span data-i18n="f-acepta">Acepta mascotas</span>
           </label>
         </div>
 
@@ -550,12 +542,8 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
           </div>
         </div>
 
-        <div class="br-filtro-grupo" style="margin-left:auto;">
-          <span class="br-filtro-label">&nbsp;</span>
-          <button class="br-btn-limpiar" id="btn-limpiar-filtros" data-i18n="f-limpiar">✕ Limpiar</button>
-        </div>
-
         <span class="br-contador-inline" id="contador-resultados-inline"></span>
+        <button class="br-btn-limpiar" id="btn-limpiar-filtros" data-i18n="f-limpiar">✕ Limpiar</button>
 
       </div>
 
@@ -905,9 +893,8 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'f-mobile':'🔍 Filtrar propiedades',
       'f-busqueda':'Buscar',
       'f-barrio':'Barrio','f-todos':'Todos','f-tipo':'Tipo',
-      'f-precio':'Precio máx.','f-disp':'Disponibilidad',
-      'f-solo-disp':'Solo disponibles','f-amueblado':'Amueblado',
-      'f-si':'Sí','f-mascotas':'Mascotas','f-acepta':'Acepta mascotas',
+      'f-precio':'Precio máx.','f-amueblado':'Amueblado',
+      'f-si':'Sí','f-mascotas':'Acepta mascotas',
       'f-baires':'★ Solo BairesRental','f-limpiar':'✕ Limpiar',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pileta','am-gym':'🏋️ Gimnasio','am-laundry':'🫧 Laundry',
@@ -942,9 +929,8 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'f-mobile':'🔍 Filter properties',
       'f-busqueda':'Search',
       'f-barrio':'Neighborhood','f-todos':'All','f-tipo':'Type',
-      'f-precio':'Max. price','f-disp':'Availability',
-      'f-solo-disp':'Available only','f-amueblado':'Furnished',
-      'f-si':'Yes','f-mascotas':'Pets','f-acepta':'Pets allowed',
+      'f-precio':'Max. price','f-amueblado':'Furnished',
+      'f-si':'Yes','f-mascotas':'Pets allowed',
       'f-baires':'★ BairesRental only','f-limpiar':'✕ Clear',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pool','am-gym':'🏋️ Gym','am-laundry':'🫧 Laundry',
@@ -1010,15 +996,6 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 brSyncFilterTop(); // set on load
-
-// ── CONTADOR INLINE ────────────────────────────────
-const brContadorOrig   = document.getElementById('contador-resultados');
-const brContadorInline = document.getElementById('contador-resultados-inline');
-if (brContadorOrig && brContadorInline) {
-  new MutationObserver(() => {
-    brContadorInline.textContent = brContadorOrig.textContent;
-  }).observe(brContadorOrig, { childList: true, characterData: true, subtree: true });
-}
 
 // ── MOBILE DRAWER ──────────────────────────────────
 const brDrawer  = document.getElementById('br-mob-drawer');

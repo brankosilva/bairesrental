@@ -728,7 +728,7 @@ function compartirPropiedad(id) {
   if (!p) return;
   const url = window.location.origin + window.location.pathname + "?depto=" + id;
   if (navigator.share) {
-    navigator.share({ title: p.titulo + " — BairesRental", text: p.titulo + " en " + p.barrio, url });
+    navigator.share({ title: p.titulo + " — BairesRental", url });
   } else {
     navigator.clipboard.writeText(url).then(() => mostrarToast("Link copiado al portapapeles ✓"));
   }

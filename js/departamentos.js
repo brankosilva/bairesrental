@@ -837,6 +837,10 @@ function initAdminPanel() {
     el.addEventListener("input", actualizarPreviewAdmin);
     el.addEventListener("change", actualizarPreviewAdmin);
   });
+
+  document.querySelector('[name="id"]')?.addEventListener("input", (e) => {
+    validarIdEnTiempoReal(e.target);
+  });
 }
 
 function abrirPanelAdmin() {
@@ -998,6 +1002,12 @@ function guardarPropiedad(e) {
 
   if (!propiedad.id || !propiedad.titulo || !propiedad.barrio) {
     alert("Completá los campos obligatorios: ID, Título y Barrio.");
+    return;
+  }
+
+  const duplicado = catalogoActual.find((p, idx) => p.id === propiedad.id && idx !== propiedadEditando);
+  if (duplicado) {
+    alert(`⚠️ El ID "${propiedad.id}" ya está en uso por:\n"${duplicado.titulo}" (${duplicado.barrio})\n\nUsá un ID diferente.`);
     return;
   }
 
@@ -1176,4 +1186,33 @@ function mostrarToast(msg) {
   toast.textContent = msg;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+// ======================================================
+// VALIDACIÓN ID ÚNICO EN TIEMPO REAL
+// ======================================================
+function validarIdEnTiempoReal(input) {
+  const id = input.value.trim();
+  let errorEl = document.getElementById("id-duplicado-msg");
+  if (!errorEl) {
+    errorEl = document.createElement("div");
+    errorEl.id = "id-duplicado-msg";
+    errorEl.style.cssText = "color:#e53e3e;font-size:.8rem;margin-top:.3rem;font-family:'DM Sans',sans-serif;font-weight:500;";
+    input.parentNode.appendChild(errorEl);
+  }
+
+  if (!id) {
+    input.style.borderColor = "";
+    errorEl.textContent = "";
+    return;
+  }
+
+  const duplicado = catalogoActual.find((p, idx) => p.id === id && idx !== propiedadEditando);
+  if (duplicado) {
+    input.style.outline = "2px solid #e53e3e";
+    errorEl.textContent = `⚠️ ID en uso: "${duplicado.titulo}" — ${duplicado.barrio}`;
+  } else {
+    input.style.outline = "";
+    errorEl.textContent = "";
+  }
 }

@@ -388,7 +388,7 @@ function filtrarPropiedades() {
       if (p.precio > 0 && p.precio > filtrosActivos.precioMax) return false;
       if (filtrosActivos.busqueda) {
         const q = filtrosActivos.busqueda.toLowerCase();
-        const hayCoincidencia = [p.titulo, p.barrio, p.tipo, p.descripcion].some(c => c && c.toLowerCase().includes(q));
+        const hayCoincidencia = [p.titulo, p.barrio, p.tipo, p.descripcion, p.direccion].some(c => c && c.toLowerCase().includes(q));
         if (!hayCoincidencia) return false;
       }
       if (filtrosActivos.amueblado === "si" && !p.amueblado) return false;
@@ -866,7 +866,7 @@ function renderizarTablaAdmin() {
   const resultados = catalogoActual
     .map((p, idx) => ({ p, idx }))
     .filter(({ p }) => {
-      if (q && !p.titulo.toLowerCase().includes(q) && !p.barrio.toLowerCase().includes(q)) return false;
+      if (q && !p.titulo.toLowerCase().includes(q) && !p.barrio.toLowerCase().includes(q) && !(p.direccion || "").toLowerCase().includes(q)) return false;
       if (adminFiltroTipo === "3+") {
         if (p.tipo !== "3 ambientes") return false;
       } else if (adminFiltroTipo === "sin-amoblar") {
@@ -895,6 +895,7 @@ function renderizarTablaAdmin() {
         <div class="admin-prop-thumb">${thumb}</div>
         <div class="admin-prop-info">
           <div class="admin-prop-titulo">${p.titulo}</div>
+          <div class="admin-prop-id">🔑 ${p.id}</div>
           <div class="admin-prop-meta">${p.barrio} · ${p.tipo} · ${precio}</div>
           <span class="admin-disp-badge admin-disp-${dispClass}">${p.disponibilidad}</span>
         </div>

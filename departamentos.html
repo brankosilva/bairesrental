@@ -1,14 +1,14 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>BairesRental &mdash; Departamentos en Buenos Aires</title>
+<title>Alquiler Temporario Buenos Aires | Deptos Amoblados Sin Garantía — BairesRental</title>
 
 <link rel="shortcut icon" href="./images/logo-perfin-redes.png" type="image/x-icon">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Catálogo de departamentos en alquiler temporario en Buenos Aires. Palermo, Recoleta, Belgrano, Almagro y más barrios." />
-<meta name="keywords" content="rent alquileres inmuebles alquileresTemporales rental AlquilerTemporal">
+<meta name="description" content="Departamentos verificados en alquiler temporario en Buenos Aires. Sin garantía, precio en USD sin sorpresas, desde 1 mes. Palermo, Recoleta, Belgrano y más. Escribinos por WhatsApp. />
+<meta name="keywords" content="alquiler temporario Buenos Aires, departamentos amoblados CABA, alquiler por mes sin garantía, depto temporario Palermo, alquiler mensual Buenos Aires">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -169,24 +169,33 @@
   .br-dept-eyebrow {
     display: inline-block;
     font-family: 'DM Sans', sans-serif !important;
-    font-size: 12px; font-weight: 700;
+    font-size: 12px !important; font-weight: 700;
     letter-spacing: 0.18em; text-transform: uppercase;
     color: rgba(255,255,255,0.85);
     background: rgba(255,255,255,0.12);
     border: 1px solid rgba(255,255,255,0.25);
     padding: 6px 16px; border-radius: 100px; margin-bottom: 24px;
   }
+  @media (max-width: 600px) {
+    .br-dept-eyebrow { font-size: 10px !important; letter-spacing: 0.10em; padding: 5px 12px; }
+  }
+  @media (min-width: 1185px) {
+    .br-dept-title { font-size: clamp(30px, calc(7vw - 10px), 86px) !important; }
+  }
   .br-dept-title {
     font-family: 'DM Sans', sans-serif !important;
-    font-size: clamp(48px, 11vw, 100px) !important;
+    font-size: clamp(30px, 7vw, 96px) !important;
     font-weight: 800; line-height: 1.0;
     letter-spacing: -0.04em; color: #fff;
     margin-bottom: 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
   }
+  .br-dept-title br { display: none; }
+  .br-dept-title [data-i18n="hero-t2"] { white-space: nowrap; }
   .br-dept-title .accent { color: #1A6FE8; }
   .br-dept-sub {
     font-family: 'DM Sans', sans-serif !important;
-    font-size: clamp(15px, 1.8vw, 19px);
+    font-size: clamp(14px, 1.5vw, 17px);
     color: rgba(255,255,255,0.55); font-weight: 400;
     margin-bottom: 40px; line-height: 1.6;
   }
@@ -249,20 +258,10 @@
   }
   @media (max-width: 1060px) { .br-dept-scroll-hint { display: none; } }
   @media (max-width: 992px) {
-    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 100px !important; }
-    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 24px !important; }
-  }
-  @media (max-width: 650px) {
-    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 72px !important; }
-    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 20px !important; }
+    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 15px !important; }
   }
   @media (max-width: 480px) {
-    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 58px !important; }
-    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 17px !important; }
-  }
-  @media (max-width: 400px) {
-    [data-i18n="hero-t1"], [data-i18n="hero-t2"] { font-size: 48px !important; }
-    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 16px !important; }
+    [data-i18n="hero-sub1"], [data-i18n="hero-sub2"] { font-size: 13px !important; }
   }
 
   /* ── Buscador libre ─────────────────────── */
@@ -396,6 +395,25 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "BairesRental",
+  "description": "Alquiler temporario de departamentos amoblados en Buenos Aires. Sin garantía ni comisiones.",
+  "url": "https://www.bairesrental.com.ar",
+  "telephone": "+54-9-11-7373-5757",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Buenos Aires",
+    "addressCountry": "AR"
+  },
+  "sameAs": [
+    "https://www.instagram.com/bairesrentalok/"
+  ]
+}
+</script>
+
 </head>
 <body data-page="departamentos">
 
@@ -456,11 +474,11 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <div class="br-slide br-slide-3"></div>
   </div>
   <div class="br-dept-hero-content">
-    <span class="br-dept-eyebrow" data-i18n="hero-eyebrow">Catálogo de propiedades</span>
-    <h1 class="br-dept-title"><span data-i18n="hero-t1">Viví la</span><br><span class="accent" data-i18n="hero-t2">experiencia</span></h1>
+    <span class="br-dept-eyebrow" data-i18n="hero-eyebrow">Alquiler temporario · Buenos Aires</span>
+    <h1 class="br-dept-title"><span data-i18n="hero-t1">Viví Buenos Aires</span><br><span class="accent" data-i18n="hero-t2">sin complicaciones.</span></h1>
     <p class="br-dept-sub">
-      <span data-i18n="hero-sub1">Departamentos en alquiler temporario en Buenos Aires.</span><br>
-      <span data-i18n="hero-sub2">Palermo, Recoleta, Belgrano y más barrios.</span>
+      <span data-i18n="hero-sub1">Departamentos verificados, precio claro y soporte real.</span><br>
+      <span data-i18n="hero-sub2">Sin garantía, sin trámites.</span>
     </p>
     <a href="docs/requisitos-alquiler.pdf" target="_blank" class="br-dept-req-btn" data-i18n="hero-req-btn">
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>

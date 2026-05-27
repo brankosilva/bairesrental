@@ -478,14 +478,34 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
 <!-- =====================================================
      BARRA DE FILTROS
 ===================================================== -->
+<div id="br-filtro-mob-overlay" class="br-filtro-mob-overlay"></div>
+
 <div class="br-filtros-wrapper" id="catalogo-departamentos">
-  <div class="br-filtros-inner">
 
-    <button class="br-filtros-toggle-mobile" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.br-toggle-arrow').textContent = this.nextElementSibling.classList.contains('open') ? '▲' : '▼'">
-      <span data-i18n="f-mobile">🔍 Filtrar propiedades</span>
-      <span class="br-toggle-arrow">▼</span>
+  <!-- Mobile: compact trigger bar (visible when sheet closed) -->
+  <div class="br-filtro-mob-bar" id="br-filtro-mob-bar">
+    <button class="br-filtros-trigger-mob" id="br-filtros-trigger-mob" aria-label="Abrir filtros">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/>
+      </svg>
+      Filtrar
+      <span class="br-filtro-badge" id="br-filtro-badge" style="display:none" aria-label="filtros activos">0</span>
     </button>
+    <span class="br-filtro-mob-count" id="br-filtro-mob-count" aria-live="polite"></span>
+  </div>
 
+  <!-- Mobile: sheet header (visible when sheet open) -->
+  <div class="br-filtro-sheet-header">
+    <button class="br-filtro-sheet-close-btn" id="br-filtro-sheet-close" aria-label="Cerrar filtros">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+    </button>
+    <span class="br-filtro-sheet-title">Filtros</span>
+    <button class="br-filtro-sheet-reset-btn" id="br-filtro-sheet-reset">Limpiar</button>
+  </div>
+
+  <div class="br-filtros-inner">
     <div class="br-filtros-collapsible">
       <div class="br-filtros-row">
 
@@ -564,6 +584,12 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       </div>
     </div>
   </div>
+
+  <!-- Mobile: sheet footer (apply button) -->
+  <div class="br-filtro-sheet-footer">
+    <button class="br-filtro-sheet-apply-btn" id="br-filtro-sheet-apply">Ver resultados</button>
+  </div>
+
 </div>
 
 <!-- =====================================================
@@ -1013,6 +1039,117 @@ if (window.BR_LANG && window.BR_LANG !== 'es') {
 } else {
   document.querySelectorAll('.br-lang-btn').forEach(btn => btn.dataset.lang = 'es');
 }
+
+// ── MOBILE FILTER SHEET ────────────────────────────
+(function () {
+  var wrapper   = document.querySelector('.br-filtros-wrapper');
+  var overlay   = document.getElementById('br-filtro-mob-overlay');
+  var trigger   = document.getElementById('br-filtros-trigger-mob');
+  var closeBtn  = document.getElementById('br-filtro-sheet-close');
+  var applyBtn  = document.getElementById('br-filtro-sheet-apply');
+  var resetBtn  = document.getElementById('br-filtro-sheet-reset');
+  var badge     = document.getElementById('br-filtro-badge');
+  var mobCount  = document.getElementById('br-filtro-mob-count');
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function openSheet() {
+    if (!isMobile()) return;
+    wrapper.classList.add('mob-open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    syncApplyBtn();
+  }
+
+  function closeSheet() {
+    wrapper.classList.remove('mob-open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    syncBadge();
+    syncMobCount();
+  }
+
+  function countActiveFilters() {
+    var n = 0;
+    var barrio = document.getElementById('filtro-barrio');
+    if (barrio && barrio.value) n++;
+    if (document.querySelectorAll('.filtro-tipo-btn.active').length) n++;
+    var precio = document.getElementById('filtro-precio');
+    if (precio && parseInt(precio.value) < parseInt(precio.max || 8000)) n++;
+    if (document.querySelectorAll('.filtro-amueblado-btn.active').length) n++;
+    if (document.querySelectorAll('.filtro-amenity:checked').length) n++;
+    var mascotas = document.getElementById('filtro-mascotas');
+    if (mascotas && mascotas.checked) n++;
+    var baires = document.getElementById('filtro-bairesrental');
+    if (baires && baires.classList.contains('active')) n++;
+    var busqueda = document.getElementById('filtro-busqueda');
+    if (busqueda && busqueda.value.trim()) n++;
+    return n;
+  }
+
+  function syncBadge() {
+    var n = countActiveFilters();
+    if (!badge) return;
+    badge.textContent = n;
+    badge.style.display = n > 0 ? 'inline-flex' : 'none';
+  }
+
+  function syncMobCount() {
+    var inline = document.getElementById('contador-resultados-inline');
+    if (mobCount && inline) {
+      mobCount.textContent = inline.textContent ? inline.textContent.replace('props.', 'propiedades') : '';
+    }
+  }
+
+  function syncApplyBtn() {
+    var inline = document.getElementById('contador-resultados-inline');
+    if (applyBtn) {
+      applyBtn.textContent = inline && inline.textContent
+        ? 'Ver ' + inline.textContent.replace('props.', 'propiedades')
+        : 'Ver resultados';
+    }
+  }
+
+  if (trigger)  trigger.addEventListener('click', openSheet);
+  if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+  if (overlay)  overlay.addEventListener('click', closeSheet);
+  if (applyBtn) applyBtn.addEventListener('click', closeSheet);
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      var limpiar = document.getElementById('btn-limpiar-filtros');
+      if (limpiar) limpiar.click();
+      setTimeout(function () { syncBadge(); syncApplyBtn(); }, 30);
+    });
+  }
+
+  // Sync badge/count whenever a filter changes
+  function onFilterChange() {
+    setTimeout(function () { syncBadge(); syncApplyBtn(); syncMobCount(); }, 15);
+  }
+  document.querySelectorAll('.br-pill-btn, .filtro-amenity, #filtro-barrio, #filtro-precio, #filtro-mascotas, #filtro-busqueda').forEach(function (el) {
+    el.addEventListener('change', onFilterChange);
+    el.addEventListener('click', onFilterChange);
+    el.addEventListener('input', onFilterChange);
+  });
+
+  // Observe inline counter updates (catalog rerenders)
+  var inlineCounter = document.getElementById('contador-resultados-inline');
+  if (inlineCounter && window.MutationObserver) {
+    new MutationObserver(function () {
+      syncMobCount();
+      syncApplyBtn();
+    }).observe(inlineCounter, { childList: true, characterData: true, subtree: true });
+  }
+
+  // Close sheet on resize to desktop
+  window.addEventListener('resize', function () {
+    if (!isMobile() && wrapper.classList.contains('mob-open')) closeSheet();
+  });
+
+  // Initial sync after catalog loads
+  setTimeout(function () { syncBadge(); syncMobCount(); }, 600);
+})();
 </script>
 
 </body>

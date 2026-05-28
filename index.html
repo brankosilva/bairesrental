@@ -859,7 +859,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <li><a href="#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="#contacto" data-i18n="nav-owners">Propietarios</a></li>
-    <li><a href="departamentos.html" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="departamentos.html" data-i18n="nav-dept">Alquileres</a></li>
     <li><a href="ventas.html" data-i18n="nav-ventas">Ventas</a></li>
     <li><a href="tickets.html" data-i18n="nav-tickets">Tickets Fútbol</a></li>
     <li><a href="https://wa.me/5491173735757" target="_blank" data-i18n="nav-cont">Contacto</a></li>
@@ -882,7 +882,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <li><a href="#por-que" data-i18n="nav-serv">Servicios</a></li>
     <li><a href="#planes" data-i18n="nav-planes">Planes</a></li>
     <li><a href="#contacto" data-i18n="nav-owners">Propietarios</a></li>
-    <li><a href="departamentos.html" data-i18n="nav-dept">Departamentos</a></li>
+    <li><a href="departamentos.html" data-i18n="nav-dept">Alquileres</a></li>
     <li><a href="ventas.html" data-i18n="nav-ventas">Ventas</a></li>
     <li><a href="tickets.html" data-i18n="nav-tickets">Tickets Fútbol</a></li>
     <li><a href="https://wa.me/5491173735757" target="_blank" data-i18n="nav-cont">Contacto</a></li>
@@ -1438,6 +1438,7 @@ function handleSubmit(e) {
     body: new FormData(form)
   })
   .then(r => r.json())
+
   .then(res => {
     if (res.success) {
       btn.textContent = IDX_LANG === 'en' ? '✓ Sent — we\'ll contact you soon!' : '✓ Enviado — te contactamos pronto!';
@@ -1459,7 +1460,7 @@ function handleSubmit(e) {
 const IDX_T_DATA = {
   es: {
     'nav-serv':'Servicios','nav-planes':'Planes',
-    'nav-owners':'Propietarios','nav-dept':'Departamentos','nav-cont':'Contacto',
+    'nav-owners':'Propietarios','nav-dept':'Alquileres','nav-cont':'Contacto',
     'nav-ventas':'Ventas','nav-tickets':'Tickets Fútbol',
     'nav-cta':'Sumate →',
     'h-eyebrow':'Gestión profesional de propiedades · Buenos Aires',
@@ -1499,13 +1500,13 @@ const IDX_T_DATA = {
     'co-f-msg':'Mensaje (opcional)','co-ph-msg':'Contanos un poco sobre tu propiedad...',
     'co-submit':'Enviar consulta →',
     'ft-addr-idx':'Ciudad Autónoma de Buenos Aires (CABA), Argentina.',
-    'ft-h-serv':'Servicios','ft-planes-idx':'Nuestros planes','ft-dept-idx':'Departamentos',
+    'ft-h-serv':'Servicios','ft-planes-idx':'Nuestros planes','ft-dept-idx':'Alquileres',
     'ft-h-cont':'Contacto','ft-consultas':'Consultas','ft-reviews-idx':'Reviews',
     'ft-copy-idx':'Copyright © 2025 BairesRental. Todos los derechos reservados.',
   },
   en: {
     'nav-serv':'Services','nav-planes':'Pricing',
-    'nav-owners':'Owners','nav-dept':'Apartments','nav-cont':'Contact',
+    'nav-owners':'Owners','nav-dept':'Rentals','nav-cont':'Contact',
     'nav-ventas':'Sales','nav-tickets':'Football Tickets',
     'nav-cta':'Get started →',
     'h-eyebrow':'Professional property management · Buenos Aires',

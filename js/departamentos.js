@@ -198,7 +198,7 @@ const WA_BASE = "https://wa.me/5491173735757";
 // ======================================================
 let catalogoActual = [];
 let filtrosActivos = {
-  barrio: "", tipo: [], precioMax: 5000,
+  barrio: "", tipo: [], precioMax: 8000,
   amueblado: "", amenities: [], mascotas: false,
   soloBairesRental: false, busqueda: ""
 };
@@ -385,7 +385,7 @@ function filtrarPropiedades() {
     .filter(p => {
       if (filtrosActivos.barrio && normalizarBarrio(p.barrio) !== filtrosActivos.barrio) return false;
       if (filtrosActivos.tipo.length > 0 && !filtrosActivos.tipo.includes(p.tipo)) return false;
-      if (p.precio > 0 && p.precio > filtrosActivos.precioMax) return false;
+      if (p.precio > 0 && (p.moneda === 'USD' || !p.moneda) && p.precio > filtrosActivos.precioMax) return false;
       if (filtrosActivos.busqueda) {
         const q = filtrosActivos.busqueda.toLowerCase();
         const hayCoincidencia = [p.titulo, p.barrio, p.tipo, p.descripcion, p.direccion].some(c => c && c.toLowerCase().includes(q));
@@ -484,8 +484,9 @@ function crearCardHTML(p, idx) {
     : `<span class="br-tag-servicios-aparte">${t('c-svc-extra')}</span>`;
   const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">${t('c-min')} ${p.minimoMeses} ${p.minimoMeses === 1 ? t('c-mes') : t('c-meses')}</span>` : "";
 
+  const monedaLabel = p.moneda || 'USD';
   const precioHTML = p.precio > 0
-    ? `<span class="br-precio">USD ${p.precio.toLocaleString()}</span><span class="br-precio-sub">/mes ${serviciosLabel}${minimoLabel}</span>`
+    ? `<span class="br-precio">${monedaLabel} ${p.precio.toLocaleString()}</span><span class="br-precio-sub">/mes ${serviciosLabel}${minimoLabel}</span>`
     : `<span class="br-precio" style="font-size:1rem;font-weight:700;">${t('c-consultar')}</span><span class="br-precio-sub">${serviciosLabel}${minimoLabel}</span>`;
 
   const waLink = p.fichaUrl || p.fotos || "";
@@ -632,7 +633,7 @@ function verDetalle(ref) {
     : `<span class="br-tag-servicios-aparte">${t('c-svc-extra')}</span>`;
   const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">${t('c-min')} ${p.minimoMeses} ${p.minimoMeses === 1 ? t('c-mes') : t('c-meses')}</span>` : "";
   document.getElementById("detalle-precio-row").innerHTML = p.precio > 0
-    ? `<span class="detalle-precio">USD ${p.precio.toLocaleString()}</span>
+    ? `<span class="detalle-precio">${p.moneda || 'USD'} ${p.precio.toLocaleString()}</span>
        <span class="detalle-precio-sub">/mes ${serviciosLabel}${minimoLabel}</span>`
     : `<span class="detalle-precio" style="font-size:1.2rem;">${t('c-consultar')}</span>`;
 
@@ -892,7 +893,7 @@ function renderizarTablaAdmin() {
     const thumb = p.imagen
       ? `<img src="${p.imagen}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="admin-thumb-placeholder" style="display:none;">📸</div>`
       : `<div class="admin-thumb-placeholder">📸</div>`;
-    const precio = p.precio > 0 ? `USD ${p.precio.toLocaleString()}` : "Consultar";
+    const precio = p.precio > 0 ? `${p.moneda || 'USD'} ${p.precio.toLocaleString()}` : "Consultar";
     const dispClass = p.disponibilidad.replace(/ /g, "-");
     return `
       <div class="admin-prop-card">
@@ -901,6 +902,7 @@ function renderizarTablaAdmin() {
           <div class="admin-prop-titulo">${p.titulo}</div>
           <div class="admin-prop-id">🔑 ${p.id}</div>
           <div class="admin-prop-meta">${p.barrio} · ${p.tipo} · ${precio}</div>
+          ${p.direccion ? `<div class="admin-prop-direccion">📍 ${p.direccion}</div>` : ""}
           <span class="admin-disp-badge admin-disp-${dispClass}">${p.disponibilidad}</span>
         </div>
         <div class="admin-prop-btns">

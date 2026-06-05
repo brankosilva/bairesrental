@@ -1,0 +1,611 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Detalle — BairesRental</title>
+<link rel="shortcut icon" href="./images/logo-perfin-redes.png" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --negro: #111111; --azul: #1A6FE8; --azul-dark: #1058c0;
+  --verde: #25D366; --blanco: #ffffff; --gris: #f4f4f6; --texto-gris: #6b7280;
+}
+body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin: 0; }
+
+/* ── NAVBAR ───────────────────────────────────────────── */
+.br-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 1.2rem 2rem;
+  display: flex; align-items: center; gap: 1.2rem;
+  transition: background 0.4s, backdrop-filter 0.4s, padding 0.3s;
+}
+.br-nav-logo { margin-right: auto; }
+.br-nav.scrolled {
+  background: rgba(17,17,17,0.96); backdrop-filter: blur(12px);
+  padding: 0.8rem 2rem; box-shadow: 0 1px 0 rgba(255,255,255,0.08);
+}
+.br-nav-logo img { height: 34px; }
+.br-nav-links { display: flex; gap: 1.45rem; list-style: none; margin: 0; padding: 0; }
+.br-nav-links a {
+  color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
+  font-size: 10.5px !important; font-weight: 600 !important;
+  letter-spacing: 0.08em !important; text-transform: uppercase !important;
+  transition: color 0.2s;
+}
+.br-nav-links a:hover, .br-nav-links a.active-link { color: #fff !important; }
+.br-nav-cta {
+  background: #1A6FE8 !important; color: #fff !important;
+  padding: 9px 19px !important; border-radius: 100px !important;
+  font-size: 13px !important; font-weight: 700 !important;
+  text-decoration: none !important; transition: background 0.2s, transform 0.15s;
+}
+.br-nav-cta:hover { background: #1058c0 !important; transform: translateY(-1px); }
+.br-nav-toggle {
+  display: none; background: none !important; border: none !important;
+  color: white !important; cursor: pointer; font-size: 22px;
+  width: 40px; height: 40px; align-items: center; justify-content: center;
+  border-radius: 8px; transition: background 0.2s;
+}
+.br-nav-toggle:hover { background: rgba(255,255,255,0.1) !important; }
+@media (max-width: 1100px) {
+  .br-nav-links, .br-nav-cta { display: none !important; }
+  .br-nav-toggle { display: flex !important; }
+}
+
+/* Mobile drawer */
+.br-mob-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1001;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+}
+.br-mob-overlay.open { display: block; }
+.br-mob-drawer {
+  position: fixed; top: 0; right: -280px; bottom: 0; z-index: 1002;
+  width: 280px; background: #111118;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  display: flex; flex-direction: column; padding: 1.5rem;
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.br-mob-drawer.open { right: 0; }
+.br-drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+.br-drawer-header img { height: 28px; }
+.br-drawer-close {
+  background: none !important; border: none !important; color: rgba(255,255,255,0.5);
+  font-size: 1.5rem; cursor: pointer; line-height: 1;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; transition: background 0.2s, color 0.2s;
+}
+.br-drawer-close:hover { background: rgba(255,255,255,0.08) !important; color: #fff; }
+.br-drawer-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex: 1; margin: 0; padding: 0; }
+.br-drawer-links a {
+  display: block !important; padding: 12px 16px !important;
+  color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
+  font-size: 15px !important; font-weight: 600 !important;
+  border-radius: 10px; transition: background 0.2s, color 0.2s;
+}
+.br-drawer-links a:hover, .br-drawer-links a.active-link { background: rgba(255,255,255,0.06) !important; color: #fff !important; }
+.br-drawer-cta {
+  display: block; text-align: center;
+  background: #1A6FE8 !important; color: #fff !important;
+  padding: 14px; border-radius: 100px;
+  font-weight: 700 !important; font-size: 14.5px !important;
+  text-decoration: none !important; margin-top: 1rem;
+  transition: background 0.2s;
+}
+.br-drawer-cta:hover { background: #1058c0 !important; }
+
+/* ── HERO IMAGE ──────────────────────────────────────── */
+#depto-hero {
+  position: relative; height: 58vh; min-height: 320px;
+  background: #111; overflow: hidden;
+}
+#depto-hero-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+#depto-hero-gradient {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+  pointer-events: none;
+}
+#depto-hero-top {
+  position: absolute; top: 80px; left: 0; right: 0;
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.depto-back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85) !important; text-decoration: none !important;
+  font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 100px;
+  transition: background 0.2s, color 0.2s;
+}
+.depto-back-btn:hover { background: rgba(0,0,0,0.65); color: #fff !important; }
+.depto-hero-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge-disp {
+  font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 100px;
+  letter-spacing: 0.04em;
+}
+.badge-disp.disponible  { background: rgba(34,197,94,0.85);  color: #fff; }
+.badge-disp.reservado   { background: rgba(245,158,11,0.85); color: #fff; }
+.badge-disp.no-disponible { background: rgba(239,68,68,0.85); color: #fff; }
+.badge-baires {
+  background: rgba(26,111,232,0.85); color: #fff;
+  font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 100px;
+}
+
+/* ── CONTENT ─────────────────────────────────────────── */
+#depto-loading, #depto-notfound {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 80px 24px; text-align: center;
+  color: var(--texto-gris);
+}
+#depto-loading .spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid #e5e7eb; border-top-color: var(--azul);
+  animation: spin 0.7s linear infinite; margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#depto-notfound h2 { font-size: 24px; font-weight: 700; color: #111; margin-bottom: 8px; }
+#depto-notfound p  { margin-bottom: 20px; }
+
+#depto-content { padding-top: 0; }
+
+.depto-container {
+  max-width: 820px; margin: 0 auto; padding: 36px 24px 64px;
+}
+
+.depto-location {
+  font-size: 13px; font-weight: 600; color: var(--texto-gris);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+}
+
+#depto-titulo {
+  font-size: clamp(26px, 4vw, 38px); font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.03em; color: #111;
+  margin-bottom: 16px;
+}
+
+.depto-precio-row {
+  display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px;
+}
+.depto-precio { font-size: 28px; font-weight: 800; color: var(--azul); }
+.depto-moneda { font-size: 14px; font-weight: 600; color: var(--texto-gris); }
+.depto-consultar { font-size: 18px; font-weight: 600; color: var(--texto-gris); }
+.depto-precio-sub { font-size: 12px; color: var(--texto-gris); margin-bottom: 16px; }
+
+.depto-desde {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f0f9ff; color: #0369a1;
+  font-size: 12px; font-weight: 600; padding: 5px 12px;
+  border-radius: 100px; margin-bottom: 16px;
+}
+
+.depto-desc { font-size: 15px; line-height: 1.7; color: #374151; margin-bottom: 32px; }
+
+/* ── SECTION TITLES ─────────────────────────────────── */
+.depto-section-title {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--texto-gris);
+  border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;
+  margin-bottom: 20px; margin-top: 32px;
+}
+
+/* ── AMENITIES ──────────────────────────────────────── */
+.depto-amenities-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.depto-amenity-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--gris); border: 1px solid #e5e7eb;
+  padding: 7px 14px; border-radius: 100px;
+  font-size: 13px; color: #374151;
+}
+
+/* ── CARACTERISTICAS ────────────────────────────────── */
+.depto-carac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.depto-carac-item {
+  background: var(--gris); border-radius: 12px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+}
+.depto-carac-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-gris); }
+.depto-carac-value { font-size: 14px; font-weight: 700; color: #111; }
+
+/* ── DIRECCION ──────────────────────────────────────── */
+.depto-direccion {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gris); border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 12px 18px; font-size: 14px; color: #374151;
+  text-decoration: none !important; transition: background 0.2s;
+}
+.depto-direccion:hover { background: #e9e9ef; }
+.depto-direccion-wrap { margin-top: 16px; }
+
+/* ── ACTION BUTTONS ─────────────────────────────────── */
+.depto-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 36px; }
+.btn-wa-depto {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #25D366; color: #fff !important; text-decoration: none !important;
+  font-size: 15px; font-weight: 700; padding: 16px;
+  border-radius: 100px; transition: background 0.2s, transform 0.15s;
+}
+.btn-wa-depto:hover { background: #1db954; transform: translateY(-2px); }
+.depto-actions-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-secondary-depto {
+  flex: 1; min-width: 140px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--gris); border: 1px solid #e5e7eb;
+  color: #374151 !important; text-decoration: none !important;
+  font-size: 13px; font-weight: 600; padding: 12px 20px;
+  border-radius: 100px; transition: background 0.2s;
+}
+.btn-secondary-depto:hover { background: #e9e9ef; }
+
+/* ── BACK BOTTOM ────────────────────────────────────── */
+.depto-back-bottom {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--texto-gris) !important; text-decoration: none !important;
+  font-size: 13px; font-weight: 600; margin-top: 40px;
+  transition: color 0.2s;
+}
+.depto-back-bottom:hover { color: var(--azul) !important; }
+
+/* ── FOOTER ──────────────────────────────────────────── */
+footer {
+  background: #0a0a0f; padding: 3rem 2rem 2rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; flex-wrap: wrap; gap: 2rem;
+}
+.footer-brand img { height: 32px; margin-bottom: 0.75rem; }
+.footer-brand p { font-size: 13px !important; color: rgba(255,255,255,0.3); }
+.footer-links h4 {
+  font-size: 11px !important; letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-bottom: 12px;
+}
+.footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; }
+.footer-links a { color: rgba(255,255,255,0.45); font-size: 14px !important; text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: #fff; }
+.footer-bottom {
+  max-width: 1100px; margin: 32px auto 0;
+  padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-bottom p { font-size: 12px !important; color: rgba(255,255,255,0.25); }
+
+@media (max-width: 600px) {
+  .depto-container { padding: 24px 16px 48px; }
+  #depto-titulo { font-size: 24px; }
+  .depto-carac-grid { grid-template-columns: repeat(2, 1fr); }
+  .depto-actions-row { flex-direction: column; }
+  .btn-secondary-depto { min-width: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="br-nav" id="br-navbar">
+  <a href="index.html" class="br-nav-logo">
+    <img src="./images/bairesrentallogoblanco.png" alt="BairesRental">
+  </a>
+  <ul class="br-nav-links">
+    <li><a href="index.html#por-que">Servicios</a></li>
+    <li><a href="index.html#planes">Planes</a></li>
+    <li><a href="index.html#contacto">Propietarios</a></li>
+    <li><a href="departamentos.html" class="active-link">Alquileres</a></li>
+    <li><a href="ventas.html">Ventas</a></li>
+    <li><a href="tickets.html">Tickets Fútbol</a></li>
+    <li><a href="https://wa.me/5491173735757" target="_blank">Contacto</a></li>
+  </ul>
+  <a href="index.html#contacto" class="br-nav-cta">Sumate →</a>
+  <button class="br-nav-toggle" id="br-mob-toggle">☰</button>
+</nav>
+
+<!-- Mobile drawer -->
+<div class="br-mob-overlay" id="br-mob-overlay"></div>
+<div class="br-mob-drawer" id="br-mob-drawer">
+  <div class="br-drawer-header">
+    <img src="./images/bairesrentallogoblanco.png" alt="BairesRental">
+    <button class="br-drawer-close" id="br-drawer-close">✕</button>
+  </div>
+  <ul class="br-drawer-links">
+    <li><a href="index.html#por-que">Servicios</a></li>
+    <li><a href="index.html#planes">Planes</a></li>
+    <li><a href="index.html#contacto">Propietarios</a></li>
+    <li><a href="departamentos.html" class="active-link">Departamentos</a></li>
+    <li><a href="ventas.html">Ventas</a></li>
+    <li><a href="tickets.html">Tickets Fútbol</a></li>
+    <li><a href="https://wa.me/5491173735757" target="_blank">Contacto</a></li>
+  </ul>
+  <a href="index.html#contacto" class="br-drawer-cta">Sumate →</a>
+</div>
+
+<!-- LOADING -->
+<div id="depto-loading" style="padding-top:80px">
+  <div class="spinner"></div>
+  <p>Cargando propiedad…</p>
+</div>
+
+<!-- NOT FOUND -->
+<div id="depto-notfound" style="display:none; padding-top:80px">
+  <div style="font-size:48px; margin-bottom:16px">🏚</div>
+  <h2>Propiedad no encontrada</h2>
+  <p>El departamento que buscás no existe o fue eliminado.</p>
+  <a href="departamentos.html" class="btn-wa-depto" style="width:auto; padding:12px 28px; font-size:14px">
+    ← Ver todos los departamentos
+  </a>
+</div>
+
+<!-- CONTENT -->
+<div id="depto-content" style="display:none">
+
+  <!-- Hero image -->
+  <div id="depto-hero">
+    <img id="depto-hero-img" src="" alt="">
+    <div id="depto-hero-gradient"></div>
+    <div id="depto-hero-top">
+      <a href="departamentos.html" class="depto-back-btn">← Volver al catálogo</a>
+      <div class="depto-hero-badges">
+        <span id="badge-disp" class="badge-disp"></span>
+        <span id="badge-baires" class="badge-baires" style="display:none">★ BairesRental</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail body -->
+  <div class="depto-container">
+
+    <div class="depto-location" id="depto-location"></div>
+    <h1 id="depto-titulo"></h1>
+
+    <div id="depto-precio-row" class="depto-precio-row"></div>
+    <div id="depto-precio-sub" class="depto-precio-sub"></div>
+    <div id="depto-desde" style="display:none" class="depto-desde">📅 <span id="depto-desde-text"></span></div>
+
+    <p class="depto-desc" id="depto-desc"></p>
+
+    <!-- Amenities -->
+    <div id="depto-amenities-section" style="display:none">
+      <div class="depto-section-title">Amenities del edificio</div>
+      <div class="depto-amenities-grid" id="depto-amenities-grid"></div>
+    </div>
+
+    <!-- Características -->
+    <div class="depto-section-title">Características</div>
+    <div class="depto-carac-grid" id="depto-carac-grid"></div>
+
+    <!-- Dirección -->
+    <div id="depto-direccion-section" style="display:none">
+      <div class="depto-section-title">Ubicación</div>
+      <div class="depto-direccion-wrap">
+        <a id="depto-direccion-link" href="#" class="depto-direccion" target="_blank" rel="noopener">
+          📍 <span id="depto-direccion-text"></span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="depto-actions">
+      <a id="btn-wa" href="#" class="btn-wa-depto" target="_blank" rel="noopener">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+        </svg>
+        Consultar por WhatsApp
+      </a>
+      <div class="depto-actions-row">
+        <a id="btn-fotos"  href="#" class="btn-secondary-depto" target="_blank" rel="noopener" style="display:none">📷 Ver fotos</a>
+        <a id="btn-ficha"  href="#" class="btn-secondary-depto" target="_blank" rel="noopener" style="display:none">🏠 Ver ficha</a>
+        <button class="btn-secondary-depto" onclick="compartir()" id="btn-compartir">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+          </svg>
+          Compartir
+        </button>
+      </div>
+    </div>
+
+    <a href="departamentos.html" class="depto-back-bottom">← Volver al catálogo</a>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="./images/bairesrentallogoblanco.png" alt="BairesRental">
+      <p>Ciudad Autónoma de Buenos Aires (CABA), Argentina.</p>
+    </div>
+    <div class="footer-links">
+      <h4>PÁGINAS</h4>
+      <ul>
+        <li><a href="departamentos.html">Alquileres</a></li>
+        <li><a href="ventas.html">Ventas</a></li>
+        <li><a href="tickets.html">Tickets Fútbol</a></li>
+        <li><a href="index.html#planes">Nuestros planes</a></li>
+        <li><a href="index.html#contacto">Tasación gratuita</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4>Contacto</h4>
+      <ul>
+        <li><a href="index.html#contacto">Consultas</a></li>
+        <li><a href="https://wa.me/5491173735757" target="_blank">WhatsApp</a></li>
+        <li><a href="https://www.instagram.com/bairesrentalok/" target="_blank">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Copyright © 2025 BairesRental. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script>
+const WA_BASE = "https://wa.me/5491173735757";
+const ICONOS  = {
+  "pileta":"🏊","gimnasio":"🏋️","laundry":"🫧","parrilla":"🔥","terraza":"🌿",
+  "cochera":"🚗","sauna":"♨️","solárium":"☀️","seguridad 24hs":"🔒","jacuzzi":"🛁","lavarropas":"🧺"
+};
+
+function formatFecha(f) {
+  if (!f) return '';
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const parts = f.split('-');
+  return `${parseInt(parts[2])} de ${meses[parseInt(parts[1])-1]} de ${parts[0]}`;
+}
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) { showNotFound(); return; }
+
+  try {
+    const r = await fetch('data/departamentos.json?v=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const lista = await r.json();
+    const p = lista.find(x => x.id === id);
+    if (!p) { showNotFound(); return; }
+    render(p);
+  } catch(e) {
+    showNotFound();
+  }
+}
+
+function render(p) {
+  document.getElementById('depto-loading').style.display = 'none';
+  document.getElementById('depto-content').style.display  = 'block';
+
+  document.title = `${p.titulo} — BairesRental`;
+
+  // Hero image
+  const img = document.getElementById('depto-hero-img');
+  if (p.imagen) {
+    img.src = p.imagen;
+    img.alt = p.titulo;
+    img.onerror = () => { document.getElementById('depto-hero').style.background = '#1a1a2e'; img.style.display = 'none'; };
+  } else {
+    document.getElementById('depto-hero').style.background = '#1a1a2e';
+    img.style.display = 'none';
+  }
+
+  // Badges
+  const bd = document.getElementById('badge-disp');
+  const labels = { 'disponible': '● Disponible', 'reservado': '● Reservado', 'no disponible': '● No disponible' };
+  const clases  = { 'disponible': 'disponible', 'reservado': 'reservado', 'no disponible': 'no-disponible' };
+  bd.textContent = labels[p.disponibilidad] || p.disponibilidad;
+  bd.className   = 'badge-disp ' + (clases[p.disponibilidad] || '');
+  if (p.esPropio) document.getElementById('badge-baires').style.display = '';
+
+  // Location + Title
+  document.getElementById('depto-location').textContent =
+    [p.barrio, p.tipo].filter(Boolean).join(' · ').toUpperCase();
+  document.getElementById('depto-titulo').textContent = p.titulo;
+
+  // Precio
+  const precioRow = document.getElementById('depto-precio-row');
+  if (p.precio) {
+    precioRow.innerHTML =
+      `<span class="depto-precio">${(p.moneda || 'USD')} ${Number(p.precio).toLocaleString('es-AR')}</span>`
+      + `<span class="depto-moneda">/ mes</span>`;
+    document.getElementById('depto-precio-sub').textContent =
+      p.serviciosIncluidos ? 'Expensas y servicios incluidos.' : 'Servicios aparte.';
+  } else {
+    precioRow.innerHTML = `<span class="depto-consultar">Consultar precio</span>`;
+  }
+
+  // Desde
+  if (p.disponibleDesde) {
+    document.getElementById('depto-desde').style.display = 'inline-flex';
+    document.getElementById('depto-desde-text').textContent = 'Disponible desde el ' + formatFecha(p.disponibleDesde);
+  }
+
+  // Descripción
+  document.getElementById('depto-desc').textContent = p.descripcion || '';
+
+  // Amenities
+  const ams = Array.isArray(p.amenities) ? p.amenities : [];
+  if (ams.length > 0) {
+    document.getElementById('depto-amenities-section').style.display = 'block';
+    document.getElementById('depto-amenities-grid').innerHTML = ams.map(a =>
+      `<span class="depto-amenity-chip">${ICONOS[a] || '✓'} ${a.charAt(0).toUpperCase()+a.slice(1)}</span>`
+    ).join('');
+  }
+
+  // Características
+  const carac = [];
+  carac.push({ label: 'Amueblado',          value: p.amueblado         ? '✓ Sí' : '✗ No' });
+  carac.push({ label: 'Acepta mascotas',     value: p.mascotas          ? '✓ Sí' : '✗ No' });
+  carac.push({ label: 'Servicios incluidos', value: p.serviciosIncluidos ? '✓ Sí' : '✗ No' });
+  carac.push({ label: 'Mínimo de estadía',   value: (p.minimoMeses || 1) + (p.minimoMeses === 1 ? ' mes' : ' meses') });
+  document.getElementById('depto-carac-grid').innerHTML = carac.map(c =>
+    `<div class="depto-carac-item">
+       <span class="depto-carac-label">${c.label}</span>
+       <span class="depto-carac-value">${c.value}</span>
+     </div>`
+  ).join('');
+
+  // Dirección
+  if (p.direccion) {
+    document.getElementById('depto-direccion-section').style.display = 'block';
+    document.getElementById('depto-direccion-text').textContent = p.direccion;
+    const link = document.getElementById('depto-direccion-link');
+    if (p.direccionUrl) link.href = p.direccionUrl;
+    else link.removeAttribute('href');
+  }
+
+  // Botones
+  const waMsg = p.whatsappMsg || `Hola! Me interesa el departamento "${p.titulo}" en ${p.barrio}. ¿Podés darme más información?`;
+  document.getElementById('btn-wa').href = WA_BASE + '?text=' + encodeURIComponent(waMsg);
+
+  if (p.fotos)   { document.getElementById('btn-fotos').href = p.fotos;   document.getElementById('btn-fotos').style.display = ''; }
+  if (p.fichaUrl){ document.getElementById('btn-ficha').href = p.fichaUrl; document.getElementById('btn-ficha').style.display = ''; }
+}
+
+function showNotFound() {
+  document.getElementById('depto-loading').style.display  = 'none';
+  document.getElementById('depto-notfound').style.display = 'flex';
+}
+
+function compartir() {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: document.title, url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('btn-compartir');
+      btn.textContent = '✓ Link copiado';
+      setTimeout(() => { btn.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg> Compartir`; }, 2000);
+    });
+  }
+}
+
+// Navbar scroll effect
+window.addEventListener('scroll', () => {
+  document.getElementById('br-navbar').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// Mobile drawer
+document.getElementById('br-mob-toggle').addEventListener('click', () => {
+  document.getElementById('br-mob-drawer').classList.add('open');
+  document.getElementById('br-mob-overlay').classList.add('open');
+});
+document.getElementById('br-drawer-close').addEventListener('click', () => {
+  document.getElementById('br-mob-drawer').classList.remove('open');
+  document.getElementById('br-mob-overlay').classList.remove('open');
+});
+document.getElementById('br-mob-overlay').addEventListener('click', () => {
+  document.getElementById('br-mob-drawer').classList.remove('open');
+  document.getElementById('br-mob-overlay').classList.remove('open');
+});
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

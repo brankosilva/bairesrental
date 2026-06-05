@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BairesRental — Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0f0f0f;
+  --bg2:       #181818;
+  --bg3:       #222;
+  --bg4:       #2a2a2a;
+  --border:    #2e2e2e;
+  --text:      #e8e8e8;
+  --muted:     #888;
+  --azul:      #1A6FE8;
+  --azul-dark: #1058c0;
+  --verde:     #22c55e;
+  --naranja:   #f59e0b;
+  --rojo:      #ef4444;
+  --radius:    10px;
+}
+
+html { height: 100%; }
+body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; display: flex; flex-direction: column; }
+
+/* ── HEADER ───────────────────────────────────────── */
+#app-header {
+  height: 54px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  background: #111; border-bottom: 1px solid var(--border);
+  z-index: 100;
+}
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-logo { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+.header-badge {
+  background: var(--azul); color: #fff;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
+  padding: 3px 8px; border-radius: 100px;
+}
+.header-right { display: flex; align-items: center; gap: 10px; }
+#status-msg { font-size: 12px; color: var(--verde); min-width: 100px; text-align: right; }
+.btn-header {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-size: 12px; padding: 6px 14px;
+  border-radius: 8px; cursor: pointer; transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-header:hover { background: var(--bg4); }
+#import-label { cursor: pointer; }
+
+/* ── FILTER BAR ─────────────────────────────────────── */
+#filter-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 16px;
+  background: #141414; border-bottom: 1px solid var(--border);
+}
+#search-input {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-size: 12px; padding: 6px 10px;
+  border-radius: 8px; outline: none; width: 220px;
+}
+#search-input:focus { border-color: var(--azul); }
+#search-input::placeholder { color: var(--muted); }
+.fb-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+.fb-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted); white-space: nowrap; flex-shrink: 0;
+}
+.fb-counter {
+  margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap;
+}
+
+/* ── LAYOUT ────────────────────────────────────────── */
+.app-body {
+  display: flex; flex: 1; overflow: hidden;
+}
+
+/* ── SIDEBAR ────────────────────────────────────────── */
+#sidebar {
+  width: 260px; flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sidebar-top {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.btn-new {
+  display: block; width: 100%;
+  background: var(--azul); border: none; color: #fff;
+  font-size: 13px; font-weight: 600;
+  padding: 8px; border-radius: 8px;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-new:hover { background: var(--azul-dark); }
+#sidebar-list { overflow-y: auto; flex: 1; }
+
+/* ── FILTER PILLS ─────────────────────────────────── */
+.filter-row { display: flex; gap: 5px; flex-wrap: nowrap; }
+.f-pill {
+  padding: 4px 10px; border-radius: 100px;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--muted); font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all 0.12s; white-space: nowrap;
+}
+.f-pill:hover { border-color: var(--azul); color: var(--text); }
+.f-pill.active { background: var(--azul); border-color: var(--azul); color: #fff; }
+.f-pill.fp-disp.active  { background: var(--verde);   border-color: var(--verde); }
+.f-pill.fp-res.active   { background: var(--naranja); border-color: var(--naranja); }
+.f-pill.fp-no.active    { background: var(--rojo);    border-color: var(--rojo); }
+
+/* ── SIDEBAR CARD ─────────────────────────────────── */
+.s-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+.s-card:hover  { background: var(--bg3); }
+.s-card.active { background: var(--bg3); border-left-color: var(--azul); }
+.s-card.unsaved-dot::after {
+  content: ''; width: 6px; height: 6px;
+  background: var(--naranja); border-radius: 50%;
+  position: absolute; top: 10px; right: 10px;
+}
+.s-card { position: relative; }
+.s-thumb {
+  width: 72px; height: 54px; border-radius: 6px;
+  overflow: hidden; flex-shrink: 0; background: var(--bg4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.s-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.s-info { flex: 1; min-width: 0; }
+.s-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-meta  { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-id    { font-size: 10px; color: #555; font-family: monospace; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-actions { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+.s-open-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; padding: 3px 8px;
+  border-radius: 100px; border: 1px solid var(--border);
+  background: var(--bg4); color: var(--muted);
+  text-decoration: none; transition: all 0.12s;
+  white-space: nowrap;
+}
+.s-open-btn:hover { border-color: var(--azul); color: var(--azul); }
+.s-badges { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+.s-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-verde   { background: var(--verde); }
+.dot-naranja { background: var(--naranja); }
+.dot-rojo    { background: var(--rojo); }
+.s-precio { font-size: 11px; color: var(--muted); }
+
+/* ── EDITOR ─────────────────────────────────────────── */
+#editor {
+  flex: 1; overflow-y: auto; background: var(--bg);
+  display: flex; flex-direction: column;
+}
+#editor-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 14px; text-align: center; padding: 40px;
+  line-height: 1.6;
+}
+#editor-empty p::before { content: '🏠\A'; white-space: pre; font-size: 40px; display: block; margin-bottom: 12px; }
+#editor-form { flex: 1; padding: 0 0 40px; }
+
+/* ── IMAGE AREA ────────────────────────────────────── */
+#img-area {
+  position: relative; height: 200px; overflow: hidden;
+  background: var(--bg3); cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+#img-area.drag-over { outline: 3px dashed var(--azul); outline-offset: -3px; }
+#img-preview {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+#img-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; color: var(--muted); font-size: 13px;
+  pointer-events: none;
+}
+#img-placeholder::before { content: '📸'; font-size: 40px; }
+#img-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 600;
+  opacity: 0; transition: opacity 0.2s;
+  pointer-events: none;
+}
+#img-area:hover #img-overlay { opacity: 1; }
+#img-status {
+  position: absolute; bottom: 10px; right: 12px;
+  font-size: 12px; background: rgba(0,0,0,0.6);
+  padding: 4px 10px; border-radius: 100px; color: #fff;
+  display: none;
+}
+
+/* ── FIELDS WRAPPER ────────────────────────────────── */
+.editor-fields { padding: 16px 20px; max-width: 760px; }
+
+.field-row { display: flex; gap: 12px; margin-bottom: 14px; }
+.field-row > * { flex: 1; }
+.field-group { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
+.field-group label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted);
+}
+.f-input {
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; padding: 7px 10px;
+  border-radius: 8px; outline: none; width: 100%;
+  transition: border-color 0.15s;
+}
+.f-input:focus   { border-color: var(--azul); }
+.f-input[readonly] { color: var(--muted); cursor: default; }
+textarea.f-input  { resize: vertical; line-height: 1.5; }
+.char-count { font-size: 11px; color: var(--muted); align-self: flex-end; }
+
+/* ── PILL GROUPS ────────────────────────────────────── */
+.pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill-group button {
+  padding: 7px 14px; border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg3); color: var(--muted);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.pill-group button:hover { border-color: var(--azul); color: var(--text); }
+.pill-group button.active { background: var(--azul); border-color: var(--azul); color: #fff; }
+.pill-disp-disp.active { background: var(--verde);   border-color: var(--verde); }
+.pill-disp-res.active  { background: var(--naranja); border-color: var(--naranja); }
+.pill-disp-no.active   { background: var(--rojo);    border-color: var(--rojo); }
+
+/* ── TOGGLE SWITCHES ────────────────────────────────── */
+.switches-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.switch-item  { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.switch-item span { font-size: 13px; }
+.sw {
+  appearance: none; -webkit-appearance: none;
+  width: 38px; height: 22px; border-radius: 100px;
+  background: var(--bg4); border: 1px solid var(--border);
+  cursor: pointer; position: relative; transition: background 0.2s;
+  flex-shrink: 0;
+}
+.sw::before {
+  content: ''; position: absolute;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--muted); top: 3px; left: 3px;
+  transition: transform 0.2s, background 0.2s;
+}
+.sw:checked { background: var(--azul); border-color: var(--azul); }
+.sw:checked::before { transform: translateX(16px); background: #fff; }
+
+/* ── AMENITIES GRID ────────────────────────────────── */
+.amenities-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.am-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  transition: all 0.15s;
+}
+.am-btn:hover { border-color: var(--azul); color: var(--text); }
+.am-btn.active { border-color: var(--azul); background: rgba(26,111,232,0.15); color: var(--azul); }
+
+/* ── DIVIDER ────────────────────────────────────────── */
+.section-divider {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px; margin-bottom: 14px; margin-top: 18px;
+}
+
+/* ── ACTIONS ────────────────────────────────────────── */
+.editor-actions {
+  display: flex; gap: 12px; align-items: center;
+  margin-top: 32px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.btn-save {
+  background: var(--azul); border: none; color: #fff;
+  font-size: 14px; font-weight: 600; padding: 11px 28px;
+  border-radius: 100px; cursor: pointer; transition: background 0.15s, opacity 0.15s;
+}
+.btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-save:not(:disabled):hover { background: var(--azul-dark); }
+.btn-delete {
+  background: none; border: 1px solid var(--border);
+  color: var(--rojo); font-size: 13px; padding: 10px 22px;
+  border-radius: 100px; cursor: pointer; transition: background 0.15s;
+  margin-left: auto;
+}
+.btn-delete:hover { background: rgba(239,68,68,0.1); border-color: var(--rojo); }
+
+/* ── SCROLLBAR ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header id="app-header">
+  <div class="header-brand">
+    <span class="header-logo">BairesRental</span>
+    <span class="header-badge">ADMIN</span>
+  </div>
+  <div class="header-right">
+    <span id="status-msg"></span>
+    <button class="btn-header" onclick="exportJSON()">⬇ Exportar JSON</button>
+    <label class="btn-header" id="import-label" for="import-file-input">⬆ Importar JSON</label>
+    <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importJSON(this)">
+  </div>
+</header>
+
+<!-- ── FILTER BAR ── -->
+<div id="filter-bar">
+  <input type="search" id="search-input" placeholder="🔍  Nombre, barrio, dirección, ID..." oninput="renderSidebar()">
+  <span class="fb-sep"></span>
+  <span class="fb-label">Tipo</span>
+  <div class="filter-row" id="filter-tipo-row">
+    <button class="f-pill active" data-val="" onclick="setFilterTipo(this)">Todos</button>
+    <button class="f-pill" data-val="monoambiente" onclick="setFilterTipo(this)">Mono</button>
+    <button class="f-pill" data-val="2 ambientes" onclick="setFilterTipo(this)">2 amb.</button>
+    <button class="f-pill" data-val="3 ambientes" onclick="setFilterTipo(this)">3 amb.</button>
+    <button class="f-pill" data-val="4+ ambientes" onclick="setFilterTipo(this)">4+</button>
+    <button class="f-pill" data-val="casa" onclick="setFilterTipo(this)">Casa</button>
+  </div>
+  <span class="fb-sep"></span>
+  <span class="fb-label">Disponibilidad</span>
+  <div class="filter-row" id="filter-disp-row">
+    <button class="f-pill active" data-val="" onclick="setFilterDisp(this)">Todos</button>
+    <button class="f-pill fp-disp" data-val="disponible" onclick="setFilterDisp(this)">● Disponible</button>
+    <button class="f-pill fp-res" data-val="reservado" onclick="setFilterDisp(this)">● Reservado</button>
+    <button class="f-pill fp-no" data-val="no disponible" onclick="setFilterDisp(this)">● No disp.</button>
+  </div>
+  <span class="fb-counter" id="sidebar-counter"></span>
+</div>
+
+<!-- ── BODY ── -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-top">
+      <button class="btn-new" onclick="newDepto()">+ Nueva propiedad</button>
+    </div>
+    <div id="sidebar-list"></div>
+  </aside>
+
+  <!-- EDITOR -->
+  <main id="editor">
+    <div id="editor-empty">
+      <p>Seleccioná una propiedad o creá una nueva</p>
+    </div>
+
+    <div id="editor-form" style="display:none">
+      <!-- IMAGE -->
+      <div id="img-area"
+           onclick="document.getElementById('img-file-input').click()"
+           ondragover="onDragOver(event)"
+           ondragleave="onDragLeave(event)"
+           ondrop="onDrop(event)">
+        <img id="img-preview" alt="" style="display:none">
+        <div id="img-placeholder">Arrastrá una imagen o hacé click para subir</div>
+        <div id="img-overlay">📷 Cambiar imagen</div>
+        <div id="img-status"></div>
+        <input type="file" id="img-file-input" accept="image/*" style="display:none" onchange="handleImageFile(this.files[0])">
+      </div>
+
+      <div class="editor-fields">
+
+        <!-- ID + TÍTULO -->
+        <div class="section-divider">Identificación</div>
+        <div class="field-row">
+          <div class="field-group" style="flex:0 0 200px">
+            <label>ID <small style="color:var(--muted);font-size:10px;text-transform:none">(único, sin espacios)</small></label>
+            <input type="text" id="f-id" class="f-input" placeholder="casa-palermo">
+          </div>
+          <div class="field-group">
+            <label>Título</label>
+            <input type="text" id="f-titulo" class="f-input" placeholder="Luminoso 2 ambientes en Palermo" oninput="onTituloInput()">
+          </div>
+        </div>
+
+        <!-- BARRIO + TIPO -->
+        <div class="field-row">
+          <div class="field-group" style="flex:0 0 180px">
+            <label>Barrio</label>
+            <input type="text" id="f-barrio" class="f-input" placeholder="Palermo">
+          </div>
+          <div class="field-group">
+            <label>Tipo</label>
+            <div class="pill-group" id="tipo-pills">
+              <button data-val="monoambiente" onclick="setPill('tipo-pills',this)">Mono</button>
+              <button data-val="2 ambientes"  onclick="setPill('tipo-pills',this)">2 amb.</button>
+              <button data-val="3 ambientes"  onclick="setPill('tipo-pills',this)">3 amb.</button>
+              <button data-val="4+ ambientes" onclick="setPill('tipo-pills',this)">4+</button>
+              <button data-val="casa"         onclick="setPill('tipo-pills',this)">Casa</button>
+              <button data-val="sin-amoblar"  onclick="setPill('tipo-pills',this)">Sin amoblar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRECIO + MONEDA + DISPONIBILIDAD -->
+        <div class="section-divider" style="margin-top:4px">Precio y disponibilidad</div>
+        <div class="field-row">
+          <div class="field-group" style="flex:0 0 160px">
+            <label>Precio <small style="font-size:10px;text-transform:none">(0 = consultar)</small></label>
+            <input type="number" id="f-precio" class="f-input" min="0" placeholder="1200" oninput="markUnsaved()">
+          </div>
+          <div class="field-group" style="flex:0 0 120px">
+            <label>Moneda</label>
+            <div class="pill-group" id="moneda-pills">
+              <button data-val="USD" onclick="setPill('moneda-pills',this)">USD</button>
+              <button data-val="ARS" onclick="setPill('moneda-pills',this)">ARS</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Disponibilidad</label>
+            <div class="pill-group" id="disp-pills">
+              <button data-val="disponible"    class="pill-disp-disp" onclick="setPill('disp-pills',this)">● Disponible</button>
+              <button data-val="reservado"     class="pill-disp-res"  onclick="setPill('disp-pills',this)">● Reservado</button>
+              <button data-val="no disponible" class="pill-disp-no"   onclick="setPill('disp-pills',this)">● No disponible</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARACTERÍSTICAS -->
+        <div class="section-divider">Características</div>
+        <div class="field-group">
+          <div class="switches-row">
+            <label class="switch-item"><input type="checkbox" id="sw-amueblado" class="sw" onchange="markUnsaved()"><span>Amueblado</span></label>
+            <label class="switch-item"><input type="checkbox" id="sw-mascotas"  class="sw" onchange="markUnsaved()"><span>Acepta mascotas</span></label>
+            <label class="switch-item"><input type="checkbox" id="sw-servicios" class="sw" onchange="markUnsaved()"><span>Servicios incluidos</span></label>
+            <label class="switch-item"><input type="checkbox" id="sw-propio"    class="sw" onchange="markUnsaved()"><span>★ BairesRental</span></label>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group" style="flex:0 0 160px">
+            <label>Mínimo de meses</label>
+            <input type="number" id="f-minimo" class="f-input" min="1" placeholder="1" oninput="markUnsaved()">
+          </div>
+          <div class="field-group" style="flex:0 0 200px">
+            <label>Disponible desde</label>
+            <input type="date" id="f-desde" class="f-input" onchange="markUnsaved()">
+          </div>
+        </div>
+
+        <!-- AMENITIES -->
+        <div class="section-divider">Amenities del edificio</div>
+        <div class="field-group">
+          <div class="amenities-grid" id="amenities-grid"></div>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="section-divider">Descripción</div>
+        <div class="field-group">
+          <label>Texto <span class="char-count" id="desc-count"></span></label>
+          <textarea id="f-descripcion" class="f-input" rows="5" placeholder="Descripción del departamento..." oninput="onDescInput()"></textarea>
+        </div>
+
+        <!-- UBICACIÓN -->
+        <div class="section-divider">Ubicación</div>
+        <div class="field-group">
+          <label>Dirección (texto)</label>
+          <input type="text" id="f-direccion" class="f-input" placeholder="Av. Santa Fe 1234, CABA" oninput="markUnsaved()">
+        </div>
+        <div class="field-group">
+          <label>🗺 Google Maps URL</label>
+          <input type="url" id="f-direccionUrl" class="f-input" placeholder="https://maps.app.goo.gl/..." oninput="markUnsaved()">
+        </div>
+
+        <!-- LINKS -->
+        <div class="section-divider">Links externos</div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>📷 Google Photos (álbum)</label>
+            <input type="url" id="f-fotos" class="f-input" placeholder="https://photos.app.goo.gl/..." oninput="markUnsaved()">
+          </div>
+          <div class="field-group">
+            <label>🏠 Airbnb / Booking URL</label>
+            <input type="url" id="f-ficha" class="f-input" placeholder="https://www.airbnb.com.ar/rooms/..." oninput="markUnsaved()">
+          </div>
+        </div>
+
+        <!-- WHATSAPP -->
+        <div class="section-divider">WhatsApp</div>
+        <div class="field-group">
+          <label>Mensaje pre-llenado</label>
+          <textarea id="f-wa-msg" class="f-input" rows="3" placeholder="Hola! Me interesa el departamento..." oninput="markUnsaved()"></textarea>
+        </div>
+
+        <!-- ACCIONES -->
+        <div class="editor-actions">
+          <button class="btn-save" id="btn-save" onclick="saveDepto()" disabled>💾 Guardar cambios</button>
+          <button class="btn-delete" id="btn-delete" onclick="deleteDepto()">🗑 Eliminar</button>
+        </div>
+
+      </div><!-- /.editor-fields -->
+    </div><!-- /#editor-form -->
+  </main>
+
+</div><!-- /.app-body -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let catalogo = [];
+let selIdx   = null;
+let unsaved  = false;
+let pendingImageFile = null;
+let isNewDepto = false;
+let idAutoGenerated = false;
+let filterTipo = '';
+let filterDisp = '';
+
+const AMENITIES = [
+  { key: 'pileta',          label: '🏊 Pileta'        },
+  { key: 'gimnasio',        label: '🏋️ Gimnasio'      },
+  { key: 'laundry',         label: '🫧 Laundry'        },
+  { key: 'parrilla',        label: '🔥 Parrilla'       },
+  { key: 'terraza',         label: '🌿 Terraza'        },
+  { key: 'cochera',         label: '🚗 Cochera'        },
+  { key: 'sauna',           label: '♨️ Sauna'          },
+  { key: 'solárium',        label: '☀️ Solárium'       },
+  { key: 'seguridad 24hs',  label: '🔒 Seguridad 24hs' },
+  { key: 'jacuzzi',         label: '🛁 Jacuzzi'        },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  buildAmenitiesGrid();
+  loadCatalogo();
+});
+
+async function loadCatalogo() {
+  try {
+    const r = await fetch('/api/departamentos');
+    catalogo = await r.json();
+    renderSidebar();
+    showStatus('');
+  } catch(e) {
+    showStatus('❌ No se pudo cargar el catálogo', true);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════════
+function setFilterTipo(btn) {
+  filterTipo = btn.dataset.val;
+  document.querySelectorAll('#filter-tipo-row .f-pill').forEach(b => b.classList.toggle('active', b === btn));
+  renderSidebar();
+}
+
+function setFilterDisp(btn) {
+  filterDisp = btn.dataset.val;
+  document.querySelectorAll('#filter-disp-row .f-pill').forEach(b => b.classList.toggle('active', b === btn));
+  renderSidebar();
+}
+
+function renderSidebar() {
+  const q    = (document.getElementById('search-input').value || '').toLowerCase();
+  const list = document.getElementById('sidebar-list');
+
+  const visible = catalogo.filter(p => {
+    if (filterTipo && p.tipo !== filterTipo) return false;
+    if (filterDisp && p.disponibilidad !== filterDisp) return false;
+    if (q) {
+      const hay = [p.titulo, p.barrio, p.id, p.direccion, p.tipo, p.descripcion]
+        .some(v => v && v.toLowerCase().includes(q));
+      if (!hay) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('sidebar-counter').textContent =
+    `${visible.length} de ${catalogo.length} propiedades`;
+
+  list.innerHTML = visible.map(p => {
+    const realIdx = catalogo.indexOf(p);
+    const dotClass = p.disponibilidad === 'disponible' ? 'dot-verde'
+                   : p.disponibilidad === 'reservado'  ? 'dot-naranja' : 'dot-rojo';
+    const imgSrc = p.imagen ? p.imagen.replace(/^\.\//, '') : '';
+    const thumb  = imgSrc
+      ? `<img src="${imgSrc}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<span style="display:none;font-size:22px">📸</span>`
+      : `<span style="font-size:22px">📸</span>`;
+    const precio      = p.precio ? `${p.moneda || 'USD'} ${Number(p.precio).toLocaleString('es-AR')}` : 'Consultar';
+    const activeClass = realIdx === selIdx ? 'active' : '';
+    const fichaLink   = p.fotos || p.fichaUrl || '';
+    const fichaBtn    = fichaLink
+      ? `<a class="s-open-btn" href="${fichaLink}" target="_blank" rel="noopener"
+           onclick="event.stopPropagation()">📷 Fotos</a>`
+      : '';
+    return `<div class="s-card ${activeClass}" onclick="selectDepto(${realIdx})">
+      <div class="s-thumb">${thumb}</div>
+      <div class="s-info">
+        <div class="s-title">${p.titulo || '(sin título)'}</div>
+        <div class="s-meta">${p.barrio || '—'} · ${p.tipo || '—'}</div>
+        <div class="s-id">${p.id || ''}</div>
+        <div class="s-actions">
+          <span class="s-dot ${dotClass}"></span>
+          <span class="s-precio">${precio}</span>
+          ${fichaBtn}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SELECT / NEW
+// ═══════════════════════════════════════════════════════════════
+function selectDepto(idx) {
+  if (unsaved && !confirm('Tenés cambios sin guardar. ¿Querés descartarlos?')) return;
+  selIdx = idx;
+  unsaved = false;
+  isNewDepto = false;
+  pendingImageFile = null;
+  loadForm(catalogo[idx]);
+  renderSidebar();
+}
+
+function newDepto() {
+  if (unsaved && !confirm('Tenés cambios sin guardar. ¿Querés descartarlos?')) return;
+  selIdx = null;
+  unsaved = false;
+  isNewDepto = true;
+  pendingImageFile = null;
+  idAutoGenerated = false;
+  clearForm();
+  document.getElementById('editor-empty').style.display = 'none';
+  document.getElementById('editor-form').style.display  = 'flex';
+  document.getElementById('editor-form').style.flexDirection = 'column';
+  document.getElementById('f-id').removeAttribute('readonly');
+  document.getElementById('f-titulo').focus();
+  renderSidebar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FORM LOAD / CLEAR
+// ═══════════════════════════════════════════════════════════════
+function loadForm(p) {
+  document.getElementById('editor-empty').style.display = 'none';
+  document.getElementById('editor-form').style.display  = 'flex';
+  document.getElementById('editor-form').style.flexDirection = 'column';
+
+  document.getElementById('f-id').value        = p.id          || '';
+  document.getElementById('f-id').setAttribute('readonly', '');
+  document.getElementById('f-titulo').value    = p.titulo      || '';
+  document.getElementById('f-barrio').value    = p.barrio      || '';
+  document.getElementById('f-precio').value    = p.precio      || '';
+  document.getElementById('f-minimo').value    = p.minimoMeses || '';
+  document.getElementById('f-desde').value     = p.disponibleDesde || '';
+  document.getElementById('f-descripcion').value = p.descripcion || '';
+  document.getElementById('f-direccion').value  = p.direccion  || '';
+  document.getElementById('f-direccionUrl').value = p.direccionUrl || '';
+  document.getElementById('f-fotos').value     = p.fotos       || '';
+  document.getElementById('f-ficha').value     = p.fichaUrl    || '';
+  document.getElementById('f-wa-msg').value    = p.whatsappMsg || '';
+
+  document.getElementById('sw-amueblado').checked = !!p.amueblado;
+  document.getElementById('sw-mascotas').checked  = !!p.mascotas;
+  document.getElementById('sw-servicios').checked = !!p.serviciosIncluidos;
+  document.getElementById('sw-propio').checked    = !!p.esPropio;
+
+  setActivePill('tipo-pills',   p.tipo          || 'monoambiente');
+  setActivePill('moneda-pills', p.moneda         || 'USD');
+  setActivePill('disp-pills',   p.disponibilidad || 'disponible');
+
+  const ams = Array.isArray(p.amenities) ? p.amenities : [];
+  document.querySelectorAll('.am-btn').forEach(btn => {
+    btn.classList.toggle('active', ams.includes(btn.dataset.key));
+  });
+
+  // Image
+  const preview = document.getElementById('img-preview');
+  const placeholder = document.getElementById('img-placeholder');
+  if (p.imagen) {
+    preview.src = p.imagen.replace(/^\.\//, '');
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    preview.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+
+  const descLen = document.getElementById('f-descripcion').value.length;
+  document.getElementById('desc-count').textContent = descLen ? `${descLen} caracteres` : '';
+  document.getElementById('btn-delete').style.display = '';
+  document.getElementById('btn-save').disabled = true;
+}
+
+function clearForm() {
+  ['f-id','f-titulo','f-barrio','f-precio','f-minimo','f-desde',
+   'f-descripcion','f-direccion','f-direccionUrl','f-fotos','f-ficha','f-wa-msg']
+    .forEach(id => document.getElementById(id).value = '');
+  ['sw-amueblado','sw-mascotas','sw-servicios','sw-propio']
+    .forEach(id => document.getElementById(id).checked = false);
+  document.querySelectorAll('.am-btn').forEach(b => b.classList.remove('active'));
+  setActivePill('tipo-pills',   'monoambiente');
+  setActivePill('moneda-pills', 'USD');
+  setActivePill('disp-pills',   'disponible');
+
+  document.getElementById('img-preview').style.display   = 'none';
+  document.getElementById('img-placeholder').style.display = 'flex';
+  document.getElementById('btn-delete').style.display = 'none';
+  document.getElementById('btn-save').disabled = false;
+  document.getElementById('desc-count').textContent = '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════════════════════════════
+async function saveDepto() {
+  const id = document.getElementById('f-id').value.trim();
+  if (!id) { alert('El ID no puede estar vacío.'); return; }
+
+  if (isNewDepto && catalogo.some(p => p.id === id)) {
+    alert(`Ya existe una propiedad con el ID "${id}".`);
+    return;
+  }
+
+  document.getElementById('btn-save').disabled = true;
+  showStatus('Guardando…');
+
+  // Upload image if pending
+  if (pendingImageFile) {
+    try {
+      showImgStatus('⏳ Subiendo…', true);
+      const buf = await pendingImageFile.arrayBuffer();
+      const r = await fetch('/api/upload', {
+        method: 'POST',
+        body: buf,
+        headers: { 'Content-Type': pendingImageFile.type, 'X-Depto-Id': id }
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error);
+      // Update the preview path
+      getFormData().imagen = data.path;
+      pendingImageFile = null;
+      showImgStatus('✓ Imagen subida', false);
+      setTimeout(() => document.getElementById('img-status').style.display = 'none', 2000);
+    } catch(e) {
+      showImgStatus('❌ ' + e.message, false);
+      document.getElementById('btn-save').disabled = false;
+      showStatus('Error al subir imagen', true);
+      return;
+    }
+  }
+
+  const p = getFormData();
+
+  if (isNewDepto) {
+    catalogo.push(p);
+    selIdx = catalogo.length - 1;
+    isNewDepto = false;
+    document.getElementById('f-id').setAttribute('readonly', '');
+    document.getElementById('btn-delete').style.display = '';
+  } else {
+    catalogo[selIdx] = p;
+  }
+
+  await persistCatalogo();
+  unsaved = false;
+  renderSidebar();
+}
+
+function getFormData() {
+  const ams = [];
+  document.querySelectorAll('.am-btn.active').forEach(b => ams.push(b.dataset.key));
+
+  return {
+    id:               document.getElementById('f-id').value.trim(),
+    titulo:           document.getElementById('f-titulo').value.trim(),
+    barrio:           document.getElementById('f-barrio').value.trim(),
+    tipo:             getActivePillVal('tipo-pills'),
+    precio:           parseFloat(document.getElementById('f-precio').value) || 0,
+    moneda:           getActivePillVal('moneda-pills') || 'USD',
+    disponibilidad:   getActivePillVal('disp-pills')   || 'disponible',
+    amueblado:        document.getElementById('sw-amueblado').checked,
+    mascotas:         document.getElementById('sw-mascotas').checked,
+    serviciosIncluidos: document.getElementById('sw-servicios').checked,
+    esPropio:         document.getElementById('sw-propio').checked,
+    amenities:        ams,
+    minimoMeses:      parseInt(document.getElementById('f-minimo').value) || 1,
+    disponibleDesde:  document.getElementById('f-desde').value,
+    descripcion:      document.getElementById('f-descripcion').value.trim(),
+    imagen:           (selIdx !== null && catalogo[selIdx]) ? (catalogo[selIdx].imagen || '') : '',
+    direccion:        document.getElementById('f-direccion').value.trim(),
+    direccionUrl:     document.getElementById('f-direccionUrl').value.trim(),
+    fotos:            document.getElementById('f-fotos').value.trim(),
+    fichaUrl:         document.getElementById('f-ficha').value.trim(),
+    whatsappMsg:      document.getElementById('f-wa-msg').value.trim(),
+  };
+}
+
+async function persistCatalogo() {
+  try {
+    const r = await fetch('/api/departamentos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(catalogo)
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    showStatus(`✓ Guardado — ${d.count} propiedades`);
+    document.getElementById('btn-save').disabled = true;
+  } catch(e) {
+    showStatus('❌ Error: ' + e.message, true);
+    document.getElementById('btn-save').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════════════════════════
+async function deleteDepto() {
+  if (selIdx === null || selIdx < 0) return;
+  const p = catalogo[selIdx];
+  if (!confirm(`¿Eliminar "${p.titulo}"? Esta acción no se puede deshacer.`)) return;
+  catalogo.splice(selIdx, 1);
+  selIdx = null;
+  unsaved = false;
+  isNewDepto = false;
+  document.getElementById('editor-empty').style.display = 'flex';
+  document.getElementById('editor-form').style.display  = 'none';
+  await persistCatalogo();
+  renderSidebar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IMAGE HANDLING
+// ═══════════════════════════════════════════════════════════════
+function handleImageFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Solo se permiten archivos de imagen.'); return; }
+  pendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('img-preview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('img-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+  markUnsaved();
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('img-area').classList.add('drag-over');
+}
+function onDragLeave(e) {
+  document.getElementById('img-area').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('img-area').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleImageFile(file);
+}
+
+function showImgStatus(msg, spinning) {
+  const el = document.getElementById('img-status');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AMENITIES GRID
+// ═══════════════════════════════════════════════════════════════
+function buildAmenitiesGrid() {
+  const grid = document.getElementById('amenities-grid');
+  grid.innerHTML = AMENITIES.map(a =>
+    `<button class="am-btn" data-key="${a.key}" onclick="toggleAmenity(this)">${a.label}</button>`
+  ).join('');
+}
+
+function toggleAmenity(btn) {
+  btn.classList.toggle('active');
+  markUnsaved();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PILLS
+// ═══════════════════════════════════════════════════════════════
+function setPill(groupId, btn) {
+  document.querySelectorAll(`#${groupId} button`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  markUnsaved();
+}
+
+function setActivePill(groupId, val) {
+  document.querySelectorAll(`#${groupId} button`).forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+}
+
+function getActivePillVal(groupId) {
+  const active = document.querySelector(`#${groupId} button.active`);
+  return active ? active.dataset.val : '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function markUnsaved() {
+  unsaved = true;
+  document.getElementById('btn-save').disabled = false;
+}
+
+function onTituloInput() {
+  markUnsaved();
+  if (isNewDepto && (idAutoGenerated || !document.getElementById('f-id').value)) {
+    const slug = slugify(document.getElementById('f-titulo').value);
+    document.getElementById('f-id').value = slug;
+    idAutoGenerated = true;
+  }
+}
+
+function onDescInput() {
+  markUnsaved();
+  const len = document.getElementById('f-descripcion').value.length;
+  document.getElementById('desc-count').textContent = `${len} caracteres`;
+}
+
+function slugify(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s\-]/g, '')
+    .trim().replace(/\s+/g, '-')
+    .substring(0, 60);
+}
+
+function showStatus(msg, isError) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.style.color = isError ? '#ef4444' : '#22c55e';
+  if (msg && !isError) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 4000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════════════════════
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(catalogo, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'departamentos.json';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!confirm('Esto va a reemplazar TODO el catálogo con el archivo importado. ¿Continuás?')) {
+    input.value = ''; return;
+  }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('El archivo no es un array JSON.');
+      catalogo = data;
+      await persistCatalogo();
+      selIdx = null;
+      document.getElementById('editor-empty').style.display = 'flex';
+      document.getElementById('editor-form').style.display  = 'none';
+      renderSidebar();
+    } catch(err) {
+      alert('Error al importar: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ID MANUAL EDIT — si el usuario edita el ID a mano, desactivamos auto-gen
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('f-id').addEventListener('input', () => {
+    idAutoGenerated = false;
+    markUnsaved();
+  });
+});
+</script>
+</body>
+</html>

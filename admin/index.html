@@ -878,6 +878,7 @@ function handleImageFile(file) {
     preview.src = e.target.result;
     preview.style.display = 'block';
     document.getElementById('img-placeholder').style.display = 'none';
+    updateSidebarThumb(e.target.result);
   };
   reader.readAsDataURL(file);
   markUnsaved();
@@ -893,6 +894,7 @@ function onImageUrlInput() {
     placeholder.style.display = 'none';
     pendingImageFile = null;
     pendingImagePath = null;
+    updateSidebarThumb(url);
   } else {
     const existing = (selIdx !== null && catalogo[selIdx])
       ? (catalogo[selIdx].imagen || '').replace(/^\.\//, '') : '';
@@ -904,8 +906,23 @@ function onImageUrlInput() {
       preview.style.display = 'none';
       placeholder.style.display = 'flex';
     }
+    updateSidebarThumb(existing || '');
   }
   markUnsaved();
+}
+
+function updateSidebarThumb(src) {
+  if (selIdx === null) return;
+  const card = document.querySelector(`.s-card[onclick="selectDepto(${selIdx})"]`);
+  if (!card) return;
+  const thumb = card.querySelector('.s-thumb');
+  if (!thumb) return;
+  if (src) {
+    thumb.innerHTML = `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
+      + `<span style="display:none;font-size:22px">📸</span>`;
+  } else {
+    thumb.innerHTML = `<span style="font-size:22px">📸</span>`;
+  }
 }
 
 function onDragOver(e) {

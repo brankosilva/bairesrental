@@ -1,10 +1,10 @@
 [
   {
     "id": "casa-duggan",
-    "titulo": "Quinta de verano en Miramar",
+    "titulo": "Quinta de verano en Duggan",
     "barrio": "Duggan",
     "tipo": "casa",
-    "precio": 1000,
+    "precio": 0,
     "moneda": "USD",
     "disponibilidad": "disponible",
     "amueblado": true,
@@ -200,7 +200,7 @@
     "minimoMeses": 1,
     "disponibleDesde": "",
     "descripcion": "Departamento nuevo y elegante en edificio con pileta, gimnasio y laundry. Ubicado en Almagro, corazón de Buenos Aires. A metros de la estación Medrano del subte B y calle Corrientes. Además, a solo 4 cuadras está el Hospital Italiano, cercano a Parque Centenario, Sanatorio Güemes, shopping Abasto y a 9 cuadras de Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés. El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.",
-    "imagen": "./images/medrano-828-sunset/medrano 828 9C 17.jpg",
+    "imagen": "./images/medrano-828/imagen.jpg",
     "direccion": "Medrano 828",
     "direccionUrl": "https://maps.app.goo.gl/NXwkiHc9hikQKxWx8",
     "fotos": "https://photos.app.goo.gl/ZNvp5HwtVeje8rkc9",

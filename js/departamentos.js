@@ -274,7 +274,9 @@ function crearCardHTML(p, idx) {
     : `<span class="br-precio" style="font-size:1rem;font-weight:700;">${t('c-consultar')}</span><span class="br-precio-sub">${serviciosLabel}${minimoLabel}</span>`;
 
   const waLink = p.fichaUrl || p.fotos || "";
-  const waMsgCompleto = (waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg) + `\n\nCod: ${p.id}`;
+  const brBase = window.location.origin + window.location.pathname.replace("departamentos.html", "");
+  const brLink = brBase + "departamento.html?id=" + p.id;
+  const waMsgCompleto = (waLink ? `${p.whatsappMsg}\n\nFotos / ficha: ${waLink}` : p.whatsappMsg) + `\n\nLink BairesRental: ${brLink}\n\nCod: ${p.id}`;
   const waUrl = `${WA_BASE}?text=${encodeURIComponent(waMsgCompleto)}`;
 
   const direccionHTML = p.direccion && p.direccionUrl

@@ -737,29 +737,29 @@
     "esPropio": false
   },
   {
-    "imagen": "https://static.tokkobroker.com/pictures/7953731_113228467996435790768312939502104619611253506674333433898839913215196365130823.jpg",
-    "fichaUrl": "",
-    "disponibleDesde": "2026-04-24",
-    "tipo": "3 ambientes",
-    "direccion": "Sinclair 3000",
-    "direccionUrl": "https://maps.app.goo.gl/vr1fcZnBjFWbMMxa9",
     "id": "alq-6644",
     "titulo": "3 ambientes piso entero en Palermo",
     "barrio": "Palermo",
-    "precio": 1800,
+    "tipo": "3 ambientes",
+    "precio": 1600,
     "moneda": "USD",
     "disponibilidad": "disponible",
     "amueblado": true,
-    "mascotas": false,
+    "mascotas": true,
+    "serviciosIncluidos": false,
+    "esPropio": false,
     "amenities": [
       "cochera"
     ],
-    "serviciosIncluidos": false,
     "minimoMeses": 3,
-    "descripcion": "Precio: USD 1.800 mensuales, Expensas: $290.000 mensuales (a cargo del inquilino) ,Servicios: A cargo del inquilino\nCochera cubierta incluida\nExcepcional departamento de 3 ambientes a estrenar ubicado en Sinclair 3032, en el corazón de Palermo Nuevo, a metros de Av. del Libertador. Unidad de categoría en edificio exclusivo de una sola unidad por piso, con máxima privacidad, doble balcón, ventilación cruzada y cochera cubierta incluida. Disponible a partir del 24 de abril.\nDistribución y ambientes\nLiving-comedor amplio y luminoso con Smart TV 50\" y salida a balcón corrido al frente con vistas a la ciudad\nBalcón al contrafrente que garantiza ventilación cruzada en todos los ambientes\nDormitorio principal con cama queen y amplio placard\nDormitorio secundario con cama, escritorio y placard, ideal para home office\nCocina amplia con barra, completamente equipada con electrodomésticos\nLavarropas incluido\nBaño moderno completo\nEquipamiento incluido\nSmart TV 50\"\nAire acondicionado frío/calor en todos los ambientes\nCocina equipada con electrodomésticos\nLavarropas\nPlacares en ambos dormitorios\nEscritorio en dormitorio secundario\nInformación del edificio\nEdificio exclusivo de una unidad por piso — máxima privacidad\nCochera cubierta incluida en el valor del alquiler\nUnidad a estrenar en excelente estado\nCondiciones de alquiler",
+    "disponibleDesde": "",
+    "descripcion": "Precio: USD 1.600 mensuales, Expensas: $290.000 mensuales (a cargo del inquilino) ,Servicios: A cargo del inquilino\nCochera cubierta incluida\nExcepcional departamento de 3 ambientes a estrenar ubicado en Sinclair 3032, en el corazón de Palermo Nuevo, a metros de Av. del Libertador. Unidad de categoría en edificio exclusivo de una sola unidad por piso, con máxima privacidad, doble balcón, ventilación cruzada y cochera cubierta incluida. Disponible a partir del 24 de abril.\nDistribución y ambientes\nLiving-comedor amplio y luminoso con Smart TV 50\" y salida a balcón corrido al frente con vistas a la ciudad\nBalcón al contrafrente que garantiza ventilación cruzada en todos los ambientes\nDormitorio principal con cama queen y amplio placard\nDormitorio secundario con cama, escritorio y placard, ideal para home office\nCocina amplia con barra, completamente equipada con electrodomésticos\nLavarropas incluido\nBaño moderno completo\nEquipamiento incluido\nSmart TV 50\"\nAire acondicionado frío/calor en todos los ambientes\nCocina equipada con electrodomésticos\nLavarropas\nPlacares en ambos dormitorios\nEscritorio en dormitorio secundario\nInformación del edificio\nEdificio exclusivo de una unidad por piso — máxima privacidad\nCochera cubierta incluida en el valor del alquiler\nUnidad a estrenar en excelente estado\nCondiciones de alquiler",
+    "imagen": "https://static.tokkobroker.com/pictures/7953731_113228467996435790768312939502104619611253506674333433898839913215196365130823.jpg",
+    "direccion": "Sinclair 3000",
+    "direccionUrl": "https://maps.app.goo.gl/vr1fcZnBjFWbMMxa9",
     "fotos": "https://ficha.info/p/6ed2fc270ff0437ea156560a398a2239?v=1776699667658",
-    "whatsappMsg": "Hola! Me interesa el 3 ambientes en Palermo (Sinclair 3000). ¿Podría darme más información?",
-    "esPropio": false
+    "fichaUrl": "",
+    "whatsappMsg": "Hola! Me interesa el 3 ambientes en Palermo (Sinclair 3000). ¿Podría darme más información?"
   },
   {
     "imagen": "./images/vera-0-8/imagen.jpg",

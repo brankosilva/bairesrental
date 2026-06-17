@@ -561,7 +561,11 @@ function render(p) {
   }
 
   // Botones
-  const waMsg = p.whatsappMsg || `Hola! Me interesa el departamento "${p.titulo}" en ${p.barrio}. ¿Podés darme más información?`;
+  const baseMsg = p.whatsappMsg || `Hola! Me interesa el departamento "${p.titulo}" en ${p.barrio}. ¿Podés darme más información?`;
+  const fichaLink = p.fichaUrl || p.fotos || '';
+  const waMsg = baseMsg
+    + (fichaLink ? `\n\nFicha: ${fichaLink}` : '')
+    + `\n\nLink BairesRental: ${window.location.href}`;
   document.getElementById('btn-wa').href = WA_BASE + '?text=' + encodeURIComponent(waMsg);
 
   if (p.fotos)   { document.getElementById('btn-fotos').href = p.fotos;   document.getElementById('btn-fotos').style.display = ''; }

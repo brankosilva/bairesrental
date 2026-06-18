@@ -347,7 +347,7 @@ function verDetalle(ref) {
     ? catalogoActual[ref]
     : catalogoActual.find(x => x.id === ref);
   if (!p) return;
-  window.location.href = "departamento.html?id=" + encodeURIComponent(p.id);
+  window.open("departamento.html?id=" + encodeURIComponent(p.id), "_blank");
 }
 
 function compartirPropiedad(id) {

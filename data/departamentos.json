@@ -1221,32 +1221,32 @@
     "esPropio": false
   },
   {
-    "imagen": "https://static.tokkobroker.com/pictures/7882802_74322784375760218749991429066422788918525747519722808531068025047082411645123.jpg",
-    "fichaUrl": "",
-    "disponibleDesde": "",
-    "tipo": "monoambiente",
-    "direccion": "Moreno y Bolívar",
-    "direccionUrl": "https://maps.app.goo.gl/LLzkTih1WAZhWdA76",
     "id": "alq-GWmsr001",
     "titulo": "Unidad de categoría en edificio premium",
     "barrio": "Monserrat",
+    "tipo": "monoambiente",
     "precio": 550,
     "moneda": "USD",
-    "disponibilidad": "disponible",
+    "disponibilidad": "reservado",
     "amueblado": true,
     "mascotas": false,
+    "serviciosIncluidos": false,
+    "esPropio": false,
     "amenities": [
       "pileta",
       "laundry",
       "solárium",
       "seguridad 24hs"
     ],
-    "serviciosIncluidos": false,
     "minimoMeses": 3,
+    "disponibleDesde": "",
     "descripcion": "Departamento monoambiente en alquiler ubicado en la intersección de Moreno y Bolívar, en el barrio de Monserrat. Unidad de categoría en edificio premium, totalmente amoblada y equipada, ideal para alquiler temporario orientado a estudiantes, profesionales o nómadas digitales.\nLa propiedad cuenta con una superficie total de 35 m² y se destaca por su diseño moderno, funcional y excelente luminosidad gracias a su amplio ventanal. El ambientes único está inteligentemente distribuido, integrando un espacio de descanso con cama matrimonial queen size, sector de living y área de comedor/escritorio apto para dos personas.\nLa cocina es eléctrica y se encuentra completamente equipada con vajilla para dos personas, ofreciendo practicidad y confort. Dispone además de amplio espacio de guardado. El baño es completo, con bañera.\nEl departamento cuenta con aire acondicionado frío/calor, Smart TV y mobiliario completo, listo para habitar.\nEl edificio es de categoría premium y ofrece amenities de primer nivel: seguridad 24 horas, piscina, solárium, espacio de coworking, laundry y cafetería.\nUbicado en el corazón de Monserrat, con cercanía a centros históricos, administrativos y culturales, en una zona con excelente conectividad y servicios.\nConectividad: acceso inmediato a Av. 9 de Julio, Av. de Mayo y Av. Belgrano. Cercanía a múltiples líneas de subte (líneas A, C, D y E) y amplia red de colectivos que conectan con toda la ciudad.\nUniversidades cercanas: Universidad Argentina de la Empresa (UADE), Universidad de Buenos Aires (sedes cercanas), Universidad del Salvador.\nCentros de salud cercanos: Hospital Argerich, Hospital Ramos Mejía, Sanatorio Güemes, clínicas privadas y centros médicos.",
+    "imagen": "https://static.tokkobroker.com/pictures/7882802_74322784375760218749991429066422788918525747519722808531068025047082411645123.jpg",
+    "direccion": "Moreno y Bolívar",
+    "direccionUrl": "https://maps.app.goo.gl/LLzkTih1WAZhWdA76",
     "fotos": "https://ficha.info/p/96829dd8ed334633a864dafa3d0a0321?v=1778089221882",
-    "whatsappMsg": "",
-    "esPropio": false
+    "fichaUrl": "",
+    "whatsappMsg": ""
   },
   {
     "imagen": "https://static.tokkobroker.com/pictures/6979155_68563547766901342308640737278427675929019807166132575969028941411102627711065.jpg",

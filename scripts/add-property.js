@@ -21,6 +21,42 @@ const VALID_AMENITIES = [
   'cochera', 'sauna', 'solárium', 'seguridad 24hs', 'jacuzzi', 'lavarropas'
 ];
 
+function normalizeAddress(str) {
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findDuplicates(catalog, prop) {
+  const warnings = [];
+
+  const idMatch = catalog.find(p => p.id === prop.id);
+  if (idMatch) {
+    warnings.push(`ID "${prop.id}" ya existe: "${idMatch.titulo}"`);
+  }
+
+  const normAddr = normalizeAddress(prop.direccion);
+  if (normAddr) {
+    const addrMatch = catalog.find(p => p.id !== prop.id && normalizeAddress(p.direccion) === normAddr);
+    if (addrMatch) {
+      warnings.push(`misma dirección que "${addrMatch.titulo}" (ID: ${addrMatch.id}): "${addrMatch.direccion}"`);
+    }
+  }
+
+  const fotos = (prop.fotos || '').trim();
+  if (fotos) {
+    const fotosMatch = catalog.find(p => p.id !== prop.id && (p.fotos || '').trim() === fotos);
+    if (fotosMatch) {
+      warnings.push(`mismo link de fotos que "${fotosMatch.titulo}" (ID: ${fotosMatch.id})`);
+    }
+  }
+
+  return warnings;
+}
+
 function validate(prop) {
   const errors = [];
   for (const f of REQUIRED_FIELDS) {
@@ -93,17 +129,23 @@ async function main() {
   console.log(`  Dirección:      ${prop.direccion || '—'}`);
   console.log(`  esPropio:       ${prop.esPropio}`);
 
-  if (dryRun) {
-    console.log('\n[dry-run] No se guardaron cambios.');
-    return;
-  }
-
   let catalog;
   try {
     catalog = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   } catch (e) {
     console.error('Error al leer departamentos.json:', e.message);
     process.exit(1);
+  }
+
+  const warnings = findDuplicates(catalog, prop);
+  if (warnings.length) {
+    console.log('\n⚠️  Posibles duplicados detectados:');
+    warnings.forEach(w => console.log('  -', w));
+  }
+
+  if (dryRun) {
+    console.log('\n[dry-run] No se guardaron cambios.');
+    return;
   }
 
   const dupIdx = catalog.findIndex(p => p.id === prop.id);

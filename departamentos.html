@@ -323,7 +323,7 @@
   .br-catalogo-header   { display: none !important; }
   .br-contador-inline {
     font-family: 'DM Sans', sans-serif;
-    font-size: 10px; color: #888; white-space: nowrap;
+    font-size: 11px; color: #888; white-space: nowrap;
     margin-left: auto; align-self: center; flex-shrink: 0;
   }
   .br-btn-limpiar { align-self: center; flex-shrink: 0; }
@@ -332,19 +332,16 @@
   .br-filtros-inner         { padding: 7px 24px !important; }
   .br-filtros-row           { gap: 9px !important; }
   .br-filtro-grupo          { gap: 2px !important; }
-  .br-filtro-label          { font-size: 10px !important; }
+  .br-filtro-label          { font-size: 11px !important; }
   .br-pill-btn              { font-size: 11px !important; padding: 3px 9px !important; }
   .br-filtro-select         { font-size: 11px !important; padding: 4px 10px !important; min-width: 110px !important; }
   .br-toggle-wrap span      { font-size: 11px !important; }
   #label-precio             { font-size: 11px !important; }
   .br-precio-wrap           { min-width: 130px !important; }
   .br-btn-limpiar           { font-size: 11px !important; }
-  /* Amenities segunda fila — más compacta */
-  .br-filtros-amenities     { margin-top: 5px !important; padding-top: 5px !important; }
-  .br-filtros-amenities .br-filtro-pills { align-items: flex-start !important; gap: 5px !important; }
   @media (max-width: 768px) {
-    .br-filtros-amenities .br-amenity-check {
-      font-size: 9px !important; padding: 2px 6px !important;
+    .br-amenity-check {
+      font-size: 10px !important; padding: 2px 6px !important;
       line-height: 1.2 !important;
     }
   }
@@ -611,25 +608,31 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
           </div>
         </div>
 
+        <div class="br-filtro-grupo">
+          <span class="br-filtro-label" data-i18n="f-disponibilidad">Disponibilidad</span>
+          <div class="br-filtro-pills">
+            <button class="br-pill-btn br-pill-btn-disponible" id="filtro-disponible" data-i18n="f-disponible">✓ Solo disponibles</button>
+          </div>
+        </div>
+
+        <div class="br-filtro-grupo">
+          <div class="br-filtro-pills">
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> <span data-i18n="am-pileta">🏊 Pileta</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> <span data-i18n="am-gym">🏋️ Gimnasio</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> <span data-i18n="am-laundry">🫧 Laundry</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="parrilla" /> <span data-i18n="am-parrilla">🔥 Parrilla</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="terraza" /> <span data-i18n="am-terraza">🌿 Terraza</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="cochera" /> <span data-i18n="am-cochera">🚗 Cochera</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="sauna" /> <span data-i18n="am-sauna">♨️ Sauna</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="solárium" /> <span data-i18n="am-solarium">☀️ Solárium</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="seguridad 24hs" /> <span data-i18n="am-seg">🔒 Seguridad 24hs</span></label>
+            <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="jacuzzi" /> <span data-i18n="am-jacuzzi">🛁 Jacuzzi</span></label>
+          </div>
+        </div>
+
         <span class="br-contador-inline" id="contador-resultados-inline"></span>
         <button class="br-btn-limpiar" id="btn-limpiar-filtros" data-i18n="f-limpiar">✕ Limpiar</button>
 
-      </div>
-
-      <div class="br-filtros-amenities">
-        <span class="br-filtro-label" style="display:block;margin-bottom:.45rem;" data-i18n="f-amenities">Amenities</span>
-        <div class="br-filtro-pills">
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="pileta" /> <span data-i18n="am-pileta">🏊 Pileta</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="gimnasio" /> <span data-i18n="am-gym">🏋️ Gimnasio</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="laundry" /> <span data-i18n="am-laundry">🫧 Laundry</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="parrilla" /> <span data-i18n="am-parrilla">🔥 Parrilla</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="terraza" /> <span data-i18n="am-terraza">🌿 Terraza</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="cochera" /> <span data-i18n="am-cochera">🚗 Cochera</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="sauna" /> <span data-i18n="am-sauna">♨️ Sauna</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="solárium" /> <span data-i18n="am-solarium">☀️ Solárium</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="seguridad 24hs" /> <span data-i18n="am-seg">🔒 Seguridad 24hs</span></label>
-          <label class="br-amenity-check"><input type="checkbox" class="filtro-amenity" value="jacuzzi" /> <span data-i18n="am-jacuzzi">🛁 Jacuzzi</span></label>
-        </div>
       </div>
     </div>
   </div>
@@ -744,6 +747,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'f-precio':'Precio máx.','f-amueblado':'Amueblado',
       'f-si':'Sí','f-mascotas':'Acepta mascotas',
       'f-baires':'★ Solo BairesRental','f-limpiar':'✕ Limpiar',
+      'f-disponibilidad':'Disponibilidad','f-disponible':'✓ Solo disponibles',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pileta','am-gym':'🏋️ Gimnasio','am-laundry':'🫧 Laundry',
       'am-parrilla':'🔥 Parrilla','am-terraza':'🌿 Terraza','am-cochera':'🚗 Cochera',
@@ -780,6 +784,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'f-precio':'Max. price','f-amueblado':'Furnished',
       'f-si':'Yes','f-mascotas':'Pets allowed',
       'f-baires':'★ BairesRental only','f-limpiar':'✕ Clear',
+      'f-disponibilidad':'Availability','f-disponible':'✓ Available only',
       'f-amenities':'Amenities',
       'am-pileta':'🏊 Pool','am-gym':'🏋️ Gym','am-laundry':'🫧 Laundry',
       'am-parrilla':'🔥 BBQ','am-terraza':'🌿 Rooftop','am-cochera':'🚗 Parking',
@@ -904,6 +909,8 @@ if (window.BR_LANG && window.BR_LANG !== 'es') {
     if (mascotas && mascotas.checked) n++;
     var baires = document.getElementById('filtro-bairesrental');
     if (baires && baires.classList.contains('active')) n++;
+    var disponible = document.getElementById('filtro-disponible');
+    if (disponible && disponible.classList.contains('active')) n++;
     var busqueda = document.getElementById('filtro-busqueda');
     if (busqueda && busqueda.value.trim()) n++;
     return n;

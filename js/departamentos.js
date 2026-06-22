@@ -13,7 +13,7 @@ let catalogoActual = [];
 let filtrosActivos = {
   barrio: "", tipo: [], precioMax: 8000,
   amueblado: "", amenities: [], mascotas: false,
-  soloBairesRental: false, busqueda: ""
+  soloBairesRental: false, soloDisponibles: false, busqueda: ""
 };
 let filtrosListenersRegistrados = false;
 
@@ -132,6 +132,15 @@ function inicializarFiltros() {
     });
   }
 
+  const btnDisponible = document.getElementById("filtro-disponible");
+  if (btnDisponible) {
+    btnDisponible.addEventListener("click", () => {
+      filtrosActivos.soloDisponibles = !filtrosActivos.soloDisponibles;
+      btnDisponible.classList.toggle("active", filtrosActivos.soloDisponibles);
+      aplicarFiltros();
+    });
+  }
+
   document.getElementById("btn-limpiar-filtros")?.addEventListener("click", limpiarFiltros);
 
   const inputBusqueda = document.getElementById("filtro-busqueda");
@@ -151,6 +160,7 @@ function aplicarFiltros() {
 function limpiarFiltros() {
   filtrosActivos = { barrio: "", tipo: [], precioMax: 8000, soloDisponibles: false, amueblado: "", amenities: [], mascotas: false, soloBairesRental: false, busqueda: "" };
   document.getElementById("filtro-bairesrental")?.classList.remove("active");
+  document.getElementById("filtro-disponible")?.classList.remove("active");
   document.getElementById("filtro-mascotas")?.classList.remove("active");
   const sb = document.getElementById("filtro-barrio");
   if (sb) sb.value = "";
@@ -179,6 +189,7 @@ function filtrarPropiedades() {
       if (filtrosActivos.amueblado === "no" && p.amueblado) return false;
       if (filtrosActivos.mascotas && !p.mascotas) return false;
       if (filtrosActivos.soloBairesRental && !p.esPropio) return false;
+      if (filtrosActivos.soloDisponibles && p.disponibilidad !== "disponible") return false;
       if (filtrosActivos.amenities.length > 0) {
         for (const a of filtrosActivos.amenities) {
           if (!p.amenities.includes(a)) return false;

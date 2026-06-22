@@ -197,6 +197,44 @@ function tokkoToProperty(tokko) {
   };
 }
 
+// ─── Duplicate detection ──────────────────────────────────────────────────────
+
+function normalizeAddress(str) {
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findDuplicates(catalog, prop) {
+  const warnings = [];
+
+  const idMatch = catalog.find(p => p.id === prop.id);
+  if (idMatch) {
+    warnings.push(`ID "${prop.id}" ya existe: "${idMatch.titulo}"`);
+  }
+
+  const normAddr = normalizeAddress(prop.direccion);
+  if (normAddr) {
+    const addrMatch = catalog.find(p => p.id !== prop.id && normalizeAddress(p.direccion) === normAddr);
+    if (addrMatch) {
+      warnings.push(`misma dirección que "${addrMatch.titulo}" (ID: ${addrMatch.id}): "${addrMatch.direccion}"`);
+    }
+  }
+
+  const fotos = (prop.fotos || '').trim();
+  if (fotos) {
+    const fotosMatch = catalog.find(p => p.id !== prop.id && (p.fotos || '').trim() === fotos);
+    if (fotosMatch) {
+      warnings.push(`mismo link de fotos que "${fotosMatch.titulo}" (ID: ${fotosMatch.id})`);
+    }
+  }
+
+  return warnings;
+}
+
 // ─── CLI ─────────────────────────────────────────────────────────────────────
 
 async function prompt(question) {
@@ -237,6 +275,21 @@ async function main() {
   console.log('   - minimoMeses: ¿cuántos meses mínimo?');
   console.log('   - imagen: URL externa de Tokko CDN (puede expirar si sacan el listado)');
 
+  // Load catalog and check for duplicates
+  let catalog;
+  try {
+    catalog = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {
+    console.error('Error al leer departamentos.json:', e.message);
+    process.exit(1);
+  }
+
+  const warnings = findDuplicates(catalog, prop);
+  if (warnings.length) {
+    console.log('\n⚠️  Posibles duplicados detectados:');
+    warnings.forEach(w => console.log('  -', w));
+  }
+
   if (outFile) {
     fs.writeFileSync(outFile, JSON.stringify(prop, null, 2), 'utf8');
     console.log(`\nMapeado guardado en: ${outFile}`);
@@ -248,15 +301,6 @@ async function main() {
   if (dryRun) {
     console.log('\n[dry-run] No se guardaron cambios.');
     return;
-  }
-
-  // Load catalog and check for duplicates
-  let catalog;
-  try {
-    catalog = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch (e) {
-    console.error('Error al leer departamentos.json:', e.message);
-    process.exit(1);
   }
 
   const dupIdx = catalog.findIndex(p => p.id === prop.id);

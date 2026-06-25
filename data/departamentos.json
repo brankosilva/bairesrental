@@ -2079,7 +2079,7 @@
     "tipo": "2 ambientes",
     "precio": 580,
     "moneda": "USD",
-    "disponibilidad": "disponible",
+    "disponibilidad": "no disponible",
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": false,
@@ -3164,6 +3164,31 @@
     "direccion": "Av Santa Fe 3700",
     "direccionUrl": "https://share.google/XRQAeF1LtIty0mZOV",
     "fotos": "https://drive.google.com/drive/folders/1xD4DmboCYQ-DTT1-dJ-Y_va_PGMf1cgX",
+    "fichaUrl": "",
+    "whatsappMsg": ""
+  },
+  {
+    "id": "Baires-armenia",
+    "titulo": "Dos ambientes con balcón 47m2 totales, muy luminoso",
+    "barrio": "Palermo",
+    "tipo": "2 ambientes",
+    "precio": 800,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": false,
+    "mascotas": true,
+    "serviciosIncluidos": false,
+    "esPropio": false,
+    "amenities": [
+      "seguridad 24hs"
+    ],
+    "minimoMeses": 1,
+    "disponibleDesde": "",
+    "descripcion": "Expensas Impuesto, agua, Internet, WiFi incluidas! luz y gas aparte.\nArmenia al 2100 Palermo Soho . \nA 4 cuadras de Av Santa Fe. Conectividad  subte D y buses.\nA 2 cuadras de Plaza Armenia,  el centro del Soho. \nDos Ambientes con balcón 47m2 totales\nOrientación O-S Muy luminoso \nBaño completo. Cocina independiente.  \nApto 2 huéspedes. 3 si es un menor (diván cama en living) \nAcepto mascota.  Edificio estándar.  9 pisos.  Encargado.",
+    "imagen": "./images/Baires-armenia/imagen.jpg",
+    "direccion": "Armenia al 2100",
+    "direccionUrl": "https://share.google/WNNqEMKTDkpPFMO4E",
+    "fotos": "https://photos.app.goo.gl/qp8pLnfKaiGWWqFQ8",
     "fichaUrl": "",
     "whatsappMsg": ""
   }

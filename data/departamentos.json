@@ -704,7 +704,7 @@
       "cochera"
     ],
     "minimoMeses": 3,
-    "disponibleDesde": "",
+    "disponibleDesde": "2026-07-24",
     "descripcion": "Precio: USD 1.600 mensuales, Expensas: $290.000 mensuales (a cargo del inquilino) ,Servicios: A cargo del inquilino\nCochera cubierta incluida\nExcepcional departamento de 3 ambientes a estrenar ubicado en Sinclair 3032, en el corazón de Palermo Nuevo, a metros de Av. del Libertador. Unidad de categoría en edificio exclusivo de una sola unidad por piso, con máxima privacidad, doble balcón, ventilación cruzada y cochera cubierta incluida. Disponible a partir del 24 de abril.\nDistribución y ambientes\nLiving-comedor amplio y luminoso con Smart TV 50\" y salida a balcón corrido al frente con vistas a la ciudad\nBalcón al contrafrente que garantiza ventilación cruzada en todos los ambientes\nDormitorio principal con cama queen y amplio placard\nDormitorio secundario con cama, escritorio y placard, ideal para home office\nCocina amplia con barra, completamente equipada con electrodomésticos\nLavarropas incluido\nBaño moderno completo\nEquipamiento incluido\nSmart TV 50\"\nAire acondicionado frío/calor en todos los ambientes\nCocina equipada con electrodomésticos\nLavarropas\nPlacares en ambos dormitorios\nEscritorio en dormitorio secundario\nInformación del edificio\nEdificio exclusivo de una unidad por piso — máxima privacidad\nCochera cubierta incluida en el valor del alquiler\nUnidad a estrenar en excelente estado\nCondiciones de alquiler",
     "imagen": "https://static.tokkobroker.com/pictures/7953731_113228467996435790768312939502104619611253506674333433898839913215196365130823.jpg",
     "direccion": "Sinclair 3000",
@@ -2079,7 +2079,7 @@
     "tipo": "2 ambientes",
     "precio": 580,
     "moneda": "USD",
-    "disponibilidad": "no disponible",
+    "disponibilidad": "reservado",
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": false,
@@ -2452,7 +2452,7 @@
     "titulo": "Rediseñado como nuevo, único en Recoleta!",
     "barrio": "Recoleta",
     "tipo": "monoambiente",
-    "precio": 850,
+    "precio": 800,
     "moneda": "USD",
     "disponibilidad": "disponible",
     "amueblado": true,
@@ -3189,6 +3189,31 @@
     "direccion": "Armenia al 2100",
     "direccionUrl": "https://share.google/WNNqEMKTDkpPFMO4E",
     "fotos": "https://photos.app.goo.gl/qp8pLnfKaiGWWqFQ8",
+    "fichaUrl": "",
+    "whatsappMsg": ""
+  },
+  {
+    "id": "lm-2",
+    "titulo": "Viví Las Cañitas con diseño, confort y home office",
+    "barrio": "Palermo",
+    "tipo": "3 ambientes",
+    "precio": 1800,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": false,
+    "mascotas": false,
+    "serviciosIncluidos": false,
+    "esPropio": false,
+    "amenities": [
+      "laundry"
+    ],
+    "minimoMeses": 1,
+    "disponibleDesde": "2026-08-01",
+    "descripcion": "✨ Viví Las Cañitas con diseño, confort y home office ✨\n3 ambientes con balcón + oficina + ubicación TOP 🏡\n\n🏡 Características del departamento:\n• 3 ambientes (60 m² + 8 m² descubiertos)\n• Living amplio con salida a balcón 🌇\n• 2 dormitorios:\n\nPrincipal con cama queen + balcón 🛏\nSecundario con cama simple\n• 2 baños completos 🛁\n• Espacio de home office ideal para trabajar 💻\n• Cocina eléctrica amplia y equipada 🍽\n• Lavadero con lavarropas\n• Losa radiante 🔥\n• 2 aires acondicionado frío/calor ❄️\n• Totalmente amoblado y de diseño\n\n🏢 Edificio y amenities:\n• Portero todos los días 🛎\n• Edificio tranquilo y bien mantenido\n\n📍 Ubicación y entorno:\nUbicado en Báez 790 (Las Cañitas), una de las zonas más exclusivas de Palermo. Entorno seguro, moderno y con vida urbana.\n\n🍽 Zonas gastronómicas cercanas:\n• Polo gastronómico de Las Cañitas 🍸\n• Restaurantes y bares de primer nivel\n• Cafés ideales para trabajar o disfrutar ☕\n\n🚇 Conectividad:\n• Av. del Libertador, Luis María Campos y Cabildo\n• Subte línea D (Ministro Carranza)\n• Tren Mitre\n• Múltiples colectivos\n\n🎓 Universidades cercanas:\n• Universidad de Belgrano\n• Universidad de Palermo\n• Universidad Torcuato Di Tella\n\n🏥 Centros de salud cercanos:\n• Sanatorio Los Arcos\n• Hospital Fernández\n• ICBA\n\n💰 Condiciones del alquiler:\n• USD 1.800 + expensas + servicios",
+    "imagen": "./images/lm-2/imagen.webp",
+    "direccion": "Báez 790",
+    "direccionUrl": "https://share.google/33lyX1W5OzqlSd5fI",
+    "fotos": "https://listadopropiedadesba.com/departamentos/737/index.html?id=737",
     "fichaUrl": "",
     "whatsappMsg": ""
   }

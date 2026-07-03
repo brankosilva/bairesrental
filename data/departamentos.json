@@ -695,7 +695,7 @@
     "tipo": "3 ambientes",
     "precio": 1600,
     "moneda": "USD",
-    "disponibilidad": "disponible",
+    "disponibilidad": "reservado",
     "amueblado": true,
     "mascotas": true,
     "serviciosIncluidos": false,

@@ -726,8 +726,9 @@ function clearForm() {
   ['f-id','f-titulo','f-barrio','f-precio','f-minimo','f-desde',
    'f-descripcion','f-direccion','f-direccionUrl','f-fotos','f-ficha','f-wa-msg']
     .forEach(id => document.getElementById(id).value = '');
-  ['sw-amueblado','sw-mascotas','sw-servicios','sw-propio']
+  ['sw-mascotas','sw-servicios','sw-propio']
     .forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('sw-amueblado').checked = true;
   document.querySelectorAll('.am-btn').forEach(b => b.classList.remove('active'));
   setActivePill('tipo-pills',   'monoambiente');
   setActivePill('moneda-pills', 'USD');

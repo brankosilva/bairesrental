@@ -128,6 +128,15 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
 }
 .depto-back-btn:hover { background: rgba(0,0,0,0.65); color: #fff !important; }
 .depto-hero-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.depto-hero-fotos-btn {
+  position: absolute; bottom: 20px; right: 24px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; color: #111 !important; text-decoration: none !important;
+  font-size: 13.5px; font-weight: 700; padding: 10px 18px;
+  border-radius: 100px; box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.depto-hero-fotos-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
 .badge-disp {
   font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 100px;
   letter-spacing: 0.04em;
@@ -224,6 +233,12 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
 }
 .depto-direccion:hover { background: #e9e9ef; }
 .depto-direccion-wrap { margin-top: 16px; }
+.depto-mapa-wrap {
+  margin-top: 14px; border-radius: 16px; overflow: hidden;
+  border: 1px solid #e5e7eb; line-height: 0;
+}
+.depto-mapa { width: 100%; height: 260px; border: 0; display: block; }
+@media (max-width: 600px) { .depto-mapa { height: 200px; } }
 
 /* ── ACTION BUTTONS ─────────────────────────────────── */
 .depto-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 36px; }
@@ -285,6 +300,7 @@ footer {
   .depto-carac-grid { grid-template-columns: repeat(2, 1fr); }
   .depto-actions-row { flex-direction: column; }
   .btn-secondary-depto { min-width: 0; }
+  .depto-hero-fotos-btn { bottom: 14px; right: 16px; font-size: 12.5px; padding: 9px 14px; }
 }
 </style>
 </head>
@@ -357,6 +373,9 @@ footer {
         <span id="badge-baires" class="badge-baires" style="display:none">★ BairesRental</span>
       </div>
     </div>
+    <a id="btn-fotos-hero" href="#" class="depto-hero-fotos-btn" target="_blank" rel="noopener" style="display:none">
+      📷 Ver todas las fotos
+    </a>
   </div>
 
   <!-- Detail body -->
@@ -388,6 +407,9 @@ footer {
         <a id="depto-direccion-link" href="#" class="depto-direccion" target="_blank" rel="noopener">
           📍 <span id="depto-direccion-text"></span>
         </a>
+      </div>
+      <div id="depto-mapa-wrap" class="depto-mapa-wrap" style="display:none">
+        <iframe id="depto-mapa" class="depto-mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
     </div>
 
@@ -453,6 +475,17 @@ const ICONOS  = {
   "pileta":"🏊","gimnasio":"🏋️","laundry":"🫧","parrilla":"🔥","terraza":"🌿",
   "cochera":"🚗","sauna":"♨️","solárium":"☀️","seguridad 24hs":"🔒","jacuzzi":"🛁","lavarropas":"🧺"
 };
+
+function getMapQuery(p) {
+  if (p.direccionUrl) {
+    try {
+      const u = new URL(p.direccionUrl);
+      const q = u.searchParams.get('q') || u.searchParams.get('query');
+      if (q) return q;
+    } catch(e) {}
+  }
+  return p.direccion ? `${p.direccion}, Ciudad Autónoma de Buenos Aires, Argentina` : '';
+}
 
 function formatFecha(f) {
   if (!f) return '';
@@ -558,6 +591,12 @@ function render(p) {
     const link = document.getElementById('depto-direccion-link');
     if (p.direccionUrl) link.href = p.direccionUrl;
     else link.removeAttribute('href');
+
+    const mapQuery = getMapQuery(p);
+    if (mapQuery) {
+      document.getElementById('depto-mapa').src = 'https://maps.google.com/maps?q=' + encodeURIComponent(mapQuery) + '&z=16&output=embed';
+      document.getElementById('depto-mapa-wrap').style.display = 'block';
+    }
   }
 
   // Botones
@@ -570,6 +609,14 @@ function render(p) {
 
   if (p.fotos)   { document.getElementById('btn-fotos').href = p.fotos;   document.getElementById('btn-fotos').style.display = ''; }
   if (p.fichaUrl){ document.getElementById('btn-ficha').href = p.fichaUrl; document.getElementById('btn-ficha').style.display = ''; }
+
+  // Botón "ver fotos" sobre la hero image (prioriza álbum de fotos, si no hay usa la ficha externa)
+  const fotosHeroLink = p.fotos || p.fichaUrl;
+  if (fotosHeroLink) {
+    const btnFotosHero = document.getElementById('btn-fotos-hero');
+    btnFotosHero.href = fotosHeroLink;
+    btnFotosHero.style.display = '';
+  }
 }
 
 function showNotFound() {

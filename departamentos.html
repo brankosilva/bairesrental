@@ -212,6 +212,7 @@
   }
   @media (min-width: 1185px) {
     .br-dept-title { font-size: clamp(30px, calc(7vw - 10px), 86px) !important; }
+    .br-dept-sub { font-size: 21px !important; }
   }
   .br-dept-title {
     font-family: 'DM Sans', sans-serif !important;
@@ -242,6 +243,27 @@
     transition: background 0.2s, color 0.2s, transform 0.2s;
   }
   .br-dept-req-btn:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  .br-dept-hero-btns {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; flex-wrap: wrap;
+  }
+  .br-dept-comunidad-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 7px 16px; border-radius: 100px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+  .br-dept-comunidad-btn:hover {
     background: rgba(255,255,255,0.18);
     color: #fff;
     transform: translateY(-2px);
@@ -508,10 +530,16 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       <span data-i18n="hero-sub1">Departamentos verificados, precio claro y soporte real.</span><br>
       <span data-i18n="hero-sub2">Sin garantía, sin trámites.</span>
     </p>
-    <a href="docs/requisitos-alquiler.pdf" target="_blank" class="br-dept-req-btn" data-i18n="hero-req-btn">
-      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Requisitos de alquiler
-    </a>
+    <div class="br-dept-hero-btns">
+      <a href="docs/requisitos-alquiler.pdf" target="_blank" class="br-dept-req-btn" data-i18n="hero-req-btn">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Requisitos de alquiler
+      </a>
+      <a href="https://chat.whatsapp.com/FeYh0RpkLqN0JnWiEi5ucG?mode=gi_t" target="_blank" class="br-dept-comunidad-btn" data-i18n="hero-comunidad-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C22 6.45 17.5 2 12.04 2zm5.8 14.14c-.24.68-1.4 1.3-1.93 1.35-.5.05-1 .25-3.3-.7-2.8-1.15-4.58-3.98-4.72-4.16-.14-.19-1.13-1.51-1.13-2.88s.71-2.04.97-2.32c.26-.28.56-.35.75-.35.19 0 .38 0 .54.01.17.01.4-.07.63.48.24.58.81 2 .88 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.14-.28.29-.12.57.16.28.72 1.19 1.55 1.93 1.07.95 1.97 1.25 2.25 1.39.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.14.43.2.5.31.07.12.07.66-.17 1.34z"/></svg>
+        Comunidad
+      </a>
+    </div>
   </div>
   <div class="br-dept-scroll-hint">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -681,6 +709,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       <ul>
         <li><a href="index.html#contacto">Consultas</a></li>
         <li><a href="https://wa.me/5491173735757" target="_blank">WhatsApp</a></li>
+        <li><a href="https://chat.whatsapp.com/FeYh0RpkLqN0JnWiEi5ucG?mode=gi_t" target="_blank">Comunidad</a></li>
         <li><a href="https://www.instagram.com/bairesrentalok/" target="_blank">Instagram</a></li>
       </ul>
     </div>
@@ -740,6 +769,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'hero-sub1':'Departamentos en alquiler temporario en Buenos Aires.',
       'hero-sub2':'Palermo, Recoleta, Belgrano y más barrios.',
       'hero-req-btn':'Requisitos de alquiler',
+      'hero-comunidad-btn':'Comunidad',
       'hero-scroll':'Explorar',
       'f-mobile':'🔍 Filtrar propiedades',
       'f-busqueda':'Buscar',
@@ -777,6 +807,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
       'hero-sub1':'Short-term rental apartments in Buenos Aires.',
       'hero-sub2':'Palermo, Recoleta, Belgrano and more.',
       'hero-req-btn':'Rental requirements',
+      'hero-comunidad-btn':'Community',
       'hero-scroll':'Explore',
       'f-mobile':'🔍 Filter properties',
       'f-busqueda':'Search',

@@ -1,0 +1,100 @@
+name: Chequeo semanal de fichas Tokko
+
+on:
+  schedule:
+    - cron: '0 12 * * 1' # todos los lunes 12:00 UTC (~09:00 hora Argentina)
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ejecutar chequeo de fichas
+        id: check
+        run: node scripts/check-ficha-links.js --json report.json
+        continue-on-error: true
+
+      - name: Reportar resultado en un Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('report.json', 'utf8'));
+            const aRevisar = report.aRevisar || [];
+
+            const TITLE = '🔎 Fichas Tokko a revisar';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'tokko-check'
+            });
+            const existente = issues.find(i => i.title === TITLE);
+
+            if (aRevisar.length === 0) {
+              console.log('Sin problemas detectados.');
+              if (existente) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existente.number,
+                  body: `✅ Chequeo del ${report.generadoEn}: no se detectaron problemas. Cierro el issue.`
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existente.number,
+                  state: 'closed'
+                });
+              }
+              return;
+            }
+
+            const cuerpo = [
+              `Chequeo automático del ${report.generadoEn}.`,
+              '',
+              `Se encontraron **${aRevisar.length}** ficha(s) de Tokko con algo para revisar:`,
+              '',
+              ...aRevisar.map(r =>
+                `- **${r.id}** — "${r.titulo}" (${r.barrio})\n` +
+                `  - ${r.ok ? r.problemas.join(', ') : 'No se pudo verificar: ' + r.motivo}\n` +
+                `  - ${r.url}`
+              ),
+              '',
+              'Revisá cada una manualmente: si la propiedad ya no está disponible, marcala como "no disponible" en el admin, o reemplazá el link de fotos por un álbum propio (Drive/Fotos).'
+            ].join('\n');
+
+            if (existente) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existente.number,
+                body: cuerpo
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existente.number,
+                body: `Actualizado — ${aRevisar.length} ficha(s) a revisar en el chequeo del ${report.generadoEn}.`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: TITLE,
+                body: cuerpo,
+                labels: ['tokko-check']
+              });
+            }

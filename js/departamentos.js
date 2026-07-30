@@ -35,7 +35,11 @@ async function cargarCatalogo() {
     const resp = await fetch("data/departamentos.json?v=" + Date.now());
     if (resp.ok) {
       const data = await resp.json();
-      catalogoActual = data.map(p => ({ ...defaults, ...p }));
+      // Los deptos "no disponible" se mantienen en el JSON para uso interno,
+      // pero no deben mostrarse en el catálogo público.
+      catalogoActual = data
+        .map(p => ({ ...defaults, ...p }))
+        .filter(p => p.disponibilidad !== "no disponible");
     }
   } catch (e) {
     console.warn("No se pudo cargar data/departamentos.json");

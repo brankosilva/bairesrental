@@ -5,6 +5,7 @@
 //   node scripts/add-from-tokko.js property.json --yes      (skip confirmation)
 //   node scripts/add-from-tokko.js property.json --dry-run  (preview mapping only)
 //   node scripts/add-from-tokko.js property.json --out mapped.json (only save mapped JSON)
+//   node scripts/add-from-tokko.js property.json --fotos <url>    (set fotos = ficha.info URL)
 
 const fs = require('fs');
 const path = require('path');
@@ -140,11 +141,26 @@ function tokkoToProperty(tokko) {
   const mascotas = allExtrasLower.some(a => /mascota/.test(a)) ||
     /mascota/i.test(data.description || '');
 
-  // Amenities
+  // Amenities — from tags/additionals + scan description for missing ones
   const amenities = mapAmenities(data.additionals, data.tags);
+  const descripcionRaw = stripHtml(data.description || '');
+  const descLower = descripcionRaw.toLowerCase();
+  for (const [keyword, mapped] of Object.entries(AMENITIES_MAP)) {
+    if (!amenities.includes(mapped) && descLower.includes(keyword)) {
+      amenities.push(mapped);
+    }
+  }
+
+  // minimoMeses — extract from description if mentioned
+  const minimoMatch =
+    descripcionRaw.match(/plazo\s*m[ií]nimo[^:]*:\s*(\d+)\s*mes/i) ||
+    descripcionRaw.match(/estad[ií]a\s*m[ií]nima[^:]*:\s*(\d+)\s*mes/i) ||
+    descripcionRaw.match(/m[ií]nimo[:\s]+(\d+)\s*mes/i) ||
+    descripcionRaw.match(/(\d+)\s*mes(?:es)?\s*m[ií]nimo/i);
+  const minimoMeses = minimoMatch ? parseInt(minimoMatch[1]) : 1;
 
   // Description
-  const descripcion = stripHtml(data.description || '');
+  const descripcion = descripcionRaw;
 
   // Images
   const imagen =
@@ -153,8 +169,8 @@ function tokkoToProperty(tokko) {
     hoggax.picture_url ||
     '';
 
-  // External link
-  const fichaUrl = tokko.web_property_url || '';
+  // fichaUrl: solo para Airbnb/Booking — ficha.info va en `fotos`, lo provee el usuario
+  const fichaUrl = '';
 
   // Google Maps
   const lat = data.geolocation?.lat;
@@ -184,7 +200,7 @@ function tokkoToProperty(tokko) {
     amueblado,
     mascotas,
     serviciosIncluidos: false,
-    minimoMeses: 1,
+    minimoMeses,
     amenities,
     descripcion,
     imagen,
@@ -249,6 +265,8 @@ async function main() {
   const dryRun = args.includes('--dry-run');
   const outIdx = args.indexOf('--out');
   const outFile = outIdx >= 0 ? args[outIdx + 1] : null;
+  const fichaUrlIdx = args.indexOf('--fotos');
+  const fichaUrlOverride = fichaUrlIdx >= 0 ? args[fichaUrlIdx + 1] : null;
 
   if (!filePath) {
     console.error('Uso: node scripts/add-from-tokko.js <tokko.json> [--yes] [--dry-run] [--out mapped.json]');
@@ -264,6 +282,9 @@ async function main() {
   }
 
   const prop = tokkoToProperty(tokko);
+
+  // Override fotos with ficha.info URL if provided via --fotos flag
+  if (fichaUrlOverride) prop.fotos = fichaUrlOverride;
 
   console.log('\n=== Propiedad mapeada desde Tokko ===');
   console.log(JSON.stringify(prop, null, 2));

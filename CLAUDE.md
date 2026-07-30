@@ -218,7 +218,7 @@ Ambos requieren Node.js (`node --version` para verificar).
 
 ### Flujo 1: Import desde Tokko Broker
 
-El usuario pega un JSON de Tokko (obtenido desde el administrador Tokko) en el chat.
+El usuario obtiene el JSON de Tokko por su cuenta y lo pega directamente en el chat.
 
 **Pasos:**
 1. Guardar el JSON en `scripts/temp-tokko.json`
@@ -253,7 +253,8 @@ node scripts/add-property.js scripts/temp-mapped.json
 | `amenities` | Ver tabla abajo |
 | `descripcion` | `data.description` sin HTML |
 | `imagen` | `data.pictures.front_cover_image.url` (URL de Tokko CDN) |
-| `fichaUrl` | `web_property_url` |
+| `fotos` | URL de ficha.info para colegas (la provee el usuario) |
+| `fichaUrl` | Vacío — solo se usa para links directos de Airbnb o Booking |
 | `direccion` | `data.address` |
 | `direccionUrl` | Google Maps con `data.geolocation.lat/lng` |
 | `esPropio` | **siempre false** |
@@ -308,8 +309,8 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
   "imagen": "./images/[id]/main.jpg  ← local, o URL externa",
-  "fotos": "https://photos.app.goo.gl/... ← álbum Google Photos (opcional)",
-  "fichaUrl": "https://... ← link Airbnb/Booking/agencia (opcional, tiene prioridad sobre fotos)",
+  "fotos": "https://ficha.info/p/... ← ficha.info para colegas (o álbum Google Photos)",
+  "fichaUrl": "https://airbnb.com/... ← solo para links directos de Airbnb o Booking (dejar vacío si hay ficha.info)",
   "direccion": "Calle 1234",
   "direccionUrl": "https://maps.app.goo.gl/...",
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",

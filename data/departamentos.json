@@ -1,5 +1,34 @@
 [
   {
+    "id": "alq-01",
+    "titulo": "Monoambiente en Villa Urquiza",
+    "barrio": "Villa Urquiza",
+    "tipo": "monoambiente",
+    "precio": 600,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": true,
+    "mascotas": true,
+    "serviciosIncluidos": false,
+    "esPropio": false,
+    "amenities": [
+      "pileta",
+      "gimnasio",
+      "laundry",
+      "parrilla",
+      "seguridad 24hs"
+    ],
+    "minimoMeses": 3,
+    "disponibleDesde": "",
+    "descripcion": "MONOAMBIENTE CON PATIO EN VILLA URQUIZA\nDirección: Núñez 5157 – Villa Urquiza.\n\nPrecio: USD 600\n+ Expensas aprox: $250.000 y servicios aparte.\n• Consultar opcion paquete\n\nCaracterísticas:\n• 35 m² totales\n• Monoambiente al frente amplio y luminoso\n• 1 año de antigüedad (como nuevo)\n• Totalmente amoblado\n• Cocina equipada\n• Baño completo\n• Aire acondicionado\n\nAmenities premium: Piscina/ Gimnasio/ SUM/ Parrilla/ Quincho/ Laundry/ Jardín/ Seguridad y encargado\n\nCondiciones:\n• Apto profesional\n• Permite mascotas",
+    "imagen": "https://static.tokkobroker.com/pictures/8510574_68033675348471486889811858633864671427564216011794494671406940882878514893243.jpg",
+    "direccion": "Nuñez 5100",
+    "direccionUrl": "https://www.google.com/maps/search/Nu%C3%B1ez+5100+Villa+Urquiza+Buenos+Aires",
+    "fotos": "",
+    "fichaUrl": "",
+    "whatsappMsg": "Hola! Me interesa el monoambiente en Villa Urquiza (Nuñez 5100). ¿Podría darme más información?"
+  },
+  {
     "id": "casa-duggan",
     "titulo": "Quinta de verano en Duggan",
     "barrio": "Duggan",
@@ -2468,9 +2497,9 @@
     "whatsappMsg": ""
   },
   {
-    "id": "marie-30",
-    "titulo": "Excelente monoambiente completamente reciclado a nuevo,",
-    "barrio": "San Telmo",
+    "id": "marie-34",
+    "titulo": "Monoambiente en Balvanera",
+    "barrio": "Balvanera",
     "tipo": "monoambiente",
     "precio": 500,
     "moneda": "USD",
@@ -2479,16 +2508,18 @@
     "mascotas": false,
     "serviciosIncluidos": false,
     "esPropio": false,
-    "amenities": [],
-    "minimoMeses": 6,
+    "amenities": [
+      "terraza"
+    ],
+    "minimoMeses": 3,
     "disponibleDesde": "",
-    "descripcion": "Monoambiente amoblado en alquiler temporario en San Telmo | Casco Histórico\n\nExcelente monoambiente en alquiler temporario, completamente reciclado a nuevo, ubicado en el tradicional barrio de San Telmo, dentro del Casco Histórico de la Ciudad de Buenos Aires. La unidad cuenta con una superficie de casi 37 m², se encuentra en un 3° piso al frente, con orientación norte y balcón, lo que garantiza una excelente entrada de luz natural durante todo el día.\n\nEl departamento se entrega totalmente amoblado y equipado, listo para habitar. Dispone de una cómoda cocina integrada con todo lo necesario para una estadía confortable, además de un ambiente amplio, funcional y muy luminoso.\n\nEl edificio Montmatre Appartaments ofrece excelentes servicios para mayor comodidad, entre ellos dos ascensores, laundry, SUM y cámaras de seguridad.\n\nSu ubicación es uno de sus grandes atractivos: sobre Venezuela al 600, a solo una cuadra de Av. Belgrano y a cuatro cuadras de Av. 9 de Julio, con rápido acceso a Puerto Madero y al Microcentro. Se encuentra además a pocas cuadras del Cabildo, la Catedral Metropolitana y la Manzana de las Luces, rodeado de propuestas culturales, gastronómicas y comerciales.\n\nLa zona cuenta con excelente conectividad mediante múltiples líneas de colectivo y estaciones de subte, además de estar muy cerca de importantes universidades como UADE, UCA y UAI, lo que lo convierte en una opción ideal para estudiantes, profesionales o personas que buscan una estadía temporal con todas las comodidades.\n\nCondiciones:\n\n* Contratos de 3, 6 o 12 meses, con opción de renovación.\n* Expensas aproximadas: **$170.000** (incluyen AySA).\n* Servicios de luz, cable e internet a cargo del inquilino.",
-    "imagen": "https://static.tokkobroker.com/pictures/8443905_58573221954756016497101521225654592904366271035724683322758345250202365147423.jpg",
-    "direccion": "Venezuela 600",
-    "direccionUrl": "https://maps.app.goo.gl/hjnj6EQJXVEjUYY68",
-    "fotos": "https://ficha.info/p/cfd04e8e517843db8bec28d3ea972a0f?v=1784650902538",
+    "descripcion": "Monoambiente amoblado en alquiler temporal – Balvanera Cómodo y luminoso monoambiente amoblado, ubicado al frente con balcón y excelente ingreso de luz natural. Totalmente equipado para una estadía confortable, cuenta con cama matrimonial, TV, aire acondicionado, cocina completa con heladera, microondas y horno eléctrico, además de lavarropas y todo lo necesario para instalarse desde el primer día. Su excelente ubicación en Balvanera brinda fácil acceso a múltiples medios de transporte, universidades, comercios y una amplia oferta de servicios. Condiciones: * Plazo mínimo: 3 meses. * Expensas aproximadas: $140.000. * Servicios a cargo del inquilino. AC",
+    "imagen": "https://static.tokkobroker.com/pictures/8511252_50903309703210658296059803845212272474245846358162257499731626303518472972657.jpg",
+    "direccion": "Lavalle 3000",
+    "direccionUrl": "https://www.google.com/maps?q=-34.6029493,-58.4084978",
+    "fotos": "https://ficha.info/p/3c65dbee2db74b5ab64861ace1106333?v=1785439869566",
     "fichaUrl": "",
-    "whatsappMsg": ""
+    "whatsappMsg": "Hola! Me interesa el monoambiente en Balvanera (Lavalle 3000). ¿Podría darme más información?"
   },
   {
     "id": "marie-32",

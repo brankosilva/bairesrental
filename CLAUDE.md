@@ -333,3 +333,22 @@ Notas:
 | URL externa (Tokko CDN, etc.) | Usar directamente como `imagen` (puede expirar si el listado se da de baja) |
 | Link Google Photos | Va al campo `fotos`, no en `imagen` |
 | Sin imagen | Dejar `imagen: ""` (el card muestra un placeholder 📸) |
+
+---
+
+## Verificar disponibilidad contra el PDF de "Just Like Home" (IDs `vera`)
+
+Las propiedades cuyo `id` empieza con `vera` provienen de la inmobiliaria **Just Like Home Temporary Rentals**, que manda periódicamente un PDF con su oferta vigente de alquileres temporarios. Cuando el usuario adjunta ese PDF, el objetivo es detectar qué departamentos `vera` que están marcados `disponible` en nuestro catálogo **ya no aparecen en el PDF** (probablemente alquilados/dados de baja).
+
+**Script:** `scripts/check-vera-availability.js` — compara direcciones, no requiere dependencias nuevas (no hay librería de parseo de PDF en el repo).
+
+**Pasos:**
+1. Leer el PDF adjunto con la herramienta de lectura (Claude puede extraer texto de PDF directamente).
+2. Guardar el texto extraído en un archivo de texto plano (en el scratchpad, no en el repo).
+3. Ejecutar: `node scripts/check-vera-availability.js <ruta-al-texto.txt>`
+4. El script imprime tres grupos:
+   - **Encontradas**: la dirección aparece igual en el PDF, sin acción.
+   - **Posible discrepancia**: la calle aparece pero con otro número — puede ser un typo en cualquiera de las dos fuentes, revisar a mano.
+   - **No encontradas**: la dirección no aparece en absoluto — candidatas a marcar como `no disponible` o `reservado` en el catálogo.
+5. Confirmar con el usuario antes de cambiar la `disponibilidad` de cualquier propiedad (el script solo reporta, no modifica el catálogo).
+6. Borrar el archivo de texto temporal del scratchpad al terminar.

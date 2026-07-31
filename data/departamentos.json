@@ -118,7 +118,7 @@
     "imagen": "https://static.tokkobroker.com/pictures/8510574_68033675348471486889811858633864671427564216011794494671406940882878514893243.jpg",
     "direccion": "Nuñez 5100",
     "direccionUrl": "https://www.google.com/maps/search/Nu%C3%B1ez+5100+Villa+Urquiza+Buenos+Aires",
-    "fotos": "",
+    "fotos": "https://ficha.info/p/21eb198c35b24e26852d19313b2408b3?v=1785526130280",
     "fichaUrl": "",
     "whatsappMsg": "Hola! Me interesa el monoambiente en Villa Urquiza (Nuñez 5100). ¿Podría darme más información?"
   },
@@ -1466,7 +1466,7 @@
     "tipo": "monoambiente",
     "precio": 500,
     "moneda": "USD",
-    "disponibilidad": "disponible",
+    "disponibilidad": "no disponible",
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": false,

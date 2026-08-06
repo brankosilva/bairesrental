@@ -529,6 +529,12 @@
       letter-spacing: -0.04em; color: #fff; line-height: 1;
     }
     .plan-precio small { font-size: 0.9rem; font-weight: 500; opacity: 0.6; }
+    .plan-precio-row { display: flex; gap: 1.75rem; }
+    .plan-precio-stat { display: flex; flex-direction: column; }
+    .plan-precio-stat-num { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; color: #fff; line-height: 1; }
+    .plan-precio-stat-label { font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 0.35rem; }
+    .plan-nota { font-size: 0.8rem; font-weight: 700; color: var(--azul); margin: 0 0 0.5rem; }
+    .plan-card.destacado .plan-nota { color: #fff; }
     .plan-desc { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin: 0.75rem 0 1.75rem; line-height: 1.6; }
     .plan-card.destacado .plan-desc { color: rgba(255,255,255,0.65); }
     .plan-items { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 2rem; flex: 1; }
@@ -1063,7 +1069,16 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
 
     <div class="plan-card destacado">
       <div class="plan-nombre" data-i18n="pl2-name">Gestión Mensual</div>
-      <div class="plan-precio">15%<small data-i18n="pl2-sub"> del contrato</small></div>
+      <div class="plan-precio-row">
+        <div class="plan-precio-stat">
+          <span class="plan-precio-stat-num">0%</span>
+          <span class="plan-precio-stat-label" data-i18n="pl2-cap1">para el propietario</span>
+        </div>
+        <div class="plan-precio-stat">
+          <span class="plan-precio-stat-num">15%</span>
+          <span class="plan-precio-stat-label" data-i18n="pl2-cap2">lo paga el inquilino</span>
+        </div>
+      </div>
       <div class="plan-desc" data-i18n="pl2-desc">Perfecto para alquileres temporales mensuales.</div>
       <ul class="plan-items">
         <li data-i18n="pl2-i1">Fotografía y difusión</li>
@@ -1071,8 +1086,9 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
         <li data-i18n="pl2-i3">Coordinación de visitas</li>
         <li data-i18n="pl2-i4">Firma de contrato</li>
         <li data-i18n="pl2-i5">Check-in y check-out</li>
-        <li data-i18n="pl2-i6">Cobranzas mensuales</li>
-        <li data-i18n="pl2-i7">Limpieza y lavandería</li>
+        <li data-i18n="pl2-i6">Atención de consultas del inquilino durante la estadía</li>
+        <li data-i18n="pl2-i7">Cobranzas mensuales</li>
+        <li data-i18n="pl2-i8">Limpieza y lavandería</li>
       </ul>
       <a href="#contacto" class="plan-btn" data-i18n="pl-btn">Más información</a>
     </div>
@@ -1080,6 +1096,7 @@ src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1"
     <div class="plan-card">
       <div class="plan-nombre" data-i18n="pl3-name">Gestión Airbnb</div>
       <div class="plan-precio">25%<small data-i18n="pl3-sub"> del neto</small></div>
+      <div class="plan-nota" data-i18n="pl3-nota">Incluye todo el plan Gestión Online, más:</div>
       <div class="plan-desc" data-i18n="pl3-desc">Para alquileres diarios en plataformas turísticas.</div>
       <ul class="plan-items">
         <li data-i18n="pl3-i1">Fotografía y difusión</li>
@@ -1489,9 +1506,11 @@ const IDX_T_DATA = {
     'pl-label':'Nuestros planes','pl-title':'Elegí el que se adapta a tu propiedad','pl-btn':'Más información',
     'pl1-name':'Gestión Online','pl1-sub':' del neto','pl1-desc':'Ideal para propietarios que quieren ayuda online.',
     'pl1-i1':'Fotografía profesional','pl1-i2':'Creación y optimización de perfil','pl1-i3':'Gestión de reservas y consultas','pl1-i4':'Evaluación de huéspedes','pl1-i5':'Precios dinámicos','pl1-i6':'Soporte online 24/7',
-    'pl2-name':'Gestión Mensual','pl2-sub':' del contrato','pl2-desc':'Perfecto para alquileres temporales mensuales.',
-    'pl2-i1':'Fotografía y difusión','pl2-i2':'Selección y evaluación de inquilinos','pl2-i3':'Coordinación de visitas','pl2-i4':'Firma de contrato','pl2-i5':'Check-in y check-out','pl2-i6':'Cobranzas mensuales','pl2-i7':'Limpieza y lavandería',
+    'pl2-name':'Gestión Mensual','pl2-desc':'Perfecto para alquileres temporales mensuales.',
+    'pl2-cap1':'para el propietario','pl2-cap2':'lo paga el inquilino',
+    'pl2-i1':'Fotografía y difusión','pl2-i2':'Selección y evaluación de inquilinos','pl2-i3':'Coordinación de visitas','pl2-i4':'Firma de contrato','pl2-i5':'Check-in y check-out','pl2-i6':'Atención de consultas del inquilino durante la estadía','pl2-i7':'Cobranzas mensuales','pl2-i8':'Limpieza y lavandería',
     'pl3-name':'Gestión Airbnb','pl3-sub':' del neto','pl3-desc':'Para alquileres diarios en plataformas turísticas.',
+    'pl3-nota':'Incluye todo el plan Gestión Online, más:',
     'pl3-i1':'Fotografía y difusión','pl3-i2':'Publicación en Airbnb, Booking y más','pl3-i3':'Check-in y check-out','pl3-i4':'Limpieza y lavandería','pl3-i5':'Reposición de ropa blanca','pl3-i6':'Reposición de básicos','pl3-i7':'Soporte online 24/7',
     'ca-label':'Calculá tus ingresos','ca-title':'Tu hogar como alquiler temporal','ca-sub':'Mové el slider y estimá cuánto podés ganar por mes',
     'ca-noches':'Noches','ca-precio':'Precio/noche','ca-nota':'* El precio depende de las características y ubicación del inmueble',
@@ -1535,9 +1554,11 @@ const IDX_T_DATA = {
     'pl-label':'Our plans','pl-title':'Choose the one that fits your property','pl-btn':'Learn more',
     'pl1-name':'Online Management','pl1-sub':' of net','pl1-desc':'Ideal for owners who want online help.',
     'pl1-i1':'Professional photography','pl1-i2':'Profile creation & optimization','pl1-i3':'Booking & inquiry management','pl1-i4':'Guest screening','pl1-i5':'Dynamic pricing','pl1-i6':'Online support 24/7',
-    'pl2-name':'Monthly Management','pl2-sub':' of contract','pl2-desc':'Perfect for monthly short-term rentals.',
-    'pl2-i1':'Photography & promotion','pl2-i2':'Tenant selection & screening','pl2-i3':'Visit coordination','pl2-i4':'Lease signing','pl2-i5':'Check-in & check-out','pl2-i6':'Monthly collections','pl2-i7':'Cleaning & laundry',
+    'pl2-name':'Monthly Management','pl2-desc':'Perfect for monthly short-term rentals.',
+    'pl2-cap1':'for the owner','pl2-cap2':'paid by the tenant',
+    'pl2-i1':'Photography & promotion','pl2-i2':'Tenant selection & screening','pl2-i3':'Visit coordination','pl2-i4':'Lease signing','pl2-i5':'Check-in & check-out','pl2-i6':'Tenant inquiries handled throughout their stay','pl2-i7':'Monthly collections','pl2-i8':'Cleaning & laundry',
     'pl3-name':'Airbnb Management','pl3-sub':' of net','pl3-desc':'For daily rentals on tourist platforms.',
+    'pl3-nota':'Includes everything in Online Management, plus:',
     'pl3-i1':'Photography & promotion','pl3-i2':'Listed on Airbnb, Booking & more','pl3-i3':'Check-in & check-out','pl3-i4':'Cleaning & laundry','pl3-i5':'Linen replacement','pl3-i6':'Essentials restocking','pl3-i7':'Online support 24/7',
     'ca-label':'Calculate your earnings','ca-title':'Your home as a short-term rental','ca-sub':'Move the slider to estimate how much you can earn per month',
     'ca-noches':'Nights','ca-precio':'Price/night','ca-nota':'* Price depends on the property\'s features and location',

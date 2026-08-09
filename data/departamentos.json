@@ -986,20 +986,17 @@
     "esPropio": false
   },
   {
-    "imagen": "https://static.tokkobroker.com/pictures/7921905_61406957781762183020133204079274200875246867328585749154511664158920921244102.jpg",
-    "fichaUrl": "",
-    "disponibleDesde": "",
-    "tipo": "3 ambientes",
-    "direccion": "Juana Manso 1900",
-    "direccionUrl": "https://maps.app.goo.gl/5JF2UfFycu9HTa299",
     "id": "alq-marie-11",
     "titulo": "Lujo en torre con vistas abiertas al dique y al río",
     "barrio": "Puerto Madero",
-    "precio": 7000,
+    "tipo": "3 ambientes",
+    "precio": 5000,
     "moneda": "USD",
     "disponibilidad": "disponible",
     "amueblado": true,
     "mascotas": false,
+    "serviciosIncluidos": false,
+    "esPropio": false,
     "amenities": [
       "pileta",
       "gimnasio",
@@ -1008,15 +1005,18 @@
       "cochera",
       "sauna",
       "solárium",
-      "jacuzzi",
-      "seguridad 24hs"
+      "seguridad 24hs",
+      "jacuzzi"
     ],
-    "serviciosIncluidos": false,
     "minimoMeses": 1,
+    "disponibleDesde": "",
     "descripcion": "Puerto Madero es sinónimo de exclusividad, diseño y calidad de vida … \nPara quienes entienden el verdadero lujo, ubicado en una de las torres más exclusivas de la ciudad, este departamento redefine el concepto de alquiler temporario: fue concebido para vivirlo, no para rentarlo. Cada detalle responde a una elección personal, cuidada y sin concesiones.\nUbicado en piso alto, con vistas abiertas al dique y al río, el espacio se abre a través de amplios ventanales que integran la ciudad como parte del interior. La luz, la amplitud y la perspectiva generan una sensación de calma y sofisticación constante.\n160 m² | 2 cocheras\nDos dormitorios en suite, tres baños, y una distribución pensada para el confort diario con el nivel de una residencia permanente.\nTotalmente amoblado, equipado y decorado por profesional, con piezas seleccionadas que elevan la experiencia:\nElectrodomésticos de alta gama (Smeg, cava de vinos, doble heladera, lavasecarropas)\nCortinas y blackouts eléctricos automatizados en todos los ambientes\nHogar a bioetanol automatizado\nTV de gran formato en living y dormitorios\nVestidores completos\nClimatización multisplit frío/calor en cada ambiente\nPiso radiante en baños\nPisos de madera maciza en todo el departamento\nEl living-comedor se proyecta hacia el exterior con salida a balcón, acompañado por una vista abierta que transforma cada momento del día.\nAmenities de primer nivel en el edificio.",
+    "imagen": "https://static.tokkobroker.com/pictures/7921905_61406957781762183020133204079274200875246867328585749154511664158920921244102.jpg",
+    "direccion": "Juana Manso 1900",
+    "direccionUrl": "https://maps.app.goo.gl/5JF2UfFycu9HTa299",
     "fotos": "https://ficha.info/p/3c97f912e2f248f9baa83526796eddab?v=1778167612881",
-    "whatsappMsg": "",
-    "esPropio": false
+    "fichaUrl": "",
+    "whatsappMsg": ""
   },
   {
     "imagen": "https://static.tokkobroker.com/pictures/8051439_76777420604291151637284882338249901040463073809092259614576414080956813426338.jpg",

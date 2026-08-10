@@ -138,8 +138,9 @@ function tokkoToProperty(tokko) {
   const allExtrasLower = allExtras.map(s => (s || '').toLowerCase());
 
   const amueblado = allExtrasLower.some(a => /amoblado|amueblado|mobiliado/.test(a));
+  const descSinHtml = stripHtml(data.description || '').toLowerCase();
   const mascotas = allExtrasLower.some(a => /mascota/.test(a)) ||
-    /mascota/i.test(data.description || '');
+    (/mascota/i.test(descSinHtml) && !/(no\s+se\s+aceptan?|sin|no\s+admite)[^\n.]*mascota/i.test(descSinHtml));
 
   // Amenities — from tags/additionals + scan description for missing ones
   const amenities = mapAmenities(data.additionals, data.tags);

@@ -3706,6 +3706,7 @@ input[type="range"].br-range::-webkit-slider-thumb {
   transition: border-color .2s, color .2s, background .2s;
 }
 .br-btn-compartir:hover { border-color: var(--br-azul); color: var(--br-azul); background: #f0f6ff; }
+.br-btn-compartir-full { width: auto; flex: 1; padding: .55rem 1rem; gap: .4rem; }
 
 /* ---- MODAL DETALLE ---- */
 #detalle-overlay {

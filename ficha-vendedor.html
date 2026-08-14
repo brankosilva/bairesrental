@@ -41,73 +41,6 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
   padding: 0.8rem 2rem; box-shadow: 0 1px 0 rgba(255,255,255,0.08);
 }
 .br-nav-logo img { height: 34px; }
-.br-nav-links { display: flex; gap: 1.45rem; list-style: none; margin: 0; padding: 0; }
-.br-nav-links a {
-  color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
-  font-size: 10.5px !important; font-weight: 600 !important;
-  letter-spacing: 0.08em !important; text-transform: uppercase !important;
-  transition: color 0.2s;
-}
-.br-nav-links a:hover, .br-nav-links a.active-link { color: #fff !important; }
-.br-nav-cta {
-  background: #1A6FE8 !important; color: #fff !important;
-  padding: 9px 19px !important; border-radius: 100px !important;
-  font-size: 13px !important; font-weight: 700 !important;
-  text-decoration: none !important; transition: background 0.2s, transform 0.15s;
-}
-.br-nav-cta:hover { background: #1058c0 !important; transform: translateY(-1px); }
-.br-nav-toggle {
-  display: none; background: none !important; border: none !important;
-  color: white !important; cursor: pointer; font-size: 22px;
-  width: 40px; height: 40px; align-items: center; justify-content: center;
-  border-radius: 8px; transition: background 0.2s;
-}
-.br-nav-toggle:hover { background: rgba(255,255,255,0.1) !important; }
-@media (max-width: 1100px) {
-  .br-nav-links, .br-nav-cta { display: none !important; }
-  .br-nav-toggle { display: flex !important; }
-}
-
-/* Mobile drawer */
-.br-mob-overlay {
-  display: none; position: fixed; inset: 0; z-index: 1001;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-}
-.br-mob-overlay.open { display: block; }
-.br-mob-drawer {
-  position: fixed; top: 0; right: -280px; bottom: 0; z-index: 1002;
-  width: 280px; background: #111118;
-  border-left: 1px solid rgba(255,255,255,0.08);
-  display: flex; flex-direction: column; padding: 1.5rem;
-  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-.br-mob-drawer.open { right: 0; }
-.br-drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
-.br-drawer-header img { height: 28px; }
-.br-drawer-close {
-  background: none !important; border: none !important; color: rgba(255,255,255,0.5);
-  font-size: 1.5rem; cursor: pointer; line-height: 1;
-  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-  border-radius: 8px; transition: background 0.2s, color 0.2s;
-}
-.br-drawer-close:hover { background: rgba(255,255,255,0.08) !important; color: #fff; }
-.br-drawer-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex: 1; margin: 0; padding: 0; }
-.br-drawer-links a {
-  display: block !important; padding: 12px 16px !important;
-  color: rgba(255,255,255,0.7) !important; text-decoration: none !important;
-  font-size: 15px !important; font-weight: 600 !important;
-  border-radius: 10px; transition: background 0.2s, color 0.2s;
-}
-.br-drawer-links a:hover, .br-drawer-links a.active-link { background: rgba(255,255,255,0.06) !important; color: #fff !important; }
-.br-drawer-cta {
-  display: block; text-align: center;
-  background: #1A6FE8 !important; color: #fff !important;
-  padding: 14px; border-radius: 100px;
-  font-weight: 700 !important; font-size: 14.5px !important;
-  text-decoration: none !important; margin-top: 1rem;
-  transition: background 0.2s;
-}
-.br-drawer-cta:hover { background: #1058c0 !important; }
 
 /* ── HERO IMAGE ──────────────────────────────────────── */
 #depto-hero {
@@ -316,40 +249,12 @@ footer {
 </head>
 <body>
 
-<!-- NAVBAR -->
+<!-- NAVBAR (sin links de navegación: catálogo cerrado para vendedores) -->
 <nav class="br-nav" id="br-navbar">
-  <a href="index.html" class="br-nav-logo">
+  <div class="br-nav-logo">
     <img src="./images/bairesrentallogoblanco.png" alt="BairesRental">
-  </a>
-  <ul class="br-nav-links">
-    <li><a href="index.html#por-que">Servicios</a></li>
-    <li><a href="index.html#planes">Planes</a></li>
-    <li><a href="index.html#contacto">Propietarios</a></li>
-    <li><a href="departamentos.html">Alquileres</a></li>
-    <li><a href="ventas.html">Ventas</a></li>
-    <li><a href="tickets.html">Tickets Fútbol</a></li>
-  </ul>
-  <a href="index.html#contacto" class="br-nav-cta">Sumate →</a>
-  <button class="br-nav-toggle" id="br-mob-toggle">☰</button>
-</nav>
-
-<!-- Mobile drawer -->
-<div class="br-mob-overlay" id="br-mob-overlay"></div>
-<div class="br-mob-drawer" id="br-mob-drawer">
-  <div class="br-drawer-header">
-    <img src="./images/bairesrentallogoblanco.png" alt="BairesRental">
-    <button class="br-drawer-close" id="br-drawer-close">✕</button>
   </div>
-  <ul class="br-drawer-links">
-    <li><a href="index.html#por-que">Servicios</a></li>
-    <li><a href="index.html#planes">Planes</a></li>
-    <li><a href="index.html#contacto">Propietarios</a></li>
-    <li><a href="departamentos.html">Departamentos</a></li>
-    <li><a href="ventas.html">Ventas</a></li>
-    <li><a href="tickets.html">Tickets Fútbol</a></li>
-  </ul>
-  <a href="index.html#contacto" class="br-drawer-cta">Sumate →</a>
-</div>
+</nav>
 
 <!-- LOADING -->
 <div id="depto-loading" style="padding-top:80px">
@@ -640,20 +545,6 @@ function compartir() {
 window.addEventListener('scroll', () => {
   document.getElementById('br-navbar').classList.toggle('scrolled', window.scrollY > 40);
 }, { passive: true });
-
-// Mobile drawer
-document.getElementById('br-mob-toggle').addEventListener('click', () => {
-  document.getElementById('br-mob-drawer').classList.add('open');
-  document.getElementById('br-mob-overlay').classList.add('open');
-});
-document.getElementById('br-drawer-close').addEventListener('click', () => {
-  document.getElementById('br-mob-drawer').classList.remove('open');
-  document.getElementById('br-mob-overlay').classList.remove('open');
-});
-document.getElementById('br-mob-overlay').addEventListener('click', () => {
-  document.getElementById('br-mob-drawer').classList.remove('open');
-  document.getElementById('br-mob-overlay').classList.remove('open');
-});
 
 document.addEventListener('DOMContentLoaded', init);
 </script>

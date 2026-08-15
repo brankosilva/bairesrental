@@ -499,6 +499,18 @@ const ICONOS  = {
   "cochera":"🚗","sauna":"♨️","solárium":"☀️","seguridad 24hs":"🔒","jacuzzi":"🛁","lavarropas":"🧺"
 };
 
+// Si venimos del catálogo, "Volver al catálogo" apunta a la posición
+// (scroll + filtros) que dejamos guardada al abrir esta ficha.
+(function fijarVueltaAlCatalogo() {
+  try {
+    const raw = sessionStorage.getItem("br-catalogo-return");
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (!state || !state.url) return;
+    document.querySelectorAll('a[href="departamentos.html"]').forEach(a => { a.href = state.url; });
+  } catch (e) {}
+})();
+
 function getMapQuery(p) {
   if (p.direccionUrl) {
     try {

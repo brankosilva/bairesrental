@@ -10,6 +10,9 @@ const WA_BASE = "https://wa.me/5491173735757";
 // sin WhatsApp en vez de departamento.html.
 const VENDOR_MODE = !!window.BR_VENDOR_MODE;
 const DETAIL_PAGE = VENDOR_MODE ? "ficha-vendedor.html" : "departamento.html";
+// Recordar posición: se guarda al entrar a una ficha y se restaura al volver,
+// para que "Volver al catálogo" no reinicie el scroll ni los filtros.
+const CATALOGO_RETURN_KEY = "br-catalogo-return";
 
 // ======================================================
 // ESTADO
@@ -29,7 +32,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   await cargarCatalogo();
   inicializarFiltros();
   leerQueryParams();
+  restaurarPosicionCatalogo();
 });
+
+function guardarPosicionCatalogo() {
+  try {
+    sessionStorage.setItem(CATALOGO_RETURN_KEY, JSON.stringify({
+      url: window.location.pathname + window.location.search,
+      scroll: window.scrollY,
+      ts: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function restaurarPosicionCatalogo() {
+  try {
+    const raw = sessionStorage.getItem(CATALOGO_RETURN_KEY);
+    if (!raw) return;
+    sessionStorage.removeItem(CATALOGO_RETURN_KEY);
+    const state = JSON.parse(raw);
+    if (!state || typeof state.scroll !== "number") return;
+    if (Date.now() - (state.ts || 0) > 30 * 60 * 1000) return; // vencido
+    const target = state.scroll;
+    // Las fotos son "loading=lazy" y siguen sumando alto mientras cargan,
+    // así que reforzamos el scroll varias veces en vez de una sola.
+    [0, 150, 350, 600, 1000].forEach(delay => {
+      setTimeout(() => window.scrollTo({ top: target, behavior: "auto" }), delay);
+    });
+  } catch (e) {}
+}
 
 // ======================================================
 // CATÁLOGO (desde data/departamentos.json)
@@ -371,6 +402,7 @@ function verDetalle(ref) {
     ? catalogoActual[ref]
     : catalogoActual.find(x => x.id === ref);
   if (!p) return;
+  guardarPosicionCatalogo();
   window.open(DETAIL_PAGE + "?id=" + encodeURIComponent(p.id), "_blank");
 }
 

@@ -72,7 +72,7 @@
 
   /* ── HERO (departamentos) ─────────────────────── */
   .br-dept-hero {
-    position: relative; height: 100vh; min-height: 500px;
+    position: relative; min-height: max(420px, 58vh);
     display: flex; align-items: center; justify-content: center;
     text-align: center; overflow: hidden;
     background: #0a0a12;
@@ -100,7 +100,7 @@
     38%  { opacity: 0; }
     100% { opacity: 0; }
   }
-  .br-dept-hero-content { position: relative; z-index: 11; max-width: 740px; padding: 80px 32px 112px; }
+  .br-dept-hero-content { position: relative; z-index: 11; max-width: 740px; padding: 48px 32px 64px; }
   .br-dept-eyebrow {
     display: inline-block;
     font-family: 'DM Sans', sans-serif !important;
@@ -109,7 +109,7 @@
     color: rgba(255,255,255,0.85);
     background: rgba(255,255,255,0.12);
     border: 1px solid rgba(255,255,255,0.25);
-    padding: 6px 16px; border-radius: 100px; margin-bottom: 24px;
+    padding: 6px 16px; border-radius: 100px; margin-bottom: 18px;
   }
   @media (max-width: 600px) {
     .br-dept-eyebrow { font-size: 10px !important; letter-spacing: 0.10em; padding: 5px 12px; }
@@ -123,7 +123,7 @@
     font-size: clamp(30px, 7vw, 96px) !important;
     font-weight: 800; line-height: 1.0;
     letter-spacing: -0.04em; color: #fff;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     display: flex; flex-direction: column; align-items: center; gap: 0;
   }
   .br-dept-title br { display: none; }
@@ -133,7 +133,7 @@
     font-family: 'DM Sans', sans-serif !important;
     font-size: clamp(14px, 1.5vw, 17px);
     color: rgba(255,255,255,0.55); font-weight: 400;
-    margin-bottom: 40px; line-height: 1.6;
+    margin-bottom: 28px; line-height: 1.6;
   }
   .br-dept-req-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -328,7 +328,7 @@
     <h1 class="br-dept-title"><span data-i18n="hero-t1">Viví Buenos Aires</span><br><span class="accent" data-i18n="hero-t2">sin complicaciones.</span></h1>
     <p class="br-dept-sub">
       <span data-i18n="hero-sub1">Departamentos verificados, precio claro y soporte real.</span><br>
-      <span data-i18n="hero-sub2">Sin garantía, sin trámites.</span>
+      <span data-i18n="hero-sub2">Contactanos y te ayudamos a encontrar tu próximo hogar.</span>
     </p>
     <div class="br-dept-hero-btns">
       <a href="docs/requisitos-alquiler.pdf" target="_blank" class="br-dept-req-btn" data-i18n="hero-req-btn">
@@ -556,7 +556,7 @@
       'hero-eyebrow':'Catálogo de propiedades',
       'hero-t1':'Viví la','hero-t2':'experiencia',
       'hero-sub1':'Departamentos en alquiler temporario en Buenos Aires.',
-      'hero-sub2':'Palermo, Recoleta, Belgrano y más barrios.',
+      'hero-sub2':'Contactanos y te ayudamos a encontrar tu próximo hogar.',
       'hero-req-btn':'Requisitos de alquiler',
       'hero-comunidad-btn':'Comunidad',
       'hero-scroll':'Explorar',
@@ -594,7 +594,7 @@
       'hero-eyebrow':'Property catalog',
       'hero-t1':'Live the','hero-t2':'experience',
       'hero-sub1':'Short-term rental apartments in Buenos Aires.',
-      'hero-sub2':'Palermo, Recoleta, Belgrano and more.',
+      'hero-sub2':'Contact us and we\'ll help you find your next home.',
       'hero-req-btn':'Rental requirements',
       'hero-comunidad-btn':'Community',
       'hero-scroll':'Explore',

@@ -360,31 +360,6 @@
     "whatsappMsg": "Hola! Me interesa el dúplex 2 ambientes en Palermo (Charcas y Av. Coronel Díaz). ¿Podría darme más información?"
   },
   {
-    "id": "alq-02",
-    "titulo": "2 ambientes en Recoleta",
-    "barrio": "Recoleta",
-    "tipo": "2 ambientes",
-    "precio": 650,
-    "moneda": "USD",
-    "disponibilidad": "disponible",
-    "amueblado": true,
-    "mascotas": false,
-    "serviciosIncluidos": false,
-    "esPropio": false,
-    "amenities": [
-      "seguridad 24hs"
-    ],
-    "minimoMeses": 3,
-    "disponibleDesde": "",
-    "descripcion": "DISPONIBLE YA! \n\nAlquiler 2 Ambientes en Recoleta \nDirección: Arenales al 1100 \n\nAlquiler: USD 650 \n+ Expensas Aprox: $330.000 \n+ Servicios a cargo del inquilino. \n• Consultar por opción paquete. \n\nCaracterísticas: \n• Living-comedor cómodo y funcional. \n• Dormitorio independiente. \n• Aire acondicionado en el living y en el dormitorio. \n• Lavarropas. \n• Edificio con seguridad. \n\nCondiciones: Se solicita 1 mes y medio de depósito.",
-    "imagen": "https://static.tokkobroker.com/pictures/8566539_93187981508098188918433874833765300013783464505041128068390402240586274011928.jpg",
-    "direccion": "Arenales 1100",
-    "direccionUrl": "https://www.google.com/maps?q=-34.5945388,-58.3829901",
-    "fotos": "https://ficha.info/p/4ae86385e7d94a48ba1a24576dab357c?v=1785501747961",
-    "fichaUrl": "",
-    "whatsappMsg": "Hola! Me interesa el 2 ambientes en Recoleta (Arenales 1100). ¿Podría darme más información?"
-  },
-  {
     "id": "casa-duggan",
     "titulo": "Quinta de verano en Duggan",
     "barrio": "Duggan",

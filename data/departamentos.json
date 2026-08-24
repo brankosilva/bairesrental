@@ -706,7 +706,7 @@
     "tipo": "2 ambientes",
     "precio": 1500,
     "moneda": "USD",
-    "disponibilidad": "disponible",
+    "disponibilidad": "no disponible",
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": true,

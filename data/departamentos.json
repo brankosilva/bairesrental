@@ -2637,5 +2637,28 @@
     "fotos": "https://photos.app.goo.gl/iFJSUdLdcyiCjepn9",
     "fichaUrl": "",
     "whatsappMsg": ""
+  },
+  {
+    "id": "Baires-poli",
+    "titulo": "amplio y luminoso en una de las calles cortadas más tranquilas de Palermo",
+    "barrio": "Palermo",
+    "tipo": "2 ambientes",
+    "precio": 1100,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": true,
+    "mascotas": false,
+    "serviciosIncluidos": true,
+    "esPropio": false,
+    "amenities": [],
+    "minimoMeses": 1,
+    "disponibleDesde": "",
+    "descripcion": "Departamento de 2 ambientes amplio y luminoso en una de las calles cortadas más tranquilas de Palermo. Sin ruido, con buena luz natural y todo equipado para llegar y empezar a vivir.\n\nPrimer piso por escalera, completamente amoblado y equipado.\n\n🛋 Living con sillón de 2 cuerpos, mesa para 4 personas y TV\n🪟 Balcón amplio\n🍳 Cocina equipada completa\n🛏 Habitación con cama matrimonial\n❄️ Aire acondicionado\n\n📍 Dorrego y Luis María Campos, Palermo — rodeado de restaurantes, cafés, parques y con excelente conectividad.\n\n💵 USD 1.100/mes — todo incluido con tope de luz",
+    "imagen": "",
+    "direccion": "Dorrego y Luis m campos",
+    "direccionUrl": "https://maps.app.goo.gl/RqL3yGK2pFk98xAE8",
+    "fotos": "https://photos.app.goo.gl/TAgj8c87AghreNuL8",
+    "fichaUrl": "",
+    "whatsappMsg": ""
   }
 ]

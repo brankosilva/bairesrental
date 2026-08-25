@@ -531,7 +531,7 @@
     "tipo": "monoambiente",
     "precio": 725,
     "moneda": "USD",
-    "disponibilidad": "no disponible",
+    "disponibilidad": "disponible",
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": true,
@@ -543,7 +543,7 @@
       "solárium"
     ],
     "minimoMeses": 1,
-    "disponibleDesde": "2026-08-01",
+    "disponibleDesde": "2026-12-01",
     "descripcion": "Nuevo y moderno departamento en edificio con parrilla, terraza y lavandería. Ubicado en Palermo, uno de los barrios porteños más populares por su gastronomía, bares y cafés. Cercano al Jardín botánico, Parque las Heras, Plaza Armenia, Alto Palermo shopping, polos gastronómicos y transporte público. El departamento está muy bien equipado y diseñado para tener todas las comodidades durante su estadía.",
     "imagen": "./images/julian-alvarez-1509/moderno-estudio.jpg",
     "direccion": "Julián Álvarez 1509",
@@ -2608,6 +2608,33 @@
     "direccion": "Azcuénaga 900",
     "direccionUrl": "https://share.google/KrwDh9KyELomRsnnr",
     "fotos": "https://drive.google.com/drive/folders/1Scc2xu9-w63F82ajR05r_Pt_5nmB8y45",
+    "fichaUrl": "",
+    "whatsappMsg": ""
+  },
+  {
+    "id": "Baires-Roxana",
+    "titulo": "Pileta , laundry y super luminoso en pleno Palermo Hollywood",
+    "barrio": "Palermo Hollywood",
+    "tipo": "monoambiente",
+    "precio": 600,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": true,
+    "mascotas": false,
+    "serviciosIncluidos": false,
+    "esPropio": false,
+    "amenities": [
+      "pileta",
+      "laundry",
+      "terraza"
+    ],
+    "minimoMeses": 6,
+    "disponibleDesde": "2026-09-01",
+    "descripcion": "Monoambiente prolijo, super equipado y luminoso en pleno Palermo Hollywood. Un espacio pensado para vivir bien desde el primer día — solo traé tu valija.\n\nEl departamento cuenta con cocina completamente equipada con horno, anafes, desayunador, heladera, microondas y tostadora. Cama matrimonial, mesa con 4 sillas, balcón y baño completo. Luminoso, bien distribuido y con excelente calidad de materiales.\n\n🛏 Cama matrimonial\n🍳 Cocina completa: horno, anafes, desayunador, heladera, microondas y tostadora\n🚿 Baño completo\n🪟 Balcón\n🪑 Mesa comedor para 4 personas\n❄️ Aire acondicionado frío/calor\n🔥 Losa radiante\n🏊 Pileta · 🫧 Laundry\n\n📍 Paraguay 5200 — en pleno Palermo Hollywood, a pasos de:\n— Parques y Lagos de Palermo\n— Jardín Botánico\n— Polo gastronómico de Las Cañitas y Palermo Soho\n— Av. Santa Fe y Av. del Libertador\n— Subte Línea D (Plaza Italia)\n— Múltiples líneas de colectivo y acceso rápido a autopistas\n\n✅ Totalmente amoblado y equipado\n💵 USD 600/mes + expensas $250.000 aprox. + servicios\n📋 Mínimo 6 meses",
+    "imagen": "./images/Baires-Roxana/imagen.jpg",
+    "direccion": "Paraguay 5200",
+    "direccionUrl": "https://maps.app.goo.gl/1v48RGDYNmApoB7s9",
+    "fotos": "https://photos.app.goo.gl/iFJSUdLdcyiCjepn9",
     "fichaUrl": "",
     "whatsappMsg": ""
   }

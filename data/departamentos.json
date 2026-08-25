@@ -22,7 +22,7 @@
     "direccion": "Edificio del Arco",
     "direccionUrl": "https://www.google.com/maps?q=-34.6130355,-58.3843909",
     "whatsappMsg": "Hola! Me interesa el 4+ ambientes en Monserrat (Edificio del Arco). ¿Podría darme más información?",
-    "esPropio": true
+    "esPropio": false
   },
   {
     "id": "alq-05",
@@ -48,7 +48,7 @@
     "direccion": "Serrano 1300",
     "direccionUrl": "https://www.google.com/maps?q=-34.5906938,-58.4333959",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Palermo (Serrano 1300). ¿Podría darme más información?",
-    "esPropio": true
+    "esPropio": false
   },
   {
     "id": "alq-02",
@@ -74,7 +74,7 @@
     "direccion": "Av. Triunvirato y Los Incas 0",
     "direccionUrl": "https://www.google.com/maps?q=-34.5812341,-58.4742699",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Villa Ortuzar (Av. Triunvirato y Los Incas 0). ¿Podría darme más información?",
-    "esPropio": true
+    "esPropio": false
   },
   {
     "id": "alq-01",
@@ -103,7 +103,7 @@
     "direccion": "Av Libertado y Sucre 0",
     "direccionUrl": "https://www.google.com/maps?q=-34.56658,-58.45988",
     "whatsappMsg": "Hola! Me interesa el 2 ambientes en Belgrano (Av Libertado y Sucre 0). ¿Podría darme más información?",
-    "esPropio": true
+    "esPropio": false
   },
   {
     "id": "tenc-teodoro-garcia-1900",

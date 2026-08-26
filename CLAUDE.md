@@ -16,7 +16,9 @@ Sitio web estático para **BairesRental**, empresa de administración de alquile
 | Archivo | Sección |
 |---|---|
 | `index.html` | Home — hero slider, propuesta, planes, reviews, clientes, contacto |
-| `departamentos.html` | Galería de propiedades administradas |
+| `departamentos.html` | Catálogo de departamentos en alquiler temporario |
+| `detalle-venta.html` | Ficha de detalle de una propiedad en venta (galería + lightbox) |
+| `ventas.html` | Catálogo de departamentos en venta |
 | `faq.html` | Preguntas frecuentes |
 
 ## Estructura de archivos
@@ -334,3 +336,62 @@ Notas:
 | URL externa (Tokko CDN, etc.) | Usar directamente como `imagen` (puede expirar si el listado se da de baja) |
 | Link Google Photos | Va al campo `fotos`, no en `imagen` |
 | Sin imagen | Dejar `imagen: ""` (el card muestra un placeholder 📸) |
+
+---
+
+## Catálogo de ventas (data/ventas.json)
+
+Flujo **independiente** del de alquileres — propiedades en venta, con hasta **20 fotos** por ficha mostradas en una galería nativa (grid + lightbox a pantalla completa) en `detalle-venta.html`, en vez del link externo a álbum que usan los alquileres.
+
+Por su tamaño, **nunca leer ni editar `data/ventas.json` directamente** — siempre usar `scripts/add-property-venta.js`.
+
+### Comando
+
+`/agregar-depto-venta` — guía el flujo completo: recibe texto (PDF o descripción manual) + fotos adjuntadas en el chat, guarda las fotos en `images/ventas/[id]/1.jpg…N.jpg`, arma el JSON y lo agrega al catálogo.
+
+### Schema de una propiedad en venta
+
+```json
+{
+  "id": "slug-unico",
+  "titulo": "Descripción corta visible en el card",
+  "barrio": "Nombre del barrio (CABA)",
+  "tipo": "monoambiente | 2 ambientes | 3 ambientes | 4+ ambientes | casa | PH",
+  "precio": 0,
+  "moneda": "USD | ARS",
+  "disponibilidad": "disponible | reservado | vendido",
+  "superficie": 0,
+  "superficieCubierta": 0,
+  "ambientes": 0,
+  "banios": 0,
+  "antiguedad": "A estrenar | número de años | vacío",
+  "expensas": 0,
+  "aptoCredito": false,
+  "amueblado": false,
+  "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
+  "descripcion": "Texto sin HTML",
+  "fotos": ["./images/ventas/[id]/1.jpg", "... hasta 20"],
+  "direccion": "Calle 1234",
+  "direccionUrl": "https://maps.app.goo.gl/...",
+  "whatsappMsg": "Mensaje pre-completado para WhatsApp",
+  "fichaUrl": "https://... (opcional — Zonaprop/Argenprop, botón secundario en la ficha)",
+  "esPropio": false
+}
+```
+
+Notas:
+- `precio: 0` muestra "Consultar precio"
+- `fotos[0]` es la portada (catálogo + hero de la ficha); el resto arma la galería
+- `disponibilidad: "vendido"` se mantiene en el JSON para uso interno pero no se muestra en el catálogo público (igual que "no disponible" en alquileres)
+- `fichaUrl` es opcional y solo agrega un botón secundario "Ver publicación completa" — no reemplaza la galería nativa
+- Reutiliza el mismo catálogo de `amenities` que los alquileres
+
+### Archivos involucrados
+
+| Archivo | Rol |
+|---|---|
+| `data/ventas.json` | Catálogo de propiedades en venta |
+| `scripts/add-property-venta.js` | Valida y agrega/actualiza una propiedad |
+| `js/ventas.js` | Filtros y renderizado de cards en `ventas.html` |
+| `ventas.html` | Catálogo público con filtros (barrio, tipo, precio, apto crédito, amenities) |
+| `detalle-venta.html` | Ficha de detalle con galería de fotos + lightbox |

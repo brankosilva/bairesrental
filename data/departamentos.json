@@ -418,7 +418,7 @@
     "imagen": "./images/casa-duggan/duggan.JPG",
     "direccion": "Felix Fernandez y Galarza",
     "direccionUrl": "https://maps.app.goo.gl/MCUqKLQ96mrUBG1t5",
-    "fotos": "https://photos.app.goo.gl/JzFQsaeE91TViuTC8",
+    "fotos": "https://airbnb.com.ar/h/tucasadecampoenduggan",
     "fichaUrl": "",
     "whatsappMsg": "Hola! Me interesa la Quinta de verano en Duggan. ¿Podría darme más información sobre precios y disponibilidad?"
   },
@@ -2342,6 +2342,29 @@
     "direccion": "Bustamante y Paraguay",
     "direccionUrl": "https://share.google/3J9BbAf4FZEWl8T8E",
     "fotos": "https://photos.app.goo.gl/x5xSAP4B2WqhJup5A",
+    "fichaUrl": "",
+    "whatsappMsg": ""
+  },
+  {
+    "id": "Baires-poli-3",
+    "titulo": "2 ambientes tranquilo y luminoso en Palermo.",
+    "barrio": "Palermo",
+    "tipo": "2 ambientes",
+    "precio": 1100,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": true,
+    "mascotas": false,
+    "serviciosIncluidos": true,
+    "esPropio": true,
+    "amenities": [],
+    "minimoMeses": 1,
+    "disponibleDesde": "",
+    "descripcion": "2 ambientes tranquilo, luminoso y todo incluido en Palermo. 🏙️✨\n\nDorrego y Luis María Campos — en una calle cortada sin ruido, con buena luz natural y todo equipado para llegar y empezar a vivir desde el primer día.\n\n🛋 Living con sillón, mesa para 4 y TV\n🪟 Balcón amplio\n🍳 Cocina equipada completa\n🛏 Habitación con cama matrimonial\n❄️ Aire acondicionado\n\n📍 En el corazón de Palermo — a pasos de restaurantes, parques y transporte público.\n\n💵 USD 1.100/mes — todo incluido con tope de luz",
+    "imagen": "./images/Baires-poli-3/imagen.jpg",
+    "direccion": "Dorrego y Luis María Campos",
+    "direccionUrl": "https://maps.app.goo.gl/RqL3yGK2pFk98xAE8",
+    "fotos": "https://photos.app.goo.gl/TAgj8c87AghreNuL8",
     "fichaUrl": "",
     "whatsappMsg": ""
   }

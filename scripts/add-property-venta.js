@@ -12,7 +12,7 @@ const readline = require('readline');
 
 const DATA_FILE = path.resolve(__dirname, '..', 'data', 'ventas.json');
 
-const REQUIRED_FIELDS = ['id', 'titulo', 'barrio', 'tipo', 'precio', 'moneda', 'disponibilidad', 'fotos'];
+const REQUIRED_FIELDS = ['id', 'titulo', 'barrio', 'tipo', 'precio', 'moneda', 'disponibilidad', 'fotos', 'superficie'];
 const VALID_TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa', 'PH'];
 const VALID_MONEDAS = ['USD', 'ARS'];
 const VALID_DISPONIBILIDAD = ['disponible', 'reservado', 'vendido'];
@@ -65,6 +65,9 @@ function validate(prop) {
   }
   if (prop.disponibilidad && !VALID_DISPONIBILIDAD.includes(prop.disponibilidad)) {
     errors.push(`disponibilidad inválida: "${prop.disponibilidad}". Válidas: disponible, reservado, vendido`);
+  }
+  if (prop.superficie !== undefined && (typeof prop.superficie !== 'number' || prop.superficie <= 0)) {
+    errors.push(`superficie inválida: "${prop.superficie}". Debe ser un número mayor a 0 (m²)`);
   }
   if (Array.isArray(prop.amenities)) {
     const invalid = prop.amenities.filter(a => !VALID_AMENITIES.includes(a));

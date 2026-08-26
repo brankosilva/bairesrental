@@ -8,13 +8,14 @@ const WA_BASE = "https://wa.me/5491173735757";
 const DETAIL_PAGE = "detalle-venta.html";
 const CATALOGO_RETURN_KEY = "br-catalogo-venta-return";
 const PRECIO_MAX_DEFAULT = 500000;
+const SUPERFICIE_MIN_DEFAULT = 0;
 
 // ======================================================
 // ESTADO
 // ======================================================
 let catalogoActual = [];
 let filtrosActivos = {
-  barrio: "", tipo: [], precioMax: PRECIO_MAX_DEFAULT,
+  barrio: "", tipo: [], precioMax: PRECIO_MAX_DEFAULT, superficieMin: SUPERFICIE_MIN_DEFAULT,
   amenities: [], aptoCredito: false,
   soloBairesRental: false, soloDisponibles: false, busqueda: ""
 };
@@ -128,6 +129,16 @@ function inicializarFiltros() {
     });
   }
 
+  const sliderSuperficie = document.getElementById("filtro-superficie");
+  const labelSuperficie = document.getElementById("label-superficie");
+  if (sliderSuperficie) {
+    sliderSuperficie.addEventListener("input", () => {
+      filtrosActivos.superficieMin = parseInt(sliderSuperficie.value);
+      labelSuperficie.textContent = filtrosActivos.superficieMin > 0 ? `${filtrosActivos.superficieMin} m²` : "Cualquiera";
+      aplicarFiltros();
+    });
+  }
+
   const btnAptoCredito = document.getElementById("filtro-apto-credito");
   if (btnAptoCredito) {
     btnAptoCredito.addEventListener("click", () => {
@@ -179,7 +190,7 @@ function aplicarFiltros() {
 }
 
 function limpiarFiltros() {
-  filtrosActivos = { barrio: "", tipo: [], precioMax: PRECIO_MAX_DEFAULT, soloDisponibles: false, amenities: [], aptoCredito: false, soloBairesRental: false, busqueda: "" };
+  filtrosActivos = { barrio: "", tipo: [], precioMax: PRECIO_MAX_DEFAULT, superficieMin: SUPERFICIE_MIN_DEFAULT, soloDisponibles: false, amenities: [], aptoCredito: false, soloBairesRental: false, busqueda: "" };
   document.getElementById("filtro-bairesrental")?.classList.remove("active");
   document.getElementById("filtro-disponible")?.classList.remove("active");
   document.getElementById("filtro-apto-credito")?.classList.remove("active");
@@ -188,6 +199,8 @@ function limpiarFiltros() {
   document.querySelectorAll(".filtro-tipo-btn").forEach(b => b.classList.remove("active"));
   const sp = document.getElementById("filtro-precio");
   if (sp) { sp.value = PRECIO_MAX_DEFAULT; document.getElementById("label-precio").textContent = `USD ${PRECIO_MAX_DEFAULT.toLocaleString('es-AR')}`; }
+  const ss = document.getElementById("filtro-superficie");
+  if (ss) { ss.value = SUPERFICIE_MIN_DEFAULT; document.getElementById("label-superficie").textContent = "Cualquiera"; }
   const ib = document.getElementById("filtro-busqueda");
   if (ib) ib.value = "";
   document.querySelectorAll(".filtro-amenity").forEach(c => c.checked = false);
@@ -201,6 +214,7 @@ function filtrarPropiedades() {
       if (filtrosActivos.barrio && normalizarBarrio(p.barrio) !== filtrosActivos.barrio) return false;
       if (filtrosActivos.tipo.length > 0 && !filtrosActivos.tipo.includes(p.tipo)) return false;
       if (p.precio > 0 && (p.moneda === 'USD' || !p.moneda) && p.precio > filtrosActivos.precioMax) return false;
+      if (filtrosActivos.superficieMin > 0 && !(p.superficie > 0 && p.superficie >= filtrosActivos.superficieMin)) return false;
       if (filtrosActivos.busqueda) {
         const q = filtrosActivos.busqueda.toLowerCase();
         const hayCoincidencia = [p.titulo, p.barrio, p.tipo, p.descripcion, p.direccion].some(c => c && c.toLowerCase().includes(q));
@@ -396,6 +410,7 @@ function actualizarQueryParams() {
   if (filtrosActivos.barrio) params.set("barrio", filtrosActivos.barrio);
   if (filtrosActivos.tipo.length) params.set("tipo", filtrosActivos.tipo.join(","));
   if (filtrosActivos.precioMax < PRECIO_MAX_DEFAULT) params.set("precioMax", filtrosActivos.precioMax);
+  if (filtrosActivos.superficieMin > SUPERFICIE_MIN_DEFAULT) params.set("superficieMin", filtrosActivos.superficieMin);
   if (filtrosActivos.amenities.length) params.set("amenities", filtrosActivos.amenities.join(","));
   if (filtrosActivos.aptoCredito) params.set("aptoCredito", "1");
   const nuevaURL = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
@@ -419,6 +434,11 @@ function leerQueryParams() {
     filtrosActivos.precioMax = parseInt(params.get("precioMax"));
     const sl = document.getElementById("filtro-precio");
     if (sl) { sl.value = filtrosActivos.precioMax; document.getElementById("label-precio").textContent = `USD ${filtrosActivos.precioMax.toLocaleString('es-AR')}`; }
+  }
+  if (params.get("superficieMin")) {
+    filtrosActivos.superficieMin = parseInt(params.get("superficieMin"));
+    const ss = document.getElementById("filtro-superficie");
+    if (ss) { ss.value = filtrosActivos.superficieMin; document.getElementById("label-superficie").textContent = `${filtrosActivos.superficieMin} m²`; }
   }
   if (params.get("amenities")) {
     filtrosActivos.amenities = params.get("amenities").split(",");

@@ -380,6 +380,7 @@ Por su tamaño, **nunca leer ni editar `data/ventas.json` directamente** — sie
 ```
 
 Notas:
+- `superficie` es **obligatoria** (m² totales) — el script rechaza la carga sin ella; el catálogo la usa como filtro ("Superficie mín.")
 - `precio: 0` muestra "Consultar precio"
 - `fotos[0]` es la portada (catálogo + hero de la ficha); el resto arma la galería
 - `disponibilidad: "vendido"` se mantiene en el JSON para uso interno pero no se muestra en el catálogo público (igual que "no disponible" en alquileres)

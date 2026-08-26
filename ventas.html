@@ -257,7 +257,7 @@
   .br-filtro-label          { font-size: 11px !important; }
   .br-pill-btn              { font-size: 11px !important; padding: 3px 9px !important; }
   .br-filtro-select         { font-size: 11px !important; padding: 4px 10px !important; min-width: 110px !important; }
-  #label-precio             { font-size: 11px !important; }
+  #label-precio, #label-superficie { font-size: 11px !important; }
   .br-precio-wrap           { min-width: 130px !important; }
   .br-btn-limpiar           { font-size: 11px !important; }
   @media (max-width: 768px) {
@@ -431,6 +431,14 @@
             <span id="label-precio">USD 500.000</span>
           </div>
           <input type="range" class="br-range" id="filtro-precio" min="30000" max="500000" step="5000" value="500000" />
+        </div>
+
+        <div class="br-filtro-grupo br-precio-wrap">
+          <div class="br-precio-top">
+            <span class="br-filtro-label">Superficie mín.</span>
+            <span id="label-superficie">Cualquiera</span>
+          </div>
+          <input type="range" class="br-range" id="filtro-superficie" min="0" max="300" step="5" value="0" />
         </div>
 
         <div class="br-filtro-grupo">
@@ -631,6 +639,8 @@ brDrawer.querySelectorAll('a').forEach(a => a.addEventListener('click', brCloseD
     if (document.querySelectorAll('.filtro-tipo-btn.active').length) n++;
     var precio = document.getElementById('filtro-precio');
     if (precio && parseInt(precio.value) < parseInt(precio.max || 500000)) n++;
+    var superficie = document.getElementById('filtro-superficie');
+    if (superficie && parseInt(superficie.value) > 0) n++;
     if (document.querySelectorAll('.filtro-amenity:checked').length) n++;
     var aptoCredito = document.getElementById('filtro-apto-credito');
     if (aptoCredito && aptoCredito.classList.contains('active')) n++;
@@ -682,7 +692,7 @@ brDrawer.querySelectorAll('a').forEach(a => a.addEventListener('click', brCloseD
   function onFilterChange() {
     setTimeout(function () { syncBadge(); syncApplyBtn(); syncMobCount(); }, 15);
   }
-  document.querySelectorAll('.br-pill-btn, .filtro-amenity, #filtro-barrio, #filtro-precio, #filtro-busqueda').forEach(function (el) {
+  document.querySelectorAll('.br-pill-btn, .filtro-amenity, #filtro-barrio, #filtro-precio, #filtro-superficie, #filtro-busqueda').forEach(function (el) {
     el.addEventListener('change', onFilterChange);
     el.addEventListener('click', onFilterChange);
     el.addEventListener('input', onFilterChange);

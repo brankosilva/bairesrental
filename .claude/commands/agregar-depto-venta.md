@@ -8,10 +8,11 @@ Cuando el usuario invoque este comando, seguí este flujo exacto:
 
 El usuario va a pegar en el chat (típicamente texto de un PDF o una descripción manual) y adjuntar fotos:
 - **Descripción de la propiedad** (texto libre, o texto extraído de un PDF)
+- **Superficie en m²** (total, y cubierta si la tiene) — es un campo obligatorio, el catálogo lo usa como filtro
 - **Entre 1 y 20 fotos** adjuntadas directamente en el chat
 - **Un prefijo o ID sugerido** (ej: `palermo-duplex`, `belgrano-ph`)
 
-Si falta la descripción o las fotos, pedíselas antes de continuar. El límite de fotos es 20 — si el usuario adjunta más, avisale y pedile que elija cuáles priorizar.
+Si falta la descripción, la superficie o las fotos, pedíselas antes de continuar — el script rechaza la carga sin `superficie`. El límite de fotos es 20 — si el usuario adjunta más, avisale y pedile que elija cuáles priorizar.
 
 ## Paso 2 — Guardar las fotos
 
@@ -80,7 +81,7 @@ fichaUrl:       (vacío)
 esPropio:       no
 ```
 
-Preguntá SOLO lo que no pudiste inferir del texto (antigüedad, apto crédito, dirección exacta si es ambigua, etc.).
+Preguntá SOLO lo que no pudiste inferir del texto (antigüedad, apto crédito, dirección exacta si es ambigua, etc.). Si no pudiste inferir la **superficie**, es la única pregunta que no podés saltear — sin ese dato el script rechaza la carga.
 
 ## Paso 5 — Confirmar y agregar
 

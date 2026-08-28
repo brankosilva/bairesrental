@@ -143,6 +143,15 @@ const server = http.createServer(async (req, res) => {
   res.end('Method not allowed');
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`  El servidor ya está corriendo en http://localhost:${PORT} — abriendo el navegador.`);
+    exec(`start http://localhost:${PORT}`);
+    process.exit(0);
+  }
+  throw err;
+});
+
 server.listen(PORT, '127.0.0.1', () => {
   console.log('');
   console.log('  ╔═══════════════════════════════════════╗');

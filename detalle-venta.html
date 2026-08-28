@@ -113,6 +113,9 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
   position: relative; height: 58vh; min-height: 320px;
   background: #111; overflow: hidden;
 }
+@media (max-width: 600px) {
+  #depto-hero { height: 62vh; min-height: 380px; }
+}
 .depto-hero-collage {
   display: flex; gap: 4px; width: 100%; height: 100%;
 }
@@ -134,9 +137,20 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
   color: #fff; display: flex; align-items: center; justify-content: center;
   font-size: 18px; font-weight: 700;
 }
-@media (max-width: 700px) {
-  .hero-thumbs { display: none; }
-  .depto-hero-collage .hero-cover { flex: 1; }
+.hero-thumb-mas-mobile { display: none; }
+@media (max-width: 600px) {
+  .depto-hero-collage { flex-direction: column; }
+  .hero-cover { flex: 1; }
+  .hero-thumbs {
+    flex: none; height: 80px;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-rows: 1fr !important;
+  }
+  .hero-thumb { grid-column: unset !important; }
+  .hero-thumb:nth-child(4) { display: none; }
+  .hero-thumb-mas { font-size: 14px; }
+  .hero-thumb-mas-desktop { display: none; }
+  .hero-thumb-mas-mobile { display: flex; }
 }
 #depto-hero-top {
   position: absolute; top: 80px; left: 0; right: 0;
@@ -367,7 +381,7 @@ footer {
   .depto-carac-grid { grid-template-columns: repeat(2, 1fr); }
   .depto-actions-row { flex-direction: column; }
   .btn-secondary-depto { min-width: 0; }
-  .depto-hero-fotos-btn { bottom: 14px; right: 16px; font-size: 12.5px; padding: 9px 14px; }
+  .depto-hero-fotos-btn { bottom: 98px; right: 16px; font-size: 12.5px; padding: 9px 14px; }
 }
 </style>
 </head>
@@ -608,8 +622,10 @@ function render(p) {
   const collage = document.getElementById('depto-hero-collage');
   if (FOTOS.length) {
     const MAX_THUMBS = 4;
+    const MAX_THUMBS_MOBILE = 3;
     const thumbs = FOTOS.slice(1, 1 + MAX_THUMBS);
-    const restantes = FOTOS.length - 1 - MAX_THUMBS;
+    const restantesDesktop = FOTOS.length - 1 - MAX_THUMBS;
+    const restantesMobile = FOTOS.length - 1 - MAX_THUMBS_MOBILE;
     let html = `<div class="hero-cover" onclick="abrirLightbox(0)">
       <img src="${FOTOS[0]}" alt="${p.titulo}" onerror="this.closest('#depto-hero').style.background='#1a1a2e'; this.style.display='none';">
     </div>`;
@@ -618,11 +634,13 @@ function render(p) {
       const rows = Math.ceil(thumbs.length / cols);
       html += `<div class="hero-thumbs" style="grid-template-columns: repeat(${cols}, 1fr); grid-template-rows: repeat(${rows}, 1fr)">`;
       html += thumbs.map((foto, i) => {
-        const esUltimaConMas = i === thumbs.length - 1 && restantes > 0;
+        const esUltimaDesktop = i === thumbs.length - 1 && restantesDesktop > 0;
+        const esUltimaMobile = i === MAX_THUMBS_MOBILE - 1 && thumbs.length > MAX_THUMBS_MOBILE && restantesMobile > 0;
         const esImparFinal = thumbs.length > 1 && thumbs.length % 2 === 1 && i === thumbs.length - 1;
         return `<div class="hero-thumb"${esImparFinal ? ' style="grid-column: span 2"' : ''} onclick="abrirLightbox(${i + 1})">
           <img src="${foto}" alt="${p.titulo} — foto ${i + 2}" loading="lazy">
-          ${esUltimaConMas ? `<div class="hero-thumb-mas">+${restantes}</div>` : ''}
+          ${esUltimaDesktop ? `<div class="hero-thumb-mas hero-thumb-mas-desktop">+${restantesDesktop}</div>` : ''}
+          ${esUltimaMobile ? `<div class="hero-thumb-mas hero-thumb-mas-mobile">+${restantesMobile}</div>` : ''}
         </div>`;
       }).join('');
       html += `</div>`;

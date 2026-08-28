@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node admin/server.js"
+    "dev": "node admin/server.js",
+    "dev:ventas": "node admin/server-ventas.js"
   }
 }

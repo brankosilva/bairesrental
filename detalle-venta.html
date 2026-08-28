@@ -113,13 +113,30 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
   position: relative; height: 58vh; min-height: 320px;
   background: #111; overflow: hidden;
 }
-#depto-hero-img {
-  width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer;
+.depto-hero-collage {
+  display: flex; gap: 4px; width: 100%; height: 100%;
 }
-#depto-hero-gradient {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
-  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
-  pointer-events: none;
+.hero-cover {
+  flex: 1; height: 100%; overflow: hidden; cursor: pointer; background: #1a1a1a;
+}
+.hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.25s; }
+.hero-cover:hover img { transform: scale(1.04); }
+.hero-thumbs {
+  flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; height: 100%; min-width: 0;
+}
+.hero-thumb {
+  position: relative; overflow: hidden; cursor: pointer; background: #1a1a1a;
+}
+.hero-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.25s; }
+.hero-thumb:hover img { transform: scale(1.06); }
+.hero-thumb-mas {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700;
+}
+@media (max-width: 700px) {
+  .hero-thumbs { display: none; }
+  .depto-hero-collage .hero-cover { flex: 1; }
 }
 #depto-hero-top {
   position: absolute; top: 80px; left: 0; right: 0;
@@ -214,25 +231,6 @@ body { font-family: 'DM Sans', sans-serif !important; overflow-x: hidden; margin
   text-transform: uppercase; color: var(--texto-gris);
   border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;
   margin-bottom: 20px; margin-top: 32px;
-}
-
-/* ── GALERÍA ────────────────────────────────────────── */
-.depto-galeria-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-}
-.depto-galeria-item {
-  position: relative; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden;
-  cursor: pointer; background: var(--gris);
-}
-.depto-galeria-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.25s; }
-.depto-galeria-item:hover img { transform: scale(1.06); }
-.depto-galeria-mas {
-  position: absolute; inset: 0; background: rgba(0,0,0,0.55);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 700;
-}
-@media (max-width: 600px) {
-  .depto-galeria-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
 }
 
 /* ── LIGHTBOX ───────────────────────────────────────── */
@@ -433,8 +431,7 @@ footer {
 
   <!-- Hero image -->
   <div id="depto-hero">
-    <img id="depto-hero-img" src="" alt="">
-    <div id="depto-hero-gradient"></div>
+    <div id="depto-hero-collage" class="depto-hero-collage"></div>
     <div id="depto-hero-top">
       <a href="ventas.html" class="depto-back-btn">← Volver al catálogo</a>
       <div class="depto-hero-badges">
@@ -458,12 +455,6 @@ footer {
     <div id="depto-apto-credito" style="display:none" class="depto-apto-credito">🏦 Apto crédito hipotecario</div>
 
     <p class="depto-desc" id="depto-desc"></p>
-
-    <!-- Galería -->
-    <div id="depto-galeria-section" style="display:none">
-      <div class="depto-section-title">Fotos</div>
-      <div class="depto-galeria-grid" id="depto-galeria-grid"></div>
-    </div>
 
     <!-- Amenities -->
     <div id="depto-amenities-section" style="display:none">
@@ -613,16 +604,32 @@ function render(p) {
 
   FOTOS = Array.isArray(p.fotos) ? p.fotos.filter(Boolean) : [];
 
-  // Hero image
-  const img = document.getElementById('depto-hero-img');
+  // Hero collage (portada + miniaturas)
+  const collage = document.getElementById('depto-hero-collage');
   if (FOTOS.length) {
-    img.src = FOTOS[0];
-    img.alt = p.titulo;
-    img.onclick = () => abrirLightbox(0);
-    img.onerror = () => { document.getElementById('depto-hero').style.background = '#1a1a2e'; img.style.display = 'none'; };
+    const MAX_THUMBS = 4;
+    const thumbs = FOTOS.slice(1, 1 + MAX_THUMBS);
+    const restantes = FOTOS.length - 1 - MAX_THUMBS;
+    let html = `<div class="hero-cover" onclick="abrirLightbox(0)">
+      <img src="${FOTOS[0]}" alt="${p.titulo}" onerror="this.closest('#depto-hero').style.background='#1a1a2e'; this.style.display='none';">
+    </div>`;
+    if (thumbs.length) {
+      const cols = thumbs.length === 1 ? 1 : 2;
+      const rows = Math.ceil(thumbs.length / cols);
+      html += `<div class="hero-thumbs" style="grid-template-columns: repeat(${cols}, 1fr); grid-template-rows: repeat(${rows}, 1fr)">`;
+      html += thumbs.map((foto, i) => {
+        const esUltimaConMas = i === thumbs.length - 1 && restantes > 0;
+        const esImparFinal = thumbs.length > 1 && thumbs.length % 2 === 1 && i === thumbs.length - 1;
+        return `<div class="hero-thumb"${esImparFinal ? ' style="grid-column: span 2"' : ''} onclick="abrirLightbox(${i + 1})">
+          <img src="${foto}" alt="${p.titulo} — foto ${i + 2}" loading="lazy">
+          ${esUltimaConMas ? `<div class="hero-thumb-mas">+${restantes}</div>` : ''}
+        </div>`;
+      }).join('');
+      html += `</div>`;
+    }
+    collage.innerHTML = html;
   } else {
     document.getElementById('depto-hero').style.background = '#1a1a2e';
-    img.style.display = 'none';
   }
 
   // Badges
@@ -656,20 +663,8 @@ function render(p) {
   // Descripción
   document.getElementById('depto-desc').textContent = p.descripcion || '';
 
-  // Galería
+  // Botón "ver todas las fotos"
   if (FOTOS.length > 0) {
-    document.getElementById('depto-galeria-section').style.display = 'block';
-    const MAX_VISIBLE = 8;
-    const visibles = FOTOS.slice(0, MAX_VISIBLE);
-    const restantes = FOTOS.length - MAX_VISIBLE;
-    document.getElementById('depto-galeria-grid').innerHTML = visibles.map((foto, i) => {
-      const esUltimaConMas = i === MAX_VISIBLE - 1 && restantes > 0;
-      return `<div class="depto-galeria-item" onclick="abrirLightbox(${i})">
-        <img src="${foto}" alt="${p.titulo} — foto ${i + 1}" loading="lazy">
-        ${esUltimaConMas ? `<div class="depto-galeria-mas">+${restantes}</div>` : ''}
-      </div>`;
-    }).join('');
-
     const btnFotosHero = document.getElementById('btn-fotos-hero');
     btnFotosHero.style.display = '';
     btnFotosHero.textContent = `📷 Ver las ${FOTOS.length} fotos`;

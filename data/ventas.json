@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "id": "lafinur-3000",
+    "titulo": "3 ambientes convertido en 2 en Palermo Chico",
+    "barrio": "Palermo Chico",
+    "tipo": "3 ambientes",
+    "precio": 185000,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "superficie": 57.64,
+    "superficieCubierta": 55.7,
+    "ambientes": 3,
+    "banios": 2,
+    "antiguedad": "50 años aprox",
+    "expensas": 220000,
+    "aptoCredito": true,
+    "amueblado": true,
+    "esPropio": true,
+    "amenities": [],
+    "descripcion": "Departamento de 2 ambientes (originalmente 3, convertido a 2) lleno de luz en el corazón de Palermo Chico, a metros de embajadas y espacios verdes.\n\nUnidad funcional 14, ubicada en el 3er piso al frente, orientación sureste. Superficie total de 57,64 m² (55,70 m² cubiertos + 14,94 m² semicubiertos). Estado general muy bueno, antigüedad aproximada de 50 años.\n\nDistribución: dormitorio en suite con placard empotrado, living-comedor amplio con espacio de trabajo integrado (escritorio y estanterías a medida), toilette de cortesía, y cocina integrada totalmente equipada con mesada de granito, cocina a gas de 4 hornallas con horno, extractor, heladera con freezer, microondas y amplia alacena.\n\nTerminaciones de categoría: pisos de parquet en espiga (pinotea), revestimiento en piedra tipo travertino en la pared del dormitorio principal, cortinas y blackout, calefacción individual y aberturas de aluminio.\n\nSe entrega amoblado y equipado, apto crédito hipotecario. Capacidad: 2 personas.\n\nExpensas: $220.000 aprox. (incluyen teléfono, luz e internet).\n\nToda la información y las medidas son aproximadas y deberán ratificarse con la documentación pertinente; no comprometen contractualmente a BairesRental. Los montos de expensas y gastos refieren a la última información recabada y deben confirmarse. Fotografías no vinculantes ni contractuales.",
+    "fotos": [
+      "./images/ventas/lafinur-3000/foto-1787923270324-rh6ora.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270337-4l7yvp.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270348-rpkcss.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270358-6rz8li.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270367-dawgk3.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270376-uc2i94.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270387-yuc905.png",
+      "./images/ventas/lafinur-3000/foto-1787923270400-hjmvya.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270416-b0sqd5.png",
+      "./images/ventas/lafinur-3000/foto-1787923270431-2goo9e.jpg",
+      "./images/ventas/lafinur-3000/foto-1787923270448-2q59it.png",
+      "./images/ventas/lafinur-3000/foto-1787923270467-d0n7i6.png",
+      "./images/ventas/lafinur-3000/foto-1787923270486-7mcxj7.png",
+      "./images/ventas/lafinur-3000/foto-1787923270504-veybad.png"
+    ],
+    "direccion": "Lafinur 3000",
+    "direccionUrl": "https://share.google/PZIpU1gQZnq8RWEXf",
+    "fichaUrl": "https://ficha.info/p/69c3e58e85a245adb9ab1c585e490011?v=1787924239628",
+    "whatsappMsg": "Hola! Me interesa el departamento en Lafinur 3000, Palermo Chico"
+  }
+]

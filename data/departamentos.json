@@ -2328,7 +2328,7 @@
     "tipo": "monoambiente",
     "precio": 500,
     "moneda": "USD",
-    "disponibilidad": "disponible",
+    "disponibilidad": "reservado",
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": false,

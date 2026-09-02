@@ -235,35 +235,6 @@
     "whatsappMsg": "Hola! Me interesa el 4+ ambientes en Belgrano (Aguilar 2450). ¿Podría darme más información?"
   },
   {
-    "id": "tenc-01",
-    "titulo": "Monoambiente en Recoleta",
-    "barrio": "Recoleta",
-    "tipo": "monoambiente",
-    "precio": 875,
-    "moneda": "USD",
-    "disponibilidad": "disponible",
-    "disponibleDesde": "",
-    "amueblado": true,
-    "mascotas": false,
-    "serviciosIncluidos": false,
-    "minimoMeses": 6,
-    "amenities": [
-      "pileta",
-      "gimnasio",
-      "sauna",
-      "solárium",
-      "seguridad 24hs"
-    ],
-    "descripcion": "Monoambiente amplio y totalmente amoblado en Deco Recoleta. El departamento cuenta con cocina integrada, baño completo y balcón, ofreciendo un ambiente cómodo, funcional y muy luminoso.\n( Expensas, gas ( $15.000) y luz a cargo del inquilino) \nSe entrega equipado con sillón, dos camas Twin XL, televisor, mesa ratona y estantes de madera, ideal para una estadía confortable.\n\nEl edificio ofrece amenities de categoría: piscina descubierta climatizada, piscina relax cubierta, solarium, gimnasio, sauna, health club, salón, sala multimedia, vestuarios y seguridad 24 hs con front desk.\n\nAlquiler mínimo: 6 meses.",
-    "imagen": "https://dfqgrmqwndofatfwfrxk.supabase.co/storage/v1/object/public/property-images/1778617285308-fvmyjazw.jpg",
-    "fotos": "https://www.fichaprop.tech/ficha/baebe8ad-10e9-4e1b-8f28-208ce0e4de60",
-    "fichaUrl": "",
-    "direccion": "Guido 19999",
-    "direccionUrl": "https://www.google.com/maps?q=-34.6037,-58.3816",
-    "whatsappMsg": "Hola! Me interesa el monoambiente en Recoleta (Guido 19999). ¿Podría darme más información?",
-    "esPropio": false
-  },
-  {
     "id": "alq-12",
     "titulo": "4 ambientes en Villa Crespo",
     "barrio": "Villa Crespo",
@@ -1148,35 +1119,6 @@
     "esPropio": false
   },
   {
-    "imagen": "https://static.tokkobroker.com/pictures/8024362_13601806693949587306697117022377578229483712406511538538729136879983103320480.jpg",
-    "fichaUrl": "",
-    "disponibleDesde": "",
-    "tipo": "monoambiente",
-    "direccion": "Guido 1900",
-    "direccionUrl": "https://maps.app.goo.gl/UCectgRNjbfVEDv98",
-    "id": "alq-marie-16",
-    "titulo": "categoría y confort.",
-    "barrio": "Recoleta",
-    "precio": 875,
-    "moneda": "USD",
-    "disponibilidad": "disponible",
-    "amueblado": true,
-    "mascotas": false,
-    "amenities": [
-      "pileta",
-      "gimnasio",
-      "laundry",
-      "sauna",
-      "solárium"
-    ],
-    "serviciosIncluidos": false,
-    "minimoMeses": 6,
-    "descripcion": "Expensas y servicios a cargo del inquilino.\nUbicado en el corazón de Recoleta, una de las zonas más distinguidas de la ciudad.\nAmoblado y completamente equipado, ofrece una decoración minimalista de estilo funcional y moderno, dentro de un edificio de excelente diseño que combina categoría y confort.\nIdeal para 1 o 2 personas, el departamento brinda un ambiente cálido y sofisticado.\n\nCuenta con aire acondicionado frío-calor, 2 camas\nLa cocina está totalmente equipada con anafes eléctricos de vitrocerámica, heladera. Incluye vajilla completa.\nEl baño es completo y funcional, con detalles de calidad.\n\nEl edificio ofrece amenities premium:\npiscina\ngimnasio\nspa, sauna, sala de masajes y relax,\nlaundry y espacios comunes diseñados para disfrutar del máximo bienestar.",
-    "fotos": "https://ficha.info/p/af893d268e554e30b4d7bbf823b8a30f?v=1779139356770",
-    "whatsappMsg": "",
-    "esPropio": false
-  },
-  {
     "imagen": "https://static.tokkobroker.com/pictures/8053999_10822036096822113456558661974230544792284238160102485644833695321959827611338.jpg",
     "fichaUrl": "",
     "disponibleDesde": "",
@@ -1204,36 +1146,6 @@
     "fotos": "https://ficha.info/p/57e399ac10a64076b7f4ab021a428375?v=1779198103430",
     "whatsappMsg": "",
     "esPropio": false
-  },
-  {
-    "id": "alq-7403",
-    "titulo": "Torre de categoría frente al shopping Los Arcos",
-    "barrio": "Palermo",
-    "tipo": "monoambiente",
-    "precio": 800,
-    "moneda": "USD",
-    "disponibilidad": "disponible",
-    "amueblado": true,
-    "mascotas": false,
-    "serviciosIncluidos": false,
-    "esPropio": false,
-    "amenities": [
-      "pileta",
-      "gimnasio",
-      "laundry",
-      "sauna",
-      "seguridad 24hs",
-      "jacuzzi"
-    ],
-    "minimoMeses": 3,
-    "disponibleDesde": "2026-08-15",
-    "descripcion": "Torre de categoría frente al shopping Los Arcos. Excelente ubicación, rodeado de bares, restaurantes, museos y atractivos turísticos.\nDepartamento totalmente amoblado y equipado.\nBalcón con vista abierta.\nPiscina.\nGimnasio.\nSauna y jacuzzi.\nLavandería.\nSeguridad 24 horas.",
-    "imagen": "https://static.tokkobroker.com/pictures/7156558_93646117099770520072202387845559408022081553894745275059307107051839075791448.jpg",
-    "direccion": "Godoy Cruz 2500",
-    "direccionUrl": "https://maps.app.goo.gl/49utKv4W7HfPxaLR6",
-    "fotos": "https://ficha.info/p/3542c5063bab4004acde45894dd04894?v=1780330757913",
-    "fichaUrl": "",
-    "whatsappMsg": ""
   },
   {
     "id": "vera-0-11",

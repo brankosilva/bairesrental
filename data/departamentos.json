@@ -2191,7 +2191,7 @@
     "amueblado": true,
     "mascotas": false,
     "serviciosIncluidos": true,
-    "esPropio": false,
+    "esPropio": true,
     "amenities": [
       "laundry"
     ],

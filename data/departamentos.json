@@ -2179,5 +2179,30 @@
     "fotos": "https://photos.app.goo.gl/TAgj8c87AghreNuL8",
     "fichaUrl": "",
     "whatsappMsg": ""
+  },
+  {
+    "id": "poli-05",
+    "titulo": "3 ambientes amoblado y equipado",
+    "barrio": "Palermo",
+    "tipo": "3 ambientes",
+    "precio": 1300,
+    "moneda": "USD",
+    "disponibilidad": "disponible",
+    "amueblado": true,
+    "mascotas": false,
+    "serviciosIncluidos": true,
+    "esPropio": false,
+    "amenities": [
+      "laundry"
+    ],
+    "minimoMeses": 1,
+    "disponibleDesde": "",
+    "descripcion": "Solo luz aparte! \n\nExcelente 3 ambientes tipo PH en pleno Palermo. \nDos habitaciones, escritorio, lavarropas, cocina completa, super luminoso!\nIdeal para estudiantes!\n\nSegundo piso por escaleras.\n\nDisponible ya!",
+    "imagen": "./images/poli-05/imagen.jpg",
+    "direccion": "Godoy cruz y Santa Fe",
+    "direccionUrl": "https://share.google/NZiI7HLu1q3dvAoLz",
+    "fotos": "https://photos.app.goo.gl/FAtJWFYKFkJmFcNe9",
+    "fichaUrl": "",
+    "whatsappMsg": ""
   }
 ]

@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function role() {
+      return request.auth != null ? request.auth.token.role : null;
+    }
+
+    function isAdmin() {
+      return role() == 'admin';
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Public catalog — same visibility as today's fully-public JSON files.
+    // Sellers may only create/edit/delete their own listings (sellerUid
+    // must equal the caller's uid on both the existing doc and the write).
+    match /rentals/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
+      allow update, delete: if isAdmin() || (role() == 'seller' && resource.data.sellerUid == request.auth.uid);
+    }
+
+    match /sales/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
+      allow update, delete: if isAdmin() || (role() == 'seller' && resource.data.sellerUid == request.auth.uid);
+    }
+
+    // Owners get read access to their own properties (v1 scope is
+    // read-only — see docs/negocio.md's owner-portal requirement); since
+    // `rentals`/`sales` read is already public above, no extra owner-only
+    // read rule is needed today, but the ownerUid field exists on both
+    // collections for the owner-portal UI to filter on client-side queries.
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      // Role changes only via the setUserRole Cloud Function (Admin SDK,
+      // bypasses rules) so the auth custom claim and this doc never drift
+      // out of sync — no direct client writes, even by admins.
+      allow write: if false;
+    }
+
+    // Document ID IS the shareable short code (e.g. links/ab3f9k) — a
+    // public `get` (single-doc, by known code) is needed for the /l/:code
+    // redirect page to resolve where to send an anonymous visitor.
+    // `list` (querying "my links") stays restricted to the owning seller
+    // or an admin, and requires the query itself to filter on sellerUid
+    // (Firestore validates this statically against the rule below).
+    match /links/{code} {
+      allow get: if true;
+      allow list: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
+      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
+    }
+
+    match /leads/{id} {
+      // Public lead capture (the submitLead Cloud Function) uses the Admin
+      // SDK and bypasses these rules by design — anonymous visitors submit
+      // leads through the function, never via a direct client write.
+      allow read, update: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
+      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+  }
+}

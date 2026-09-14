@@ -595,6 +595,6 @@ En `≤768px`: el menú de navegación pasa a off-canvas, se activa `.fh5co-nav-
 WhatsApp:   +54 9 11 7373-5757
 Instagram:  @bairesrentalok
 Facebook:   /profile.php?id=61566568521787
-Email:      info@bairesrental.com.ar
+Email:      bairesrentalok@gmail.com
 Web:        https://www.bairesrental.com.ar
 ```

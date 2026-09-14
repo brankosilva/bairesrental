@@ -2,6 +2,8 @@
 
 Sitio web estático para **BairesRental**, empresa de administración de alquileres temporarios en Buenos Aires (CABA), Argentina.
 
+Documentación detallada del negocio, la marca y el catálogo en [`docs/`](docs/README.md) — este archivo cubre lo operativo (stack, estructura, convenciones, carga de propiedades).
+
 ## Stack
 
 - HTML5 estático — sin build system, sin bundler, sin backend
@@ -13,26 +15,34 @@ Sitio web estático para **BairesRental**, empresa de administración de alquile
 
 ## Páginas
 
+Inventario completo (incluyendo páginas internas para vendedores y el panel admin) en [`docs/sitio-paginas.md`](docs/sitio-paginas.md).
+
 | Archivo | Sección |
 |---|---|
-| `index.html` | Home — hero slider, propuesta, planes, reviews, clientes, contacto |
-| `departamentos.html` | Catálogo de departamentos en alquiler temporario |
-| `detalle-venta.html` | Ficha de detalle de una propiedad en venta (galería + lightbox) |
-| `ventas.html` | Catálogo de departamentos en venta |
-| `faq.html` | Preguntas frecuentes |
+| `index.html` | Home — hero, propuesta de valor, planes, calculadora de ingresos, reviews, contacto |
+| `departamentos.html` / `departamento.html` | Catálogo de alquiler temporario / ficha de detalle de una propiedad |
+| `ventas.html` / `detalle-venta.html` | Catálogo de departamentos en venta / ficha de detalle (galería + lightbox) |
+| `catalogo-vendedores.html` / `ficha-vendedor.html` | Versión interna (`noindex`, sin WhatsApp) del catálogo/ficha de alquiler para agentes |
+| `tickets.html` | Landing de "Baires-Football Experience" (negocio paralelo, redirige a sitio externo) |
+
+No existe `faq.html` en el repo — no crear referencias a esa página salvo que se agregue explícitamente.
 
 ## Estructura de archivos
 
 ```
 /
-├── index.html
-├── departamentos.html
-├── faq.html
+├── index.html, departamentos.html, departamento.html, ventas.html, detalle-venta.html, tickets.html
+├── catalogo-vendedores.html, ficha-vendedor.html   # internas, noindex
+├── admin/        # CMS local para editar data/*.json (ver docs/catalogo-datos.md)
 ├── css/          # Estilos locales (vendor + style.css propio)
 ├── js/           # Scripts locales (vendor + main.js propio)
 ├── images/       # Logos, carruseles, fotos de departamentos
 ├── fonts/        # Icomoon icon font
-└── sass/         # Fuente SASS (si se edita style.css, compilar desde acá)
+├── sass/         # Fuente SASS (si se edita style.css, compilar desde acá)
+├── data/         # departamentos.json, ventas.json — nunca editar a mano
+├── scripts/      # Scripts de carga/mantenimiento del catálogo
+├── marketing/    # Brand guide y estrategia de Meta Ads
+└── docs/         # Documentación detallada del negocio y la marca
 ```
 
 ## Convenciones
@@ -46,160 +56,21 @@ Sitio web estático para **BairesRental**, empresa de administración de alquile
 ## Contacto / Redes sociales (datos reales del sitio)
 
 - WhatsApp: +54 9 11 7373-5757
+- Email: bairesrentalok@gmail.com
 - Instagram: @bairesrentalok
 - Facebook: /profile.php?id=61566568521787
 
 ---
 
-## Marca
+## Marca y negocio
 
-### Identidad
+Ver documentación completa:
 
-**BairesRental** es una empresa de gestión integral de alquileres temporarios en Buenos Aires (CABA), orientada a propietarios que buscan renta pasiva y a huéspedes nacionales e internacionales que buscan alojamiento de calidad.
+- [`docs/negocio.md`](docs/negocio.md) — misión, propuesta de valor, planes/comisiones, público objetivo, métricas, flujo operativo
+- [`docs/marca.md`](docs/marca.md) — tono de voz, paleta de colores, tipografía, logos ([`marketing/brand-guide.md`](marketing/brand-guide.md) tiene el detalle con snippets CSS)
+- [`docs/marketing-canales.md`](docs/marketing-canales.md) — canales de contacto, tracking, estrategia de Meta Ads ([`marketing/estrategia-meta-ads.md`](marketing/estrategia-meta-ads.md))
 
-- **Misión:** Maximizar la rentabilidad de los propietarios y ofrecer experiencias de alojamiento de alta calidad, operando de forma profesional y optimizada de extremo a extremo.
-- **Visión:** Posicionarse como marca referente en alquileres temporarios en Buenos Aires, con proyección a escalar propiedades, fortalecer el canal directo y desarrollar una comunidad de viajeros.
-- **Tagline:** "Tu hogar, nuestro cuidado" / "Your home, our care"
-
----
-
-### Tono de voz
-
-- **Registro:** cercano y profesional — voseo rioplatense, cálido pero serio.
-- **Perfil:** como un aliado de confianza que sabe de negocios. No corporativo, no informal.
-- **Reglas:** usar siempre vos/ustedes (nunca tutear). Directo, sin vueltas, sin jerga. Orientado a resultados concretos.
-
----
-
-### Identidad visual
-
-**Paleta de colores:**
-
-| Variable | Hex | Uso |
-|---|---|---|
-| `--azul` | `#1A6FE8` | Color primario — CTAs, acentos, links |
-| `--azul-dark` | `#1058c0` | Hover de botones |
-| `--negro` | `#111111` | Fondos oscuros (hero, stats, planes, reviews) |
-| `--verde` | `#25D366` | Checkmarks, WhatsApp |
-| `--blanco` | `#ffffff` | Texto sobre fondos oscuros |
-| `--gris` | `#f4f4f6` | Fondos de cards y secciones claras |
-| `--texto-gris` | `#6b7280` | Texto secundario |
-
-**Tipografía:** DM Sans (Google Fonts), pesos 300–800. Es la fuente principal para todo contenido nuevo.
-
-**Logos disponibles en `/images/`:**
-- `bairesrentallogoblanco.png` — navbar y footer (sobre fondos oscuros)
-- `bairesrental-high-resolution-logo.png` — color, alta resolución
-- `bairesrental-high-resolution-logo-black.png` — negro, alta resolución
-- `bairesrentallogoredes.png` — redes sociales
-
-**Estética general:** secciones oscuras (hero, stats, planes, reviews) alternadas con secciones claras (features, calculadora, testimonios). Cards con `border-radius: 16px`, botones pill con `border-radius: 100px`.
-
----
-
-### Propuesta de valor
-
-**Para propietarios:**
-- Gestión 100% integral (fotos, publicación, reservas, limpieza, check-in/out)
-- Revenue management con precios dinámicos
-- Ingresos en USD sin complicaciones
-- Reportes de rendimiento
-- Atención al huésped 24/7
-
-**Para huéspedes:**
-- Departamentos verificados y equipados
-- Atención personalizada antes, durante y después de la estadía
-- Ubicaciones estratégicas (Palermo, Recoleta, Belgrano y zonas turísticas)
-- Experiencia simple y confiable
-
----
-
-### Planes y servicios
-
-| Plan | Comisión | Descripción |
-|---|---|---|
-| **Gestión Online** | 12% del neto | Fotos, perfil, gestión de reservas, precios dinámicos, soporte 24/7 |
-| **Gestión Mensual** | 15% del contrato | Todo lo anterior + selección de inquilinos, check-in/out, cobranzas, limpieza |
-| **Gestión Airbnb** | 25% del neto | Fotos, Airbnb + Booking, limpieza profesional, reposición de ropa blanca, lavandería, soporte 24/7 |
-
-Fee inicial único de setup (fotografía, optimización de perfil, alta en plataformas). Comisión se aplica sobre ingresos netos (deducida limpieza, lavandería ~USD 30, fees de plataformas).
-
----
-
-### Público objetivo
-
-**Propietarios:**
-- Dueños que buscan renta pasiva sin ocupar tiempo
-- Inversores inmobiliarios con departamentos en CABA
-- Personas que se van al exterior o no tienen tiempo para gestionar
-
-**Huéspedes:**
-- Turistas internacionales
-- Nómadas digitales (nicho clave y diferenciador)
-- Viajeros de media y larga estadía
-
----
-
-### Canales de comercialización
-
-- **Airbnb** y **Booking.com** — plataformas principales de generación de reservas
-- **Canal directo** — web bairesrental.com.ar (objetivo de crecimiento)
-- **WhatsApp** — ventas directas y coordinación operativa
-- **Comunidad de nómadas digitales** — nicho diferenciador
-
----
-
-### Canales de comunicación
-
-| Canal | Uso |
-|---|---|
-| WhatsApp +54 9 11 7373-5757 | Principal operativo: huéspedes, reservas directas, check-in/out, incidencias |
-| bairesrental.com.ar | Catálogo, institucional, captación de propietarios |
-| Instagram @bairesrentalok | Contenido visual, testimonios, branding, generación de confianza |
-| Airbnb / Booking | Generación de reservas + validación social mediante reviews |
-
----
-
-### Flujo operativo
-
-1. **Captación** — contacto con propietario, evaluación del inmueble, definición de estrategia de precios
-2. **Preparación** — equipamiento completo, fotos profesionales, alta en plataformas
-3. **Publicación** — creación de anuncios, SEO interno en plataformas, ajuste dinámico de precios
-4. **Gestión de reservas** — recepción de consultas, conversión de leads, coordinación de fechas
-5. **Check-in / Check-out** — coordinación con el huésped, entrega de llaves o acceso digital
-6. **Limpieza y mantenimiento** — limpieza profesional entre estadías, control de calidad, resolución de incidencias
-7. **Post-estadía** — solicitud de reviews, análisis de feedback, reporte al propietario
-
----
-
-### Diferenciales competitivos
-
-- Atención personalizada (no automatizada)
-- Foco específico en nómadas digitales
-- Gestión end-to-end (el propietario no hace nada)
-- Presencia multi-canal (Airbnb + Booking + directo + WhatsApp)
-- Optimización constante de ingresos (revenue management activo)
-
----
-
-### Métricas y reconocimientos
-
-- **300+** huéspedes recibidos
-- **2.500+** noches reservadas
-- **150+** reseñas
-- **9.6/10** calificación promedio
-- **85%** tasa de ocupación
-- Booking.com **Traveller Review Award 2025**
-- Airbnb **Superhost 2026**
-
----
-
-### Visión y expansión
-
-- Escalar la cantidad de propiedades administradas en CABA
-- Fortalecer el canal de ventas directas (reducir dependencia de plataformas)
-- Desarrollar comunidad de viajeros y nómadas digitales
-- Incorporar tecnología para automatización operativa
+Resumen rápido: tono cercano y profesional en voseo rioplatense (nunca tutear); color primario `--azul #1A6FE8`; tagline "Tu hogar, nuestro cuidado". Antes de citar precios/comisiones o métricas en contenido nuevo, confirmar contra `docs/negocio.md` (ya incluye una corrección de comisión detectada en `index.html` vs. lo documentado antes).
 
 ---
 
@@ -212,9 +83,12 @@ Las propiedades se almacenan en `data/departamentos.json` (array JSON). Por su t
 | Script | Uso |
 |---|---|
 | `scripts/add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega al catálogo |
+| `scripts/add-from-tencery.js` | Convierte un JSON exportado de Tencery al formato BairesRental (ver [docs/catalogo-datos.md](docs/catalogo-datos.md)) |
 | `scripts/add-property.js` | Valida y agrega un objeto ya en formato BairesRental al catálogo |
+| `scripts/check-ficha-links.js` | Solo lectura: audita links de ficha.info (Tokko) caídos o cedidos a otra inmobiliaria |
+| `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
 
-Ambos requieren Node.js (`node --version` para verificar).
+Todos requieren Node.js (`node --version` para verificar). Hay además un panel admin local (`npm run dev` / `npm run dev:ventas`) para editar los catálogos sin JSON a mano — ver [docs/catalogo-datos.md](docs/catalogo-datos.md#panel-admin).
 
 ---
 

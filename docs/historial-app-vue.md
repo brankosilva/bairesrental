@@ -1,10 +1,19 @@
-# Migration log
+# Migration log — Vue + Firebase app (`app/`, deleted)
+
+**Histórico.** The `app/` tree this log describes was deleted once
+`nuxt-app/` (Nuxt 4, real SSR) became the live release — its Cloud
+Functions, `firestore.rules`, `firestore.indexes.json` and `storage.rules`
+were moved into `nuxt-app/`, and the rest is recoverable from git history.
+Paths below still read `app/...` as they did when written; this log is
+kept because the Cloud Functions' code comments and `nuxt-app/CHANGELOG.md`
+cite its milestone entries (the Firebase IAM gotchas, the broken
+Storage↔Firestore cross-service rule, and the Web3Forms finding are the
+ones worth reading before touching Firebase config again).
 
 Running log of the static-site → Vue + Firebase migration (see
-`~/.claude/plans/declarative-swimming-backus.md` for the approved plan and
-`app/README.md` for setup/usage instructions). Newest entries at the top.
-Records what was actually done and what broke along the way — not a design
-doc, that's the plan file.
+`~/.claude/plans/declarative-swimming-backus.md` for the approved plan).
+Newest entries at the top. Records what was actually done and what broke
+along the way — not a design doc, that's the plan file.
 
 ## N5 — M8 rebuild-automation teardown (Nuxt SSR migration)
 

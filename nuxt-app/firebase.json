@@ -1,7 +1,21 @@
 {
-  "functions": {
-    "source": ".output/server",
-    "codebase": "nuxtssr"
+  "functions": [
+    {
+      "source": ".output/server",
+      "codebase": "nuxtssr"
+    },
+    {
+      "source": "functions",
+      "codebase": "default",
+      "predeploy": ["npm --prefix functions run build"]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
   },
   "hosting": {
     "site": "bairesrental",

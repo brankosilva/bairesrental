@@ -4,11 +4,11 @@
 // server-side to stop exposing the Web3Forms key client-side, later
 // reverted — see the note at the bottom of this file). M8 adds the
 // legacy URL redirect functions (legacyDetailRedirect,
-// legacyVentaDetailRedirect) — see app/CHANGELOG.md's M8 entry. M8 also
+// legacyVentaDetailRedirect) — see docs/historial-app-vue.md's M8 entry. M8 also
 // added a rebuild-on-data-change automation subsystem
 // (onRentalWrite/onSaleWrite + scheduledRebuildCheck), since removed by
-// N5 of the Nuxt SSR migration (see nuxt-app/CHANGELOG.md and
-// app/CHANGELOG.md's N5 entry) — real per-request SSR reads Firestore
+// N5 of the Nuxt SSR migration (see nuxt-docs/historial-app-vue.md and
+// docs/historial-app-vue.md's N5 entry) — real per-request SSR reads Firestore
 // live on every request, so there's nothing left to "rebuild."
 import * as functionsV1 from 'firebase-functions/v1'
 import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https'
@@ -23,7 +23,7 @@ const db = getFirestore()
 const auth = getAuth()
 
 // Closest Cloud Functions v2 region to Buenos Aires, matching the
-// Firestore database's region (see app/CHANGELOG.md M1). v1 Auth triggers
+// Firestore database's region (see docs/historial-app-vue.md M1). v1 Auth triggers
 // (onUserCreate, below) don't support region selection and stay on the
 // gen1 default.
 setGlobalOptions({ region: 'southamerica-east1' })
@@ -48,7 +48,7 @@ interface SetUserRoleRequest {
 
 // Callable, admin-only. The very first admin can't be created through this
 // function (nothing is admin yet) — that one-time bootstrap is done
-// directly via the Admin SDK (see app/functions/scripts/bootstrap-admin.js),
+// directly via the Admin SDK (see functions/scripts/bootstrap-admin.js),
 // same pattern as the M1 data migration script.
 export const setUserRole = onCall<SetUserRoleRequest>(async (request) => {
   if (!request.auth) {
@@ -68,6 +68,51 @@ export const setUserRole = onCall<SetUserRoleRequest>(async (request) => {
   await db.collection('users').doc(uid).set({ role, updatedAt: FieldValue.serverTimestamp() }, { merge: true })
 
   return { ok: true }
+})
+
+interface InviteUserRequest {
+  email?: string
+  role?: Role
+}
+
+// Callable, admin-only. Lets an admin provision a new seller/owner/admin
+// account entirely from the app — no more hand-creating the Firebase Auth
+// user in the console (see bootstrap-admin.js's comment, now outdated for
+// every case but the very first admin). Creates the Auth user if it
+// doesn't exist yet, assigns the role the same way setUserRole does, and
+// returns a password-reset link (via the Admin SDK, so no email delivery
+// dependency) for the admin to copy and send however they already reach
+// this person — WhatsApp, in this business's case, not email.
+export const inviteUser = onCall<InviteUserRequest>(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
+  }
+  if (request.auth.token.role !== 'admin') {
+    throw new HttpsError('permission-denied', 'Solo un admin puede invitar usuarios.')
+  }
+
+  const email = request.data.email?.trim()
+  const role = request.data.role
+  if (!email || !role || !VALID_ROLES.includes(role)) {
+    throw new HttpsError('invalid-argument', `role debe ser uno de: ${VALID_ROLES.join(', ')}`)
+  }
+
+  let user
+  try {
+    user = await auth.getUserByEmail(email)
+  } catch {
+    user = await auth.createUser({ email })
+  }
+
+  const existingClaims = user.customClaims ?? {}
+  await auth.setCustomUserClaims(user.uid, { ...existingClaims, role })
+  await db.collection('users').doc(user.uid).set(
+    { email: user.email ?? email, role, updatedAt: FieldValue.serverTimestamp() },
+    { merge: true },
+  )
+  const link = await auth.generatePasswordResetLink(email)
+
+  return { uid: user.uid, link }
 })
 
 // --- M6: seller CRM (trackable links + lead capture) ---
@@ -271,7 +316,7 @@ export const legacyVentaDetailRedirect = onRequest((req, res) => {
 // client-side key restricted by domain in their dashboard, not secrecy of
 // the key, so there was nothing to fix — reverted; the contact form
 // (src/pages/Home.vue) calls Web3Forms directly from the browser again,
-// same as the original static site. See app/CHANGELOG.md M7 for the full
+// same as the original static site. See docs/historial-app-vue.md M7 for the full
 // story. The WEB3FORMS_ACCESS_KEY secret that was created in Secret
 // Manager during that attempt is unused now; left in place rather than
 // deleted since removing secrets needs the same manual step as creating

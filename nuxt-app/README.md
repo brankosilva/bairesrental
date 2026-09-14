@@ -1,14 +1,14 @@
-# BairesRental — Nuxt 3/4 SSR rewrite (in progress)
+# BairesRental — Nuxt 4 SSR app
 
-Replaces `app/` (Vue 3 + `vite-ssg`, build-time-only prerendering) with a
-Nuxt 4 app doing real per-request SSR against Firebase, via
-[`nuxt-vuefire`](https://vuefire.vuejs.org/nuxt/). See the approved
-migration plan for the full picture — ask whoever's driving the migration
-for `~/.claude/plans/declarative-swimming-backus.md`. Deployed independently
-of `app/` (a different Firebase Functions codebase, `"nuxtssr"`, and only
-ever reachable via a Hosting preview channel so far) — `app/` stays the
-live site at `bairesrental.web.app` until an explicit, human-approved
-cutover.
+The live app at `bairesrental.web.app`: a Nuxt 4 app doing real
+per-request SSR against Firebase, via
+[`nuxt-vuefire`](https://vuefire.vuejs.org/nuxt/). It replaced an earlier
+Vue 3 + `vite-ssg` build-time-prerendered rewrite that lived in `app/` at
+the repo root; that folder has since been deleted, and its Cloud
+Functions (`functions/`), Firestore/Storage rules and its changelog
+(`docs/historial-app-vue.md`) were moved here. The original static HTML
+site still serves `www.bairesrental.com.ar` from the repo root via GitHub
+Pages — the DNS cutover is a separate, not-yet-taken step.
 
 **Status: N0–N1 done.** See `CHANGELOG.md` for what was actually built and
 verified in each milestone, including real gotchas (a `firebase-functions`
@@ -28,18 +28,23 @@ admin/seller/owner app yet (N2/N3).
 
 ## Critical safety notes before touching Firebase config here
 
-- The same Firebase project (`bairesrental`) runs **9 other Cloud
-  Functions** deployed from `app/functions` under the `"default"`
-  codebase — completely unrelated to this app. `firebase.json` here uses
-  an isolated `"codebase": "nuxtssr"` specifically so this app's deploys
-  can never touch them. Always deploy scoped: `firebase deploy --only
-  functions:nuxtssr`, never a bare `firebase deploy`.
-- For Hosting, only ever use `firebase hosting:channel:deploy
-  <channel-name>` — never `firebase deploy --only hosting`, which would
-  overwrite the live release currently serving the old Vue app at
-  `bairesrental.web.app`.
+- This folder now owns **two separate Functions codebases** in the
+  `bairesrental` project: `"nuxtssr"` (the SSR handler, built from
+  `.output/server` by `npm run build`) and `"default"` (the 9 callable /
+  trigger functions in `functions/` — `setUserRole`, `inviteUser`,
+  `createTrackableLink`, `submitLead`, `uploadListingImage`,
+  `onUserCreate`, plus the two legacy `?id=` redirect functions). Always
+  deploy scoped to the one you changed (`firebase deploy --only
+  functions:nuxtssr` or `--only functions:default`), never a bare
+  `firebase deploy`.
+- `firebase deploy --only hosting` here publishes the live release at
+  `bairesrental.web.app` — use `firebase hosting:channel:deploy
+  <channel-name>` for anything you want to check first.
 - Before **and** after any functions deploy, run `firebase functions:list`
-  and confirm the 9 unrelated functions are unchanged.
+  and confirm the codebase you weren't deploying is unchanged.
+- `firestore.rules`, `firestore.indexes.json` and `storage.rules` live
+  here now and are the only copies — `firebase deploy --only
+  firestore,storage` publishes them.
 
 ## First-time setup
 
@@ -47,7 +52,11 @@ admin/seller/owner app yet (N2/N3).
    `^6.6.0` — see `CHANGELOG.md`'s N0 entry for why letting it drift to
    `^7.x` breaks deploys).
 2. Copy the Firebase Web SDK config into `.env` (see `.env`'s existing
-   keys — `NUXT_PUBLIC_FIREBASE_*`, same values as `app/.env.local`).
+   keys — `NUXT_PUBLIC_FIREBASE_*`), plus
+   `GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json` pointing at
+   the gitignored Admin SDK key in this folder (needed at `nuxt dev` /
+   `nuxt build` time for the session-cookie server route, and by
+   `functions/scripts/bootstrap-admin.js`).
 
 ## Local development
 
@@ -56,8 +65,8 @@ npm run dev
 ```
 
 Reads live Firestore data via `nuxt-vuefire`'s client SDK — there's no
-prerendering step to remember to re-run, unlike `app/`. Use `curl` (not a
-browser) against a page to confirm SEO tags are actually server-rendered:
+prerendering step to remember to re-run. Use `curl` (not a browser)
+against a page to confirm SEO tags are actually server-rendered:
 
 ```
 curl -s http://localhost:3000/departamentos/<a-real-id> | grep -o '<title>[^<]*</title>'
@@ -76,6 +85,14 @@ own deploy-time static analysis otherwise):
 ```
 cd .output/server && npm install --omit=dev && cd ../..
 firebase deploy --only functions:nuxtssr
-firebase functions:list   # confirm the 9 unrelated functions are untouched
-firebase hosting:channel:deploy <some-channel-name>
+firebase functions:list   # confirm the "default" codebase is untouched
+firebase deploy --only hosting            # publishes the live release
+# ...or, to check it first: firebase hosting:channel:deploy <channel-name>
+```
+
+To deploy the callable/trigger functions instead (they build via the
+`predeploy` hook in `firebase.json`):
+
+```
+firebase deploy --only functions:default
 ```

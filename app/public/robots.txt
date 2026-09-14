@@ -1,3 +1,0 @@
-User-agent: *
-Disallow: /app/
-Sitemap: https://www.bairesrental.com.ar/sitemap.xml

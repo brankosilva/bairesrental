@@ -137,8 +137,8 @@ function propertyLabel(link: LinkDoc) {
             <td class="small text-muted">{{ linkUrl(l.id) }}</td>
             <td>{{ l.clicks }}</td>
             <td>
-              <button class="btn btn-sm btn-outline-secondary" @click="copyLink(l.id)">
-                {{ copiedCode === l.id ? '✓ Copiado' : 'Copiar' }}
+              <button class="btn btn-sm btn-outline-secondary" :title="copiedCode === l.id ? 'Copiado' : 'Copiar link'" @click="copyLink(l.id)">
+                <i :class="copiedCode === l.id ? 'bi bi-clipboard-check' : 'bi bi-clipboard'"></i>
               </button>
             </td>
           </tr>

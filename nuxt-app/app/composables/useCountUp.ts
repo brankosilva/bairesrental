@@ -15,7 +15,18 @@ interface UseCountUpOptions {
 export function useCountUp(options: UseCountUpOptions) {
   const { target, decimals = 0, duration = 1600 } = options
   const el: Ref<HTMLElement | null> = ref(null)
-  const display = ref(decimals > 0 ? (0).toFixed(decimals) : '0')
+
+  function finalValue(): string {
+    return decimals > 0 ? target.toFixed(decimals) : target.toLocaleString('es-AR')
+  }
+
+  // Arranca en el valor FINAL, no en 0. El SSR no corre onMounted, así que
+  // si arrancara en 0 el HTML que sirve el servidor diría "0+ huéspedes
+  // recibidos" — que es lo que ve un crawler y lo que se ve en el primer
+  // paint antes de hidratar. Arrancando en el valor final, servidor y
+  // cliente coinciden en la hidratación y recién después el cliente lo
+  // baja a 0 para animar (ver onMounted).
+  const display = ref(finalValue())
   let observer: IntersectionObserver | undefined
 
   function format(value: number): string {
@@ -29,18 +40,21 @@ export function useCountUp(options: UseCountUpOptions) {
       const eased = 1 - Math.pow(1 - p, 3)
       display.value = format(target * eased)
       if (p < 1) requestAnimationFrame(step)
-      else display.value = decimals > 0 ? target.toFixed(decimals) : target.toLocaleString('es-AR')
+      else display.value = finalValue()
     }
     requestAnimationFrame(step)
   }
 
   onMounted(() => {
-    if (!el.value || typeof IntersectionObserver === 'undefined') {
-      // SSR pass has no IntersectionObserver — just show the final value
-      // so the server-rendered HTML isn't stuck at 0.
-      display.value = decimals > 0 ? target.toFixed(decimals) : target.toLocaleString('es-AR')
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!el.value || reduced || typeof IntersectionObserver === 'undefined') {
+      // Sin observer (o con reduced-motion) no se anima nada: queda el valor
+      // final, que es con el que ya se hidrató.
       return
     }
+    // Recién acá, ya hidratado y solo en el cliente, se baja a 0 para poder
+    // contar hacia arriba cuando la sección entre en pantalla.
+    display.value = decimals > 0 ? (0).toFixed(decimals) : '0'
     observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {

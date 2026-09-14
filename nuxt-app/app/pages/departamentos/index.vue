@@ -154,6 +154,12 @@ const activeFilterCount = computed(() => {
   return n
 })
 
+// ── List / map split view ─────────────────────────────
+// Most listings still only carry a Google Maps link (direccionUrl), not raw
+// coordinates — RentalMap pulls what it can out of that URL client-side and
+// simply skips listings it can't place. See geo.ts.
+const mobileView = ref<'list' | 'map'>('list')
+
 // ── Mobile filter sheet ──────────────────────────────
 const sheetOpen = ref(false)
 watch(sheetOpen, (open) => {
@@ -228,6 +234,31 @@ function formatFecha(fecha?: string) {
 
     <div class="br-filtros-wrapper" :class="{ 'mob-open': sheetOpen }">
       <div class="br-filtro-mob-bar">
+        <div class="br-quick-search">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input v-model="search" type="search" :placeholder="t('departamentos.filtros.busquedaPlaceholder')" autocomplete="off" />
+        </div>
+
+        <select v-model="barrio" class="br-quick-barrio">
+          <option value="">{{ t('departamentos.filtros.barrio') }}</option>
+          <option v-for="b in barrios" :key="b" :value="b">{{ b }}</option>
+        </select>
+
+        <div class="br-quick-tipos">
+          <button
+            v-for="tp in TIPOS"
+            :key="tp.value"
+            type="button"
+            class="br-pill-btn"
+            :class="{ active: tipos.includes(tp.value) }"
+            @click="toggleTipo(tp.value)"
+          >
+            {{ t(`departamentos.filtros.${tp.labelKey}`) }}
+          </button>
+        </div>
+
         <button class="br-filtros-trigger-mob" type="button" @click="sheetOpen = true">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="14" y2="12" /><line x1="4" y1="18" x2="10" y2="18" />
@@ -251,35 +282,6 @@ function formatFecha(fecha?: string) {
       <div class="br-filtros-inner">
         <div class="br-filtros-collapsible">
           <div class="br-filtros-row">
-            <div class="br-filtro-grupo br-busqueda-wrap">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.busqueda') }}</span>
-              <input v-model="search" type="search" class="br-filtro-search" :placeholder="t('departamentos.filtros.busquedaPlaceholder')" autocomplete="off" />
-            </div>
-
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.barrio') }}</span>
-              <select v-model="barrio" class="br-filtro-select">
-                <option value="">{{ t('departamentos.filtros.todos') }}</option>
-                <option v-for="b in barrios" :key="b" :value="b">{{ b }}</option>
-              </select>
-            </div>
-
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.tipo') }}</span>
-              <div class="br-filtro-pills">
-                <button
-                  v-for="tp in TIPOS"
-                  :key="tp.value"
-                  type="button"
-                  class="br-pill-btn"
-                  :class="{ active: tipos.includes(tp.value) }"
-                  @click="toggleTipo(tp.value)"
-                >
-                  {{ t(`departamentos.filtros.${tp.labelKey}`) }}
-                </button>
-              </div>
-            </div>
-
             <div class="br-filtro-grupo br-precio-wrap">
               <div class="br-precio-top">
                 <span class="br-filtro-label">{{ t('departamentos.filtros.precio') }}</span>
@@ -329,9 +331,6 @@ function formatFecha(fecha?: string) {
                 </label>
               </div>
             </div>
-
-            <span class="br-contador-inline">{{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}</span>
-            <button type="button" class="br-btn-limpiar" @click="clearFilters">{{ t('departamentos.filtros.limpiar') }}</button>
           </div>
         </div>
       </div>
@@ -344,22 +343,33 @@ function formatFecha(fecha?: string) {
     </div>
 
     <div class="br-catalogo-section">
-      <div v-if="!filtered.length" class="text-center py-5">
-        <div class="mb-3" style="font-size: 3rem">🔍</div>
-        <h4 class="mb-2" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.title') }}</h4>
-        <p class="text-muted mb-4" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.sub') }}</p>
-        <a
-          :href="whatsappUrl(locale === 'en' ? 'Hi! I am looking for an apartment in Buenos Aires. Could you help me?' : 'Hola! Estoy buscando un departamento en Buenos Aires. ¿Podrían ayudarme?')"
-          target="_blank"
-          rel="noopener"
-          class="br-btn-wa d-inline-flex"
-          style="width: auto; padding: 0.65rem 1.5rem"
-        >
-          {{ t('departamentos.noResults.wa') }}
-        </a>
+      <div class="br-catalogo-view-toggle">
+        <button type="button" class="br-view-toggle-btn" :class="{ active: mobileView === 'list' }" @click="mobileView = 'list'">
+          {{ t('departamentos.filtros.vistaLista') }}
+        </button>
+        <button type="button" class="br-view-toggle-btn" :class="{ active: mobileView === 'map' }" @click="mobileView = 'map'">
+          {{ t('departamentos.filtros.vistaMapa') }}
+        </button>
       </div>
 
-      <div v-else id="catalogo-grid">
+      <div class="br-catalogo-split">
+        <div class="br-catalogo-list" :class="{ 'br-split-hide-mobile': mobileView === 'map' }">
+          <div v-if="!filtered.length" class="text-center py-5">
+            <div class="mb-3" style="font-size: 3rem">🔍</div>
+            <h4 class="mb-2" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.title') }}</h4>
+            <p class="text-muted mb-4" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.sub') }}</p>
+            <a
+              :href="whatsappUrl(locale === 'en' ? 'Hi! I am looking for an apartment in Buenos Aires. Could you help me?' : 'Hola! Estoy buscando un departamento en Buenos Aires. ¿Podrían ayudarme?')"
+              target="_blank"
+              rel="noopener"
+              class="br-btn-wa d-inline-flex"
+              style="width: auto; padding: 0.65rem 1.5rem"
+            >
+              {{ t('departamentos.noResults.wa') }}
+            </a>
+          </div>
+
+          <div v-else id="catalogo-grid">
         <div v-for="r in filtered" :key="r.id" class="br-prop-card">
           <div class="br-prop-img" @click="goTo(r)">
             <img v-if="r.imagen" :src="r.imagen" :alt="r.titulo" loading="lazy" />
@@ -449,6 +459,14 @@ function formatFecha(fecha?: string) {
               </div>
             </div>
           </div>
+        </div>
+          </div>
+        </div>
+
+        <div class="br-catalogo-map-panel" :class="{ 'br-split-hide-mobile': mobileView === 'list' }">
+          <ClientOnly>
+            <RentalMap :rentals="filtered" />
+          </ClientOnly>
         </div>
       </div>
     </div>

@@ -3,6 +3,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { AMENITY_EMOJI } from '~/utils/amenities'
 import type { SaleProperty } from '~/types/property'
 
+interface SellerOption {
+  id: string
+  email: string | null
+}
+
 // Ported from app/src/pages/app/SaleForm.vue — see rentals/[id].vue's
 // sibling comment for the shared conventions (id === 'new', image upload
 // via storageUpload.ts's uploadPropertyImage()).
@@ -54,9 +59,17 @@ const form = reactive<Omit<SaleProperty, 'id'> & { id: string; sellerUid: string
 
 const isAdmin = computed(() => role.value === 'admin')
 const listRoute = computed(() => (isAdmin.value ? '/app/admin/sales' : '/app/seller/listings'))
+const sellers = ref<SellerOption[]>([])
 
 onMounted(async () => {
   role.value = await fetchUserRole()
+
+  if (isAdmin.value) {
+    // See rentals/[id].vue's sibling comment — firestore.rules only allows
+    // a `list` on `users` for an admin caller, so this fetch stays gated.
+    const allUsers = await listAll<SellerOption & { role?: string | null }>('users')
+    sellers.value = allUsers.filter((u) => u.role === 'seller')
+  }
 
   if (isNew) {
     if (role.value === 'seller') form.sellerUid = user.value?.uid ?? null
@@ -137,112 +150,116 @@ async function onDelete() {
     <form v-else @submit.prevent="onSubmit">
       <h1 class="h4 mb-3">{{ isNew ? 'Nueva venta' : `Editar: ${form.titulo}` }}</h1>
 
-      <div class="mb-2">
-        <label class="form-label small">ID {{ !isNew ? '(no editable)' : '(slug único)' }}</label>
-        <input v-model="form.id" type="text" class="form-control" :disabled="!isNew" required />
-      </div>
+      <AdminSection title="Identificación">
+        <div class="mb-2">
+          <label class="form-label small">ID {{ !isNew ? '(no editable)' : '(slug único)' }}</label>
+          <input v-model="form.id" type="text" class="form-control" :disabled="!isNew" required />
+        </div>
 
-      <div class="mb-2">
-        <label class="form-label small">Título</label>
-        <input v-model="form.titulo" type="text" class="form-control" required />
-      </div>
+        <div class="mb-2">
+          <label class="form-label small">Título</label>
+          <input v-model="form.titulo" type="text" class="form-control" required />
+        </div>
 
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <label class="form-label small">Barrio</label>
-          <input v-model="form.barrio" type="text" class="form-control" required />
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small">Barrio</label>
+            <input v-model="form.barrio" type="text" class="form-control" required />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Tipo</label>
+            <select v-model="form.tipo" class="form-select">
+              <option v-for="tp in TIPOS" :key="tp" :value="tp">{{ tp }}</option>
+            </select>
+          </div>
         </div>
-        <div class="col-6">
-          <label class="form-label small">Tipo</label>
-          <select v-model="form.tipo" class="form-select">
-            <option v-for="tp in TIPOS" :key="tp" :value="tp">{{ tp }}</option>
-          </select>
-        </div>
-      </div>
+      </AdminSection>
 
-      <div class="row g-2 mb-2">
-        <div class="col-4">
-          <label class="form-label small">Precio (0 = consultar)</label>
-          <input v-model.number="form.precio" type="number" min="0" class="form-control" />
+      <AdminSection title="Precio y disponibilidad">
+        <div class="row g-2">
+          <div class="col-4">
+            <label class="form-label small">Precio (0 = consultar)</label>
+            <input v-model.number="form.precio" type="number" min="0" class="form-control" />
+          </div>
+          <div class="col-4">
+            <label class="form-label small">Moneda</label>
+            <select v-model="form.moneda" class="form-select">
+              <option value="USD">USD</option>
+              <option value="ARS">ARS</option>
+            </select>
+          </div>
+          <div class="col-4">
+            <label class="form-label small">Disponibilidad</label>
+            <select v-model="form.disponibilidad" class="form-select">
+              <option value="disponible">disponible</option>
+              <option value="reservado">reservado</option>
+              <option value="vendido">vendido</option>
+            </select>
+          </div>
         </div>
-        <div class="col-4">
-          <label class="form-label small">Moneda</label>
-          <select v-model="form.moneda" class="form-select">
-            <option value="USD">USD</option>
-            <option value="ARS">ARS</option>
-          </select>
-        </div>
-        <div class="col-4">
-          <label class="form-label small">Disponibilidad</label>
-          <select v-model="form.disponibilidad" class="form-select">
-            <option value="disponible">disponible</option>
-            <option value="reservado">reservado</option>
-            <option value="vendido">vendido</option>
-          </select>
-        </div>
-      </div>
+      </AdminSection>
 
-      <div class="row g-2 mb-2">
-        <div class="col-3">
-          <label class="form-label small">Superficie total (m²)</label>
-          <input v-model.number="form.superficie" type="number" min="1" class="form-control" required />
+      <AdminSection title="Características">
+        <div class="row g-2 mb-2">
+          <div class="col-3">
+            <label class="form-label small">Superficie total (m²)</label>
+            <input v-model.number="form.superficie" type="number" min="1" class="form-control" required />
+          </div>
+          <div class="col-3">
+            <label class="form-label small">Superficie cubierta</label>
+            <input v-model.number="form.superficieCubierta" type="number" min="0" class="form-control" />
+          </div>
+          <div class="col-3">
+            <label class="form-label small">Ambientes</label>
+            <input v-model.number="form.ambientes" type="number" min="0" class="form-control" />
+          </div>
+          <div class="col-3">
+            <label class="form-label small">Baños</label>
+            <input v-model.number="form.banios" type="number" min="0" class="form-control" />
+          </div>
         </div>
-        <div class="col-3">
-          <label class="form-label small">Superficie cubierta</label>
-          <input v-model.number="form.superficieCubierta" type="number" min="0" class="form-control" />
-        </div>
-        <div class="col-3">
-          <label class="form-label small">Ambientes</label>
-          <input v-model.number="form.ambientes" type="number" min="0" class="form-control" />
-        </div>
-        <div class="col-3">
-          <label class="form-label small">Baños</label>
-          <input v-model.number="form.banios" type="number" min="0" class="form-control" />
-        </div>
-      </div>
 
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <label class="form-label small">Antigüedad</label>
-          <input v-model="form.antiguedad" type="text" class="form-control" placeholder="A estrenar / años" />
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small">Antigüedad</label>
+            <input v-model="form.antiguedad" type="text" class="form-control" placeholder="A estrenar / años" />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Expensas (ARS)</label>
+            <input v-model.number="form.expensas" type="number" min="0" class="form-control" />
+          </div>
         </div>
-        <div class="col-6">
-          <label class="form-label small">Expensas (ARS)</label>
-          <input v-model.number="form.expensas" type="number" min="0" class="form-control" />
-        </div>
-      </div>
 
-      <div class="d-flex gap-3 mb-2 flex-wrap">
-        <div class="form-check">
-          <input id="amueblado" v-model="form.amueblado" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="amueblado">Amueblado</label>
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="form-check">
+            <input id="amueblado" v-model="form.amueblado" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="amueblado">Amueblado</label>
+          </div>
+          <div class="form-check">
+            <input id="apto-credito" v-model="form.aptoCredito" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="apto-credito">🏦 Apto crédito</label>
+          </div>
+          <div v-if="isAdmin" class="form-check">
+            <input id="espropio" v-model="form.esPropio" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="espropio">★ BairesRental (propio)</label>
+          </div>
         </div>
-        <div class="form-check">
-          <input id="apto-credito" v-model="form.aptoCredito" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="apto-credito">🏦 Apto crédito</label>
-        </div>
-        <div v-if="isAdmin" class="form-check">
-          <input id="espropio" v-model="form.esPropio" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="espropio">★ BairesRental (propio)</label>
-        </div>
-      </div>
+      </AdminSection>
 
-      <div class="mb-2">
-        <label class="form-label small d-block">Amenities</label>
+      <AdminSection title="Amenities del edificio">
         <div class="d-flex flex-wrap gap-2">
           <div v-for="a in AMENITIES" :key="a" class="form-check">
             <input :id="`am-${a}`" v-model="form.amenities" type="checkbox" :value="a" class="form-check-input" />
             <label class="form-check-label" :for="`am-${a}`">{{ AMENITY_EMOJI[a] }} {{ a }}</label>
           </div>
         </div>
-      </div>
+      </AdminSection>
 
-      <div class="mb-2">
-        <label class="form-label small">Descripción</label>
+      <AdminSection title="Descripción">
         <textarea v-model="form.descripcion" class="form-control" rows="4"></textarea>
-      </div>
+      </AdminSection>
 
-      <div class="mb-2">
+      <AdminSection title="Fotos">
         <label class="form-label small d-block">Fotos ({{ form.fotos.length + newFiles.length }}/{{ MAX_FOTOS }})</label>
         <div class="d-flex flex-wrap gap-2 mb-2">
           <div v-for="(foto, i) in form.fotos" :key="foto" class="position-relative">
@@ -257,33 +274,39 @@ async function onDelete() {
           </div>
         </div>
         <input type="file" accept="image/*" multiple class="form-control" @change="onFilesChange" />
-      </div>
+      </AdminSection>
 
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <label class="form-label small">Dirección</label>
-          <input v-model="form.direccion" type="text" class="form-control" />
+      <AdminSection title="Ubicación">
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small">Dirección</label>
+            <input v-model="form.direccion" type="text" class="form-control" />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Link de Google Maps</label>
+            <input v-model="form.direccionUrl" type="text" class="form-control" />
+          </div>
         </div>
-        <div class="col-6">
-          <label class="form-label small">Link de Google Maps</label>
-          <input v-model="form.direccionUrl" type="text" class="form-control" />
+      </AdminSection>
+
+      <AdminSection title="WhatsApp y links externos">
+        <div class="mb-2">
+          <label class="form-label small">Mensaje de WhatsApp pre-completado</label>
+          <input v-model="form.whatsappMsg" type="text" class="form-control" />
         </div>
-      </div>
+        <div>
+          <label class="form-label small">fichaUrl (Zonaprop/Argenprop, opcional)</label>
+          <input v-model="form.fichaUrl" type="text" class="form-control" />
+        </div>
+      </AdminSection>
 
-      <div class="mb-2">
-        <label class="form-label small">Mensaje de WhatsApp pre-completado</label>
-        <input v-model="form.whatsappMsg" type="text" class="form-control" />
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label small">fichaUrl (Zonaprop/Argenprop, opcional)</label>
-        <input v-model="form.fichaUrl" type="text" class="form-control" />
-      </div>
-
-      <div v-if="isAdmin" class="mb-3">
-        <label class="form-label small">sellerUid (vacío = gestionado por BairesRental)</label>
-        <input v-model="form.sellerUid" type="text" class="form-control" placeholder="uid del vendedor, opcional" />
-      </div>
+      <AdminSection v-if="isAdmin" title="Vendedor">
+        <label class="form-label small">Vendedor asignado</label>
+        <select v-model="form.sellerUid" class="form-select">
+          <option :value="null">— (gestiona BairesRental)</option>
+          <option v-for="s in sellers" :key="s.id" :value="s.id">{{ s.email || s.id }} ({{ s.id.slice(0, 8) }}…)</option>
+        </select>
+      </AdminSection>
 
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary" :disabled="saving">{{ saving ? 'Guardando…' : '💾 Guardar' }}</button>

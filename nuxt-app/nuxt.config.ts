@@ -17,7 +17,8 @@ export default defineNuxtConfig({
   },
 
   // Old app/src/index.html's static <head> (Google Fonts preconnect + DM
-  // Sans, Bootstrap 5.3 CDN, the reused-as-is css/style.css + pricing.css)
+  // Sans, Bootstrap 5.3 CDN, y las hojas propias — hoy br-base.css +
+  // br-catalog.css; ver la nota en el bloque `link` de abajo)
   // — ported here since Nuxt has no per-app index.html to hand-edit.
   // Per-page title/meta/canonical/hreflang/JSON-LD still come from each
   // page via useSeoMeta/useHead, same division of responsibility as before.
@@ -25,7 +26,10 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'es' },
       link: [
-        { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon' },
+        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         {
           // Weight 800 added (non-italic axis) — the page CSS uses
@@ -45,8 +49,34 @@ export default defineNuxtConfig({
           integrity: 'sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH',
           crossorigin: 'anonymous',
         },
-        { rel: 'stylesheet', href: '/css/style.css' },
-        { rel: 'stylesheet', href: '/css/pricing.css' },
+        // Icon font for the authenticated /app/* admin/seller/owner pages
+        // (row action icons, copy buttons, etc.) — the marketing site
+        // doesn't use these, but there's no per-layout way to scope a CDN
+        // <link> in Nuxt's head config, so it loads sitewide like the
+        // other two stylesheets above.
+        { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css' },
+        // Estas dos van DESPUÉS de Bootstrap a propósito: pisan lo que
+        // haga falta y el orden de cascada queda determinista (un <link>
+        // explícito, no la inyección de Vite, que puede diferir entre dev
+        // y prod).
+        //
+        // Antes acá se cargaban `/css/style.css` y `/css/pricing.css`:
+        //  - style.css eran 4181 líneas, de las cuales las primeras 3130
+        //    eran la plantilla legacy "fh5co" compilada desde sass/. Esa
+        //    mitad definía reglas de elemento sin scope
+        //    (`p { font-size:14px !important }`, `h2 { font-size:2rem
+        //    !important }`, `h1..h6 { font-family:"Roboto Slab" }`,
+        //    `body { color:#828282 }`, y también `.row`, `.container`,
+        //    `.btn`, `.form-control` de Bootstrap) que ningún
+        //    `<style scoped>` de Vue puede ganar, y que rompían TODAS las
+        //    páginas. Se partió en br-catalog.css (el sistema `br-*`, que
+        //    es lo único que la app usa) + legacy-template.css (se
+        //    conserva en disco como referencia, no se carga). Ver el
+        //    encabezado de cada archivo.
+        //  - pricing.css eran 175 líneas de clases `.pricing*` que no
+        //    aparecen en ningún .vue de la app. Se borró.
+        { rel: 'stylesheet', href: '/css/br-base.css' },
+        { rel: 'stylesheet', href: '/css/br-catalog.css' },
       ],
     },
   },

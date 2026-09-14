@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { collection, getFirestore } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import type { RentalProperty } from '~/types/property'
@@ -13,7 +13,12 @@ import type { RentalProperty } from '~/types/property'
 // static site's index.html actually ships two near-duplicate copies in
 // <head>, a duplication the old Vue app deliberately did not reproduce
 // (see app/CHANGELOG.md's M7 entry) — kept that fix.
-const { t, tm, locale } = useI18n()
+// `rt` va junto con `tm`: tm() devuelve los nodos de mensaje ya compilados,
+// no strings. Interpolarlos directo funciona en el server pero en el cliente
+// rinde "{}", que es de dónde salían ~84 warnings de "Hydration text content
+// mismatch" en las listas de bullets de los planes. rt() los resuelve a
+// texto en los dos lados.
+const { t, tm, rt, locale } = useI18n()
 const localePath = useLocalePath()
 
 useSeoMeta({
@@ -67,6 +72,33 @@ const featuredRentals = computed(() =>
     })
     .slice(0, 6),
 )
+
+// ── Reveal on scroll ──────────────────────────────────────────────────
+// Reimplementa el IntersectionObserver de index.html:1365-1377. El CSS que
+// esconde los elementos está detrás de `html.br-reveal-on`, que solo agrega
+// el cliente, así que el HTML del servidor sale visible. Ver
+// app/composables/useScrollReveal.ts y public/css/br-base.css.
+useScrollReveal()
+
+// ── Partículas del hero (index.html:1336-1342) ────────────────────────
+// 18 divs con tamaño/posición/duración aleatorios. Se llenan en onMounted
+// para que el servidor no renderice valores random distintos a los del
+// cliente (eso sí daría hydration mismatch).
+const particles = ref<Record<string, string>[]>([])
+
+onMounted(() => {
+  particles.value = Array.from({ length: 18 }, () => {
+    const size = Math.random() * 4 + 2
+    return {
+      width: `${size}px`,
+      height: `${size}px`,
+      left: `${Math.random() * 100}%`,
+      animationDuration: `${Math.random() * 12 + 8}s`,
+      animationDelay: `${Math.random() * 10}s`,
+      opacity: String(Math.random() * 0.5 + 0.2),
+    }
+  })
+})
 
 // ── Stats (count-up on scroll into view — see useCountUp.ts) ──────────
 const statHuespedes = useCountUp({ target: 300 })
@@ -157,11 +189,31 @@ async function handleContactSubmit() {
     <!-- ── HERO ─────────────────────────────────── -->
     <section class="hero" id="hero">
       <div class="hero-bg"></div>
+      <!-- Partículas flotantes del hero (index.html:1336-1342). Se generan
+           en onMounted, así que el HTML del servidor sale sin ellas y no hay
+           mismatch de hidratación; son puramente decorativas. -->
+      <div class="hero-particles" aria-hidden="true">
+        <span v-for="(pt, i) in particles" :key="i" class="particle" :style="pt" />
+      </div>
       <div class="hero-content">
         <div class="hero-eyebrow">{{ t('home.eyebrow') }}</div>
+        <!-- El título va palabra por palabra, igual que el estático
+             (index.html:925-935 / claves 'h-w1'..'h-w4'): hace falta a nivel
+             palabra para pintar SOLO "nuestro" de azul —no toda la línea— y
+             para la entrada escalonada con `wordUp`. -->
         <h1 class="hero-title">
-          <span class="line">{{ t('home.title1') }}</span>
-          <span class="line accent">{{ t('home.title2') }}</span>
+          <span class="line">
+            <span class="word" style="animation-delay: 0.4s">{{ t('home.titleW1') }}</span>&nbsp;<span
+              class="word"
+              style="animation-delay: 0.52s"
+            >{{ t('home.titleW2') }}</span>
+          </span>
+          <span class="line">
+            <span class="word accent" style="animation-delay: 0.68s">{{ t('home.titleW3') }}</span>&nbsp;<span
+              class="word"
+              style="animation-delay: 0.8s"
+            >{{ t('home.titleW4') }}</span>
+          </span>
         </h1>
         <p class="hero-sub">{{ t('home.subtitle') }}</p>
         <div class="hero-actions">
@@ -169,12 +221,19 @@ async function handleContactSubmit() {
           <NuxtLink :to="localePath('/ventas')" class="btn-ghost">{{ t('home.ctaSales') }}</NuxtLink>
         </div>
       </div>
+      <div class="hero-scroll-hint" aria-hidden="true">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
     </section>
 
     <!-- ── STATS INTRO + STATS ─────────────────────── -->
     <div class="stats-intro">
       <p class="stats-intro-eyebrow">{{ t('home.stats.eyebrow') }}</p>
-      <h2 class="stats-intro-title">{{ t('home.stats.title1') }} <span>{{ t('home.stats.title2') }}</span></h2>
+      <!-- Las DOS palabras van en <span>: `.stats-intro-title span` es la
+           regla que las pinta de azul, y en el estático el título entero es
+           azul (index.html:952), no solo la segunda mitad. -->
+      <h2 class="stats-intro-title"><span>{{ t('home.stats.title1') }}</span> <span>{{ t('home.stats.title2') }}</span></h2>
     </div>
     <section id="stats">
       <div class="stats-inner">
@@ -283,7 +342,7 @@ async function handleContactSubmit() {
           <div class="plan-precio">12%<small>{{ t('home.planes.plan1Sub') }}</small></div>
           <div class="plan-desc">{{ t('home.planes.plan1Desc') }}</div>
           <ul class="plan-items">
-            <li v-for="(item, i) in tm('home.planes.plan1Items') as unknown as string[]" :key="i">{{ item }}</li>
+            <li v-for="(item, i) in tm('home.planes.plan1Items')" :key="i">{{ rt(item as never) }}</li>
           </ul>
           <a href="#contacto" class="plan-btn">{{ t('home.planes.btn') }}</a>
         </div>
@@ -303,7 +362,7 @@ async function handleContactSubmit() {
           </div>
           <div class="plan-desc">{{ t('home.planes.plan2Desc') }}</div>
           <ul class="plan-items">
-            <li v-for="(item, i) in tm('home.planes.plan2Items') as unknown as string[]" :key="i">{{ item }}</li>
+            <li v-for="(item, i) in tm('home.planes.plan2Items')" :key="i">{{ rt(item as never) }}</li>
           </ul>
           <a href="#contacto" class="plan-btn">{{ t('home.planes.btn') }}</a>
         </div>
@@ -314,7 +373,7 @@ async function handleContactSubmit() {
           <div class="plan-nota">{{ t('home.planes.plan3Nota') }}</div>
           <div class="plan-desc">{{ t('home.planes.plan3Desc') }}</div>
           <ul class="plan-items">
-            <li v-for="(item, i) in tm('home.planes.plan3Items') as unknown as string[]" :key="i">{{ item }}</li>
+            <li v-for="(item, i) in tm('home.planes.plan3Items')" :key="i">{{ rt(item as never) }}</li>
           </ul>
           <a href="#contacto" class="plan-btn">{{ t('home.planes.btn') }}</a>
         </div>
@@ -506,23 +565,22 @@ async function handleContactSubmit() {
 </template>
 
 <style scoped>
+/* Los 9 tokens (--azul, --negro, ...) se declaraban acá sobre .br-home.
+   Funcionaba —.br-home envuelve toda la página— pero era una de tres
+   definiciones duplicadas, y las otras dos estaban rotas (ver
+   public/css/br-base.css). Ahora salen de ese :root global. */
 .br-home {
-  --negro: #111111;
-  --azul: #1a6fe8;
-  --azul-dark: #1058c0;
-  --verde: #25d366;
-  --blanco: #ffffff;
-  --gris: #f4f4f6;
-  --gris2: #e8e8ec;
-  --texto-gris: #6b7280;
-  --radius: 16px;
   font-family: 'DM Sans', sans-serif;
 }
 
 /* ── HERO ─────────────────────────────────── */
+/* Restaurado desde index.html:188-236. Estaba en `min-height: 90vh` con el
+   padding invertido (7rem arriba / 5rem abajo en vez de 5rem / 7rem), lo
+   que empujaba todo el contenido del hero por debajo del fold en una
+   pantalla de 900px de alto. */
 .hero {
   position: relative;
-  min-height: 90vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -534,12 +592,139 @@ async function handleContactSubmit() {
   inset: 0;
   z-index: 0;
   background: radial-gradient(ellipse at 40% 50%, #0d1f3c 0%, #0a0a12 70%);
+  overflow: hidden;
 }
+/* Resplandor azul animado — sin esto el hero queda plano y muerto. */
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 30%, rgba(26, 111, 232, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 20% 70%, rgba(26, 111, 232, 0.1) 0%, transparent 50%);
+  animation: heroGlow 10s ease-in-out infinite alternate;
+}
+/* Grano fílmico (feTurbulence inline como data-URI, igual que el estático). */
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+@keyframes heroGlow {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.08) translate(2%, -2%);
+  }
+}
+
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(26, 111, 232, 0.6);
+  animation: float linear infinite;
+}
+@keyframes float {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-10vh) scale(1);
+    opacity: 0;
+  }
+}
+
 .hero-content {
   position: relative;
   z-index: 2;
   max-width: 860px;
-  padding: 7rem 2rem 5rem;
+  padding: 5rem 2rem 7rem;
+}
+
+/* Indicador de scroll al pie del hero (index.html:290-311). */
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 1.5s;
+}
+.hero-scroll-hint span {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+.scroll-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1.3);
+    opacity: 1;
+  }
+}
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 768px) {
+  .hero-scroll-hint {
+    display: none;
+  }
+}
+
+/* Si el usuario pidió menos movimiento, nada de esto se anima: todo
+   arranca visible y en su lugar. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow,
+  .hero-title .word,
+  .hero-sub,
+  .hero-actions,
+  .hero-scroll-hint {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .hero-bg::before,
+  .scroll-line,
+  .particle {
+    animation: none;
+  }
 }
 .hero-eyebrow {
   display: inline-block;
@@ -553,6 +738,11 @@ async function handleContactSubmit() {
   padding: 0.35rem 1rem;
   border-radius: 100px;
   margin-bottom: 2rem;
+  /* Entrada escalonada del hero (index.html:245, :264, :269). El título
+     tiene su propia animación palabra por palabra más abajo (`wordUp`). */
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.7s ease forwards 0.2s;
 }
 .hero-title {
   font-size: clamp(2.7rem, 7.5vw, 6.2rem);
@@ -562,8 +752,25 @@ async function handleContactSubmit() {
   color: var(--blanco);
   margin-bottom: 0.6rem;
 }
+/* `overflow: hidden` en la línea es lo que hace la máscara: cada palabra
+   entra desde abajo y queda recortada hasta llegar a su lugar. */
 .hero-title .line {
   display: block;
+  overflow: hidden;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.1em;
+}
+.hero-title .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(100%);
+  animation: wordUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes wordUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .hero-title .accent {
   color: var(--azul);
@@ -575,12 +782,16 @@ async function handleContactSubmit() {
   max-width: 460px;
   margin: 0 auto 2.5rem;
   line-height: 1.6;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 0.9s;
 }
 .hero-actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 1.1s;
 }
 .btn-primary {
   background: var(--azul);
@@ -1137,27 +1348,16 @@ async function handleContactSubmit() {
   width: 300px;
 }
 .review-quote {
-  /* Renamed from .review-text (matching the original static site and old
-     Vue app's class name) because that name collides with a dead,
-     unrelated class from the legacy "fh5co" template leftovers still in
-     css/style.css: `@media (min-width: 1150px) { .review-text {
-     padding-inline: 10rem; } }` — written for some other, wide
-     single-column testimonial block, not this 300px marquee card.
-     Class-based CSS gives no protection from that: Vue's scoped `data-v-*`
-     attribute only raises specificity for *this component's own* rule, it
-     doesn't stop a plain, unscoped, same-named global selector from also
-     matching the element. At >=1150px viewports that stray rule added
-     10rem (160px) of padding on *each* side inside the 300px-wide card —
-     leaving ~0 usable width for text — which is exactly what made the
-     review cards render as "one word per line with a huge gap before the
-     name" (confirmed by walking every matched CSSStyleSheet rule,
-     including ones nested in @media blocks, via the DevTools protocol;
-     simply overriding width/display/line-clamp on `.review-text` never
-     fixed it because the real conflict was `padding-inline`, a property
-     the override attempts never touched). Renaming the class sidesteps
-     the collision entirely without touching that shared, legacy
-     stylesheet (which may still be relied on elsewhere for its original,
-     unrelated purpose). */
+  /* Se llamaba .review-text (como en el sitio estático), pero ese nombre
+     chocaba con una regla suelta de la plantilla legacy:
+     `@media (min-width:1150px) { .review-text { padding-inline: 10rem } }`
+     — escrita para otro bloque de testimonios, ancho y de una sola
+     columna, no para esta card de 300px del marquee. A >=1150px metía
+     160px de padding de cada lado adentro de la card, dejando ~0 de ancho
+     útil: los reviews se veían "una palabra por línea".
+     Esa hoja ya no se carga (ver public/css/legacy-template.css), así que
+     la colisión no existe más, pero el nombre se deja como está: es más
+     descriptivo y renombrarlo de vuelta no aporta nada. */
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;

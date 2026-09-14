@@ -22,6 +22,18 @@ onMounted(async () => {
   }
   loading.value = false
 })
+
+async function onDeleteRental(r: (typeof rentals.value)[number]) {
+  if (!confirm(`¿Eliminar "${r.titulo}"? Esta acción no se puede deshacer.`)) return
+  await removeOne('rentals', r.id)
+  rentals.value = rentals.value.filter((x) => x.id !== r.id)
+}
+
+async function onDeleteSale(s: (typeof sales.value)[number]) {
+  if (!confirm(`¿Eliminar "${s.titulo}"? Esta acción no se puede deshacer.`)) return
+  await removeOne('sales', s.id)
+  sales.value = sales.value.filter((x) => x.id !== s.id)
+}
 </script>
 
 <template>
@@ -39,13 +51,31 @@ onMounted(async () => {
       <h2 class="h6 text-muted mt-4">Alquileres ({{ rentals.length }})</h2>
       <div v-if="rentals.length" class="table-responsive mb-4">
         <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Barrio</th>
+              <th>Disponibilidad</th>
+              <th>Precio</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="r in rentals" :key="r.id">
               <td>{{ r.titulo }}</td>
               <td class="text-muted small">{{ r.barrio }}</td>
               <td><span class="badge text-bg-light border">{{ r.disponibilidad }}</span></td>
               <td>{{ formatPrice(r.precio, r.moneda) }}</td>
-              <td><NuxtLink :to="`/app/rentals/${r.id}`" class="btn btn-sm btn-outline-secondary">Editar</NuxtLink></td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <NuxtLink :to="`/app/rentals/${r.id}`" class="btn btn-sm btn-outline-secondary" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </NuxtLink>
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" @click="onDeleteRental(r)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -55,13 +85,31 @@ onMounted(async () => {
       <h2 class="h6 text-muted mt-4">Ventas ({{ sales.length }})</h2>
       <div v-if="sales.length" class="table-responsive">
         <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Barrio</th>
+              <th>Disponibilidad</th>
+              <th>Precio</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="s in sales" :key="s.id">
               <td>{{ s.titulo }}</td>
               <td class="text-muted small">{{ s.barrio }}</td>
               <td><span class="badge text-bg-light border">{{ s.disponibilidad }}</span></td>
               <td>{{ formatPrice(s.precio, s.moneda) }}</td>
-              <td><NuxtLink :to="`/app/sales/${s.id}`" class="btn btn-sm btn-outline-secondary">Editar</NuxtLink></td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <NuxtLink :to="`/app/sales/${s.id}`" class="btn btn-sm btn-outline-secondary" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </NuxtLink>
+                  <button class="btn btn-sm btn-outline-danger" title="Eliminar" @click="onDeleteSale(s)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>

@@ -38,6 +38,23 @@ function closeDrawer() {
   drawerOpen.value = false
 }
 
+// Cada página del sitio estático tenía su propio mensaje pre-cargado en el
+// FAB de WhatsApp (index.html vs departamentos.html vs ventas.html vs
+// tickets.html). Se resuelve por path — no por route.name — para que una
+// sola regla cubra el catálogo y su ficha, y para no depender de cómo Nuxt
+// nombra las rutas dinámicas. El prefijo de locale (/en/...) se saca antes.
+const WA_MESSAGES: [RegExp, string][] = [
+  [/^\/departamentos/, 'Hola! Quiero información sobre los departamentos.'],
+  [/^\/ventas/, 'Hola! Me interesa información sobre propiedades en venta.'],
+  [/^\/tickets/, 'Hola! Me interesa información sobre tickets de fútbol.'],
+]
+
+const waMessage = computed(() => {
+  const path = route.path.replace(/^\/en(?=\/|$)/, '') || '/'
+  return WA_MESSAGES.find(([re]) => re.test(path))?.[1]
+    ?? 'Hola! Quiero información sobre BairesRental.'
+})
+
 watch(drawerOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
 })
@@ -133,6 +150,11 @@ onUnmounted(() => {
       <p>{{ t('footer.rights') }}</p>
     </div>
   </footer>
+
+  <!-- Botones flotantes (WhatsApp / Instagram / volver arriba). Estaban en
+       todas las páginas del sitio estático y no se habían migrado. El
+       mensaje de WhatsApp cambia por página, igual que en el estático. -->
+  <SiteFabs :wa-message="waMessage" />
 </template>
 
 <style scoped>

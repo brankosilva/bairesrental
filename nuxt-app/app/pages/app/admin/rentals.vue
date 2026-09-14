@@ -21,6 +21,12 @@ onMounted(async () => {
 const filtered = computed(() =>
   rentals.value.filter((r) => `${r.titulo} ${r.barrio} ${r.id}`.toLowerCase().includes(search.value.toLowerCase())),
 )
+
+async function onDelete(r: (typeof rentals.value)[number]) {
+  if (!confirm(`¿Eliminar "${r.titulo}"? Esta acción no se puede deshacer.`)) return
+  await removeOne('rentals', r.id)
+  rentals.value = rentals.value.filter((x) => x.id !== r.id)
+}
 </script>
 
 <template>
@@ -42,7 +48,7 @@ const filtered = computed(() =>
             <th>Disponibilidad</th>
             <th>Precio</th>
             <th>Vendedor</th>
-            <th></th>
+            <th class="text-end">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -63,8 +69,15 @@ const filtered = computed(() =>
             </td>
             <td>{{ formatPrice(r.precio, r.moneda) }}</td>
             <td class="small text-muted">{{ r.sellerUid ? r.sellerUid.slice(0, 8) + '…' : '— (propio)' }}</td>
-            <td>
-              <NuxtLink :to="`/app/rentals/${r.id}`" class="btn btn-sm btn-outline-secondary">Editar</NuxtLink>
+            <td class="text-end">
+              <div class="d-inline-flex gap-1">
+                <NuxtLink :to="`/app/rentals/${r.id}`" class="btn btn-sm btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </NuxtLink>
+                <button class="btn btn-sm btn-outline-danger" title="Eliminar" @click="onDelete(r)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

@@ -42,50 +42,74 @@ function formatDate(ts?: { seconds: number }) {
     </p>
 
     <template v-else>
-      <div v-for="r in rentals" :key="r.id" class="card mb-2">
-        <div class="card-body d-flex justify-content-between flex-wrap gap-2">
-          <div>
-            <strong>{{ r.titulo }}</strong>
-            <div class="small text-muted">{{ r.barrio }} · Alquiler</div>
-          </div>
-          <div class="text-end">
-            <span
-              class="badge d-block mb-1"
-              :class="{
-                'text-bg-success': r.disponibilidad === 'disponible',
-                'text-bg-warning': r.disponibilidad === 'reservado',
-                'text-bg-secondary': r.disponibilidad === 'no disponible',
-              }"
-            >
-              {{ r.disponibilidad }}
-            </span>
-            <div class="small">{{ formatPrice(r.precio, r.moneda) }}</div>
-            <div class="small text-muted">Actualizado: {{ formatDate(r.updatedAt) }}</div>
-          </div>
-        </div>
+      <h2 v-if="rentals.length" class="h6 text-muted mt-4">Alquileres ({{ rentals.length }})</h2>
+      <div v-if="rentals.length" class="table-responsive mb-4">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Barrio</th>
+              <th>Disponibilidad</th>
+              <th>Precio</th>
+              <th>Actualizado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in rentals" :key="r.id">
+              <td>{{ r.titulo }}</td>
+              <td class="text-muted small">{{ r.barrio }}</td>
+              <td>
+                <span
+                  class="badge"
+                  :class="{
+                    'text-bg-success': r.disponibilidad === 'disponible',
+                    'text-bg-warning': r.disponibilidad === 'reservado',
+                    'text-bg-secondary': r.disponibilidad === 'no disponible',
+                  }"
+                >
+                  {{ r.disponibilidad }}
+                </span>
+              </td>
+              <td>{{ formatPrice(r.precio, r.moneda) }}</td>
+              <td class="small text-muted">{{ formatDate(r.updatedAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div v-for="s in sales" :key="s.id" class="card mb-2">
-        <div class="card-body d-flex justify-content-between flex-wrap gap-2">
-          <div>
-            <strong>{{ s.titulo }}</strong>
-            <div class="small text-muted">{{ s.barrio }} · Venta</div>
-          </div>
-          <div class="text-end">
-            <span
-              class="badge d-block mb-1"
-              :class="{
-                'text-bg-success': s.disponibilidad === 'disponible',
-                'text-bg-warning': s.disponibilidad === 'reservado',
-                'text-bg-secondary': s.disponibilidad === 'vendido',
-              }"
-            >
-              {{ s.disponibilidad }}
-            </span>
-            <div class="small">{{ formatPrice(s.precio, s.moneda) }}</div>
-            <div class="small text-muted">Actualizado: {{ formatDate(s.updatedAt) }}</div>
-          </div>
-        </div>
+      <h2 v-if="sales.length" class="h6 text-muted mt-4">Ventas ({{ sales.length }})</h2>
+      <div v-if="sales.length" class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Barrio</th>
+              <th>Disponibilidad</th>
+              <th>Precio</th>
+              <th>Actualizado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="s in sales" :key="s.id">
+              <td>{{ s.titulo }}</td>
+              <td class="text-muted small">{{ s.barrio }}</td>
+              <td>
+                <span
+                  class="badge"
+                  :class="{
+                    'text-bg-success': s.disponibilidad === 'disponible',
+                    'text-bg-warning': s.disponibilidad === 'reservado',
+                    'text-bg-secondary': s.disponibilidad === 'vendido',
+                  }"
+                >
+                  {{ s.disponibilidad }}
+                </span>
+              </td>
+              <td>{{ formatPrice(s.precio, s.moneda) }}</td>
+              <td class="small text-muted">{{ formatDate(s.updatedAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </template>
   </main>

@@ -3,6 +3,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { AMENITY_EMOJI } from '~/utils/amenities'
 import type { RentalProperty } from '~/types/property'
 
+interface SellerOption {
+  id: string
+  email: string | null
+}
+
 // Ported from app/src/pages/app/RentalForm.vue. `id === 'new'` still means
 // creation, matching the old convention. Image upload goes through
 // uploadPropertyImage() (app/utils/storageUpload.ts), which calls the
@@ -52,12 +57,22 @@ const form = reactive<Omit<RentalProperty, 'id'> & { id: string; sellerUid: stri
 
 const isAdmin = computed(() => role.value === 'admin')
 const listRoute = computed(() => (isAdmin.value ? '/app/admin/rentals' : '/app/seller/listings'))
+const sellers = ref<SellerOption[]>([])
 
 onMounted(async () => {
   // Resolved inline (not via a separate onMounted-based composable) so the
   // isNew branch below can rely on it being settled before deciding
   // whether to prefill sellerUid.
   role.value = await fetchUserRole()
+
+  if (isAdmin.value) {
+    // firestore.rules only allows a `list` on `users` for an admin caller
+    // (see rules' users/{uid} match) — gating this fetch behind isAdmin
+    // keeps a seller's onMounted from firing a doomed, permission-denied
+    // query for a field they can't even see (v-if="isAdmin" below).
+    const allUsers = await listAll<SellerOption & { role?: string | null }>('users')
+    sellers.value = allUsers.filter((u) => u.role === 'seller')
+  }
 
   if (isNew) {
     if (role.value === 'seller') form.sellerUid = user.value?.uid ?? null
@@ -118,131 +133,142 @@ async function onDelete() {
     <form v-else @submit.prevent="onSubmit">
       <h1 class="h4 mb-3">{{ isNew ? 'Nuevo alquiler' : `Editar: ${form.titulo}` }}</h1>
 
-      <div class="mb-2">
-        <label class="form-label small">ID {{ !isNew ? '(no editable)' : '(slug único, ej: marie-01)' }}</label>
-        <input v-model="form.id" type="text" class="form-control" :disabled="!isNew" required />
-      </div>
+      <AdminSection title="Identificación">
+        <div class="mb-2">
+          <label class="form-label small">ID {{ !isNew ? '(no editable)' : '(slug único, ej: marie-01)' }}</label>
+          <input v-model="form.id" type="text" class="form-control" :disabled="!isNew" required />
+        </div>
 
-      <div class="mb-2">
-        <label class="form-label small">Título</label>
-        <input v-model="form.titulo" type="text" class="form-control" required />
-      </div>
+        <div class="mb-2">
+          <label class="form-label small">Título</label>
+          <input v-model="form.titulo" type="text" class="form-control" required />
+        </div>
 
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <label class="form-label small">Barrio</label>
-          <input v-model="form.barrio" type="text" class="form-control" required />
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small">Barrio</label>
+            <input v-model="form.barrio" type="text" class="form-control" required />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Tipo</label>
+            <select v-model="form.tipo" class="form-select">
+              <option v-for="tp in TIPOS" :key="tp" :value="tp">{{ tp }}</option>
+            </select>
+          </div>
         </div>
-        <div class="col-6">
-          <label class="form-label small">Tipo</label>
-          <select v-model="form.tipo" class="form-select">
-            <option v-for="tp in TIPOS" :key="tp" :value="tp">{{ tp }}</option>
-          </select>
-        </div>
-      </div>
+      </AdminSection>
 
-      <div class="row g-2 mb-2">
-        <div class="col-4">
-          <label class="form-label small">Precio (0 = consultar)</label>
-          <input v-model.number="form.precio" type="number" min="0" class="form-control" />
+      <AdminSection title="Precio y disponibilidad">
+        <div class="row g-2 mb-2">
+          <div class="col-4">
+            <label class="form-label small">Precio (0 = consultar)</label>
+            <input v-model.number="form.precio" type="number" min="0" class="form-control" />
+          </div>
+          <div class="col-4">
+            <label class="form-label small">Moneda</label>
+            <select v-model="form.moneda" class="form-select">
+              <option value="USD">USD</option>
+              <option value="ARS">ARS</option>
+            </select>
+          </div>
+          <div class="col-4">
+            <label class="form-label small">Disponibilidad</label>
+            <select v-model="form.disponibilidad" class="form-select">
+              <option value="disponible">disponible</option>
+              <option value="reservado">reservado</option>
+              <option value="no disponible">no disponible</option>
+            </select>
+          </div>
         </div>
-        <div class="col-4">
-          <label class="form-label small">Moneda</label>
-          <select v-model="form.moneda" class="form-select">
-            <option value="USD">USD</option>
-            <option value="ARS">ARS</option>
-          </select>
-        </div>
-        <div class="col-4">
-          <label class="form-label small">Disponibilidad</label>
-          <select v-model="form.disponibilidad" class="form-select">
-            <option value="disponible">disponible</option>
-            <option value="reservado">reservado</option>
-            <option value="no disponible">no disponible</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="mb-2">
-        <label class="form-label small">Disponible desde (opcional)</label>
-        <input v-model="form.disponibleDesde" type="date" class="form-control" />
-      </div>
+        <div>
+          <label class="form-label small">Disponible desde (opcional)</label>
+          <input v-model="form.disponibleDesde" type="date" class="form-control" />
+        </div>
+      </AdminSection>
 
-      <div class="d-flex gap-3 mb-2 flex-wrap">
-        <div class="form-check">
-          <input id="amueblado" v-model="form.amueblado" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="amueblado">Amueblado</label>
+      <AdminSection title="Características">
+        <div class="d-flex gap-3 mb-3 flex-wrap">
+          <div class="form-check">
+            <input id="amueblado" v-model="form.amueblado" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="amueblado">Amueblado</label>
+          </div>
+          <div class="form-check">
+            <input id="mascotas" v-model="form.mascotas" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="mascotas">Acepta mascotas</label>
+          </div>
+          <div class="form-check">
+            <input id="servicios" v-model="form.serviciosIncluidos" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="servicios">Servicios incluidos</label>
+          </div>
+          <div v-if="isAdmin" class="form-check">
+            <input id="espropio" v-model="form.esPropio" type="checkbox" class="form-check-input" />
+            <label class="form-check-label" for="espropio">★ BairesRental (propio)</label>
+          </div>
         </div>
-        <div class="form-check">
-          <input id="mascotas" v-model="form.mascotas" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="mascotas">Acepta mascotas</label>
-        </div>
-        <div class="form-check">
-          <input id="servicios" v-model="form.serviciosIncluidos" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="servicios">Servicios incluidos</label>
-        </div>
-        <div v-if="isAdmin" class="form-check">
-          <input id="espropio" v-model="form.esPropio" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="espropio">★ BairesRental (propio)</label>
-        </div>
-      </div>
 
-      <div class="mb-2" style="max-width: 160px">
-        <label class="form-label small">Mínimo de meses</label>
-        <input v-model.number="form.minimoMeses" type="number" min="1" class="form-control" />
-      </div>
+        <div style="max-width: 160px">
+          <label class="form-label small">Mínimo de meses</label>
+          <input v-model.number="form.minimoMeses" type="number" min="1" class="form-control" />
+        </div>
+      </AdminSection>
 
-      <div class="mb-2">
-        <label class="form-label small d-block">Amenities</label>
+      <AdminSection title="Amenities del edificio">
         <div class="d-flex flex-wrap gap-2">
           <div v-for="a in AMENITIES" :key="a" class="form-check">
             <input :id="`am-${a}`" v-model="form.amenities" type="checkbox" :value="a" class="form-check-input" />
             <label class="form-check-label" :for="`am-${a}`">{{ AMENITY_EMOJI[a] }} {{ a }}</label>
           </div>
         </div>
-      </div>
+      </AdminSection>
 
-      <div class="mb-2">
-        <label class="form-label small">Descripción</label>
+      <AdminSection title="Descripción">
         <textarea v-model="form.descripcion" class="form-control" rows="4"></textarea>
-      </div>
+      </AdminSection>
 
-      <div class="mb-2">
-        <label class="form-label small">Foto de portada</label>
-        <img v-if="form.imagen" :src="form.imagen" alt="" class="d-block mb-2 rounded" style="max-height: 140px" />
-        <input type="file" accept="image/*" class="form-control" @change="onFileChange" />
-      </div>
-
-      <div class="mb-2">
-        <label class="form-label small">Álbum completo (ficha.info o Google Photos)</label>
-        <input v-model="form.fotos" type="text" class="form-control" />
-      </div>
-
-      <div class="mb-2">
-        <label class="form-label small">fichaUrl (link directo Airbnb/Booking, opcional)</label>
-        <input v-model="form.fichaUrl" type="text" class="form-control" />
-      </div>
-
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <label class="form-label small">Dirección</label>
-          <input v-model="form.direccion" type="text" class="form-control" />
+      <AdminSection title="Fotos">
+        <div class="mb-2">
+          <label class="form-label small">Foto de portada</label>
+          <img v-if="form.imagen" :src="form.imagen" alt="" class="d-block mb-2 rounded" style="max-height: 140px" />
+          <input type="file" accept="image/*" class="form-control" @change="onFileChange" />
         </div>
-        <div class="col-6">
-          <label class="form-label small">Link de Google Maps</label>
-          <input v-model="form.direccionUrl" type="text" class="form-control" />
-        </div>
-      </div>
 
-      <div class="mb-3">
-        <label class="form-label small">Mensaje de WhatsApp pre-completado</label>
+        <div class="mb-2">
+          <label class="form-label small">Álbum completo (ficha.info o Google Photos)</label>
+          <input v-model="form.fotos" type="text" class="form-control" />
+        </div>
+
+        <div>
+          <label class="form-label small">fichaUrl (link directo Airbnb/Booking, opcional)</label>
+          <input v-model="form.fichaUrl" type="text" class="form-control" />
+        </div>
+      </AdminSection>
+
+      <AdminSection title="Ubicación">
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small">Dirección</label>
+            <input v-model="form.direccion" type="text" class="form-control" />
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Link de Google Maps</label>
+            <input v-model="form.direccionUrl" type="text" class="form-control" />
+          </div>
+        </div>
+      </AdminSection>
+
+      <AdminSection title="WhatsApp">
+        <label class="form-label small">Mensaje pre-completado</label>
         <input v-model="form.whatsappMsg" type="text" class="form-control" />
-      </div>
+      </AdminSection>
 
-      <div v-if="isAdmin" class="mb-3">
-        <label class="form-label small">sellerUid (vacío = gestionado por BairesRental)</label>
-        <input v-model="form.sellerUid" type="text" class="form-control" placeholder="uid del vendedor, opcional" />
-      </div>
+      <AdminSection v-if="isAdmin" title="Vendedor">
+        <label class="form-label small">Vendedor asignado</label>
+        <select v-model="form.sellerUid" class="form-select">
+          <option :value="null">— (gestiona BairesRental)</option>
+          <option v-for="s in sellers" :key="s.id" :value="s.id">{{ s.email || s.id }} ({{ s.id.slice(0, 8) }}…)</option>
+        </select>
+      </AdminSection>
 
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary" :disabled="saving">{{ saving ? 'Guardando…' : '💾 Guardar' }}</button>

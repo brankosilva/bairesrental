@@ -82,43 +82,62 @@ async function addNote(lead: LeadDoc) {
       Todavía no tenés leads. Generá un link en <NuxtLink to="/app/seller/links">Links</NuxtLink> y compartilo.
     </p>
 
-    <div v-for="lead in leads" :key="lead.id" class="card mb-2">
-      <div class="card-body">
-        <div class="d-flex justify-content-between flex-wrap gap-2">
-          <div>
-            <strong>{{ lead.name }}</strong> — {{ lead.phone }}
-            <div class="small text-muted">
-              {{ lead.propertyId || 'Consulta general' }} · vía {{ lead.source === 'link' ? 'link compartido' : lead.source }}
-            </div>
-          </div>
-          <select
-            class="form-select form-select-sm"
-            style="width: auto"
-            :disabled="savingId === lead.id"
-            :value="lead.status"
-            @change="updateStatus(lead, ($event.target as HTMLSelectElement).value as LeadDoc['status'])"
-          >
-            <option value="new">nuevo</option>
-            <option value="contacted">contactado</option>
-            <option value="won">ganado</option>
-            <option value="lost">perdido</option>
-          </select>
-        </div>
-
-        <button class="btn btn-sm btn-link ps-0" @click="openNotesFor = openNotesFor === lead.id ? null : lead.id">
-          {{ openNotesFor === lead.id ? 'Ocultar notas' : `Notas (${lead.notes?.length || 0})` }}
-        </button>
-
-        <div v-if="openNotesFor === lead.id">
-          <ul class="list-unstyled small mb-2">
-            <li v-for="(n, i) in lead.notes" :key="i" class="border-bottom py-1">{{ n.text }}</li>
-          </ul>
-          <div class="d-flex gap-2">
-            <input v-model="newNote" type="text" class="form-control form-control-sm" placeholder="Agregar nota…" @keyup.enter="addNote(lead)" />
-            <button class="btn btn-sm btn-outline-primary" :disabled="savingId === lead.id" @click="addNote(lead)">Agregar</button>
-          </div>
-        </div>
-      </div>
+    <div v-if="leads.length" class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Contacto</th>
+            <th>Propiedad / origen</th>
+            <th>Estado</th>
+            <th class="text-end">Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template v-for="lead in leads" :key="lead.id">
+            <tr>
+              <td><strong>{{ lead.name }}</strong><div class="small text-muted">{{ lead.phone }}</div></td>
+              <td class="small text-muted">
+                {{ lead.propertyId || 'Consulta general' }} · vía {{ lead.source === 'link' ? 'link compartido' : lead.source }}
+              </td>
+              <td>
+                <select
+                  class="form-select form-select-sm"
+                  style="width: auto"
+                  :disabled="savingId === lead.id"
+                  :value="lead.status"
+                  @change="updateStatus(lead, ($event.target as HTMLSelectElement).value as LeadDoc['status'])"
+                >
+                  <option value="new">nuevo</option>
+                  <option value="contacted">contactado</option>
+                  <option value="won">ganado</option>
+                  <option value="lost">perdido</option>
+                </select>
+              </td>
+              <td class="text-end">
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  :title="openNotesFor === lead.id ? 'Ocultar notas' : 'Ver notas'"
+                  @click="openNotesFor = openNotesFor === lead.id ? null : lead.id"
+                >
+                  <i class="bi bi-chat-dots"></i> {{ lead.notes?.length || 0 }}
+                </button>
+              </td>
+            </tr>
+            <tr v-if="openNotesFor === lead.id">
+              <td colspan="4" class="bg-light-subtle">
+                <ul class="list-unstyled small mb-2">
+                  <li v-for="(n, i) in lead.notes" :key="i" class="border-bottom py-1">{{ n.text }}</li>
+                  <li v-if="!lead.notes?.length" class="text-muted py-1">Todavía no hay notas.</li>
+                </ul>
+                <div class="d-flex gap-2">
+                  <input v-model="newNote" type="text" class="form-control form-control-sm" placeholder="Agregar nota…" @keyup.enter="addNote(lead)" />
+                  <button class="btn btn-sm btn-outline-primary" :disabled="savingId === lead.id" @click="addNote(lead)">Agregar</button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </div>
   </main>
 </template>

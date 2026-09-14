@@ -28,8 +28,10 @@
   },
   "home": {
     "eyebrow": "Professional property management · Buenos Aires",
-    "title1": "Your home,",
-    "title2": "our care.",
+    "titleW1": "Your",
+    "titleW2": "home,",
+    "titleW3": "our",
+    "titleW4": "care.",
     "subtitle": "Maximize your income and forget the worries. We manage your apartment in Buenos Aires from start to finish.",
     "ctaRentals": "See rental listings",
     "ctaSales": "See properties for sale",
@@ -193,7 +195,9 @@
       "verResultados": "See results",
       "verResultadosCount": "See {count} properties",
       "mostrando": "Showing {count} of {total} properties",
-      "propsCorto": "{count}/{total} props."
+      "propsCorto": "{count}/{total} props.",
+      "vistaLista": "List",
+      "vistaMapa": "Map"
     },
     "amenities": {
       "pileta": "🏊 Pool",
@@ -270,7 +274,14 @@
     "bathrooms": "Bathrooms",
     "age": "Age",
     "mortgageEligible": "🏦 Mortgage eligible",
-    "expenses": "HOA fees"
+    "expenses": "HOA fees",
+    "amenitiesTitle": "Building amenities",
+    "featuresTitle": "Features",
+    "locationTitle": "Location",
+    "servicesIncludedLabel": "Utilities included",
+    "mortgageEligibleLabel": "Mortgage eligible",
+    "share": "Share",
+    "linkCopied": "✓ Link copied"
   },
   "tickets": {
     "metaTitle": "BairesRental — Football Tickets Buenos Aires",

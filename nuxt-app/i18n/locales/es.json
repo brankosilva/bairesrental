@@ -28,8 +28,10 @@
   },
   "home": {
     "eyebrow": "Gestión profesional de propiedades · Buenos Aires",
-    "title1": "Tu hogar,",
-    "title2": "nuestro cuidado.",
+    "titleW1": "Tu",
+    "titleW2": "hogar,",
+    "titleW3": "nuestro",
+    "titleW4": "cuidado.",
     "subtitle": "Maximizá tus ingresos y olvidate de las preocupaciones. Gestionamos tu departamento en Buenos Aires de principio a fin.",
     "ctaRentals": "Ver catálogo de alquileres",
     "ctaSales": "Ver propiedades en venta",
@@ -193,7 +195,9 @@
       "verResultados": "Ver resultados",
       "verResultadosCount": "Ver {count} propiedades",
       "mostrando": "Mostrando {count} de {total} propiedades",
-      "propsCorto": "{count}/{total} props."
+      "propsCorto": "{count}/{total} props.",
+      "vistaLista": "Lista",
+      "vistaMapa": "Mapa"
     },
     "amenities": {
       "pileta": "🏊 Pileta",
@@ -270,7 +274,14 @@
     "bathrooms": "Baños",
     "age": "Antigüedad",
     "mortgageEligible": "🏦 Apto crédito hipotecario",
-    "expenses": "Expensas"
+    "expenses": "Expensas",
+    "amenitiesTitle": "Amenities del edificio",
+    "featuresTitle": "Características",
+    "locationTitle": "Ubicación",
+    "servicesIncludedLabel": "Servicios incluidos",
+    "mortgageEligibleLabel": "Apto crédito",
+    "share": "Compartir",
+    "linkCopied": "✓ Link copiado"
   },
   "tickets": {
     "metaTitle": "BairesRental — Tickets Fútbol Buenos Aires",

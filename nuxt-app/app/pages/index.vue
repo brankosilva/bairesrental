@@ -569,8 +569,14 @@ async function handleContactSubmit() {
    Funcionaba —.br-home envuelve toda la página— pero era una de tres
    definiciones duplicadas, y las otras dos estaban rotas (ver
    public/css/br-base.css). Ahora salen de ese :root global. */
+/* `line-height: normal`: index.html no cargaba NINGUNA hoja de estilos, así
+   que su body quedaba en el default del browser. Acá Bootstrap Reboot pone
+   1.5 sobre el body, lo que separaba de más los bullets de los planes y
+   cualquier texto sin line-height propio. Se restaura solo en la home para
+   no tocar el resto de las páginas, que sí tenían otro valor. */
 .br-home {
   font-family: 'DM Sans', sans-serif;
+  line-height: normal;
 }
 
 /* ── HERO ─────────────────────────────────── */

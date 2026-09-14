@@ -221,7 +221,7 @@ function formatFecha(fecha?: string) {
 </script>
 
 <template>
-  <div>
+  <div class="br-catalogo-page">
     <section class="br-dept-hero-lite">
       <div class="br-dept-hero-lite-content">
         <span class="br-dept-eyebrow">{{ t('departamentos.eyebrow') }}</span>
@@ -476,6 +476,14 @@ function formatFecha(fecha?: string) {
 </template>
 
 <style scoped>
+/* departamentos.html cargaba css/style.css, que ponía
+   `body { line-height: 1.7 }` por encima de Bootstrap. Esa hoja ya no se
+   carga (ver public/css/legacy-template.css), así que el valor se
+   reproduce acá, acotado a esta página. */
+.br-catalogo-page {
+  line-height: 1.7;
+}
+
 /* Hero + sticky-filter positioning are page-specific in the original static
    site too (departamentos.html's own inline <style>, not css/style.css) —
    ported the same way here instead of into the shared stylesheet. */

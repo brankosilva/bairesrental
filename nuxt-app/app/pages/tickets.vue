@@ -52,6 +52,11 @@ useSeoMeta({
 <style scoped>
 .tk-page {
   font-family: 'DM Sans', sans-serif;
+  /* departamentos.html/ventas.html/tickets.html sí cargaban css/style.css,
+     que ponía `body { line-height: 1.7 }` por encima de Bootstrap. Las
+     fichas de detalle no la cargaban y se quedaban con el 1.5 de Reboot.
+     Se reproduce acá por página para respetar esa diferencia. */
+  line-height: 1.7;
 }
 .tk-hero {
   position: relative;

@@ -1,57 +1,60 @@
 # BairesRental
 
-Sitio web estático para **BairesRental**, empresa de administración de alquileres temporarios en Buenos Aires (CABA), Argentina.
+Sitio web de **BairesRental**, empresa de administración de alquileres temporarios en Buenos Aires (CABA), Argentina.
 
 Documentación detallada del negocio, la marca y el catálogo en [`docs/`](docs/README.md) — este archivo cubre lo operativo (stack, estructura, convenciones, carga de propiedades).
 
+> **El sitio estático se dio de baja.** Hasta septiembre de 2026 el repo tenía, en la raíz, un sitio HTML/jQuery servido por GitHub Pages, con el catálogo en `data/*.json`. Ya no existe: `www.bairesrental.com.ar` apunta a Firebase Hosting y sirve la app de [`nuxt-app/`](nuxt-app/), con el catálogo en Firestore. Los archivos viejos siguen en el historial de git si hace falta consultarlos.
+
 ## Stack
 
-- HTML5 estático — sin build system, sin bundler, sin backend
-- Bootstrap 5.3 (CDN) + Bootstrap Icons (CDN)
-- Font Awesome 6 (CDN)
-- jQuery + plugins locales: Flexslider, Owl Carousel, Magnific Popup, Waypoints, Stellar Parallax, countTo
-- Google Fonts: Source Sans Pro, Roboto Slab
-- CSS propio: `css/style.css` (principal), `css/pricing.css`
+- **Nuxt 4** (Vue 3, SSR) en `nuxt-app/` — todo el sitio vive acá
+- **Firebase**: Hosting + Cloud Functions (SSR de Nitro y callables), Firestore (catálogo), Storage (fotos), Auth (panel interno)
+- **i18n** es/en con `@nuxtjs/i18n`
+- **Leaflet** (CDN) para el mapa del catálogo
+- CSS propio en `nuxt-app/public/css/` — sin framework de utilidades
 
-## Páginas
+## Rutas
 
-Inventario completo (incluyendo páginas internas para vendedores y el panel admin) en [`docs/sitio-paginas.md`](docs/sitio-paginas.md).
-
-| Archivo | Sección |
+| Ruta | Sección |
 |---|---|
-| `index.html` | Home — hero, propuesta de valor, planes, calculadora de ingresos, reviews, contacto |
-| `departamentos.html` / `departamento.html` | Catálogo de alquiler temporario / ficha de detalle de una propiedad |
-| `ventas.html` / `detalle-venta.html` | Catálogo de departamentos en venta / ficha de detalle (galería + lightbox) |
-| `catalogo-vendedores.html` / `ficha-vendedor.html` | Versión interna (`noindex`, sin WhatsApp) del catálogo/ficha de alquiler para agentes |
-| `tickets.html` | Landing de "Baires-Football Experience" (negocio paralelo, redirige a sitio externo) |
+| `/` | Home — hero, propuesta de valor, planes, calculadora de ingresos, reviews, contacto |
+| `/departamentos` · `/departamentos/[id]` | Catálogo de alquiler temporario y ficha de detalle |
+| `/ventas` · `/ventas/[id]` | Catálogo de departamentos en venta y ficha de detalle |
+| `/tickets` | Landing de "Baires-Football Experience" (negocio paralelo) |
+| `/app/*` | Panel interno con login: admin (propiedades, usuarios, links), vendedores (listings, leads, links, perfil), propietarios |
+| `/l/[code]` | Links rastreables que generan los vendedores |
 
-No existe `faq.html` en el repo — no crear referencias a esa página salvo que se agregue explícitamente.
+Modo vendedor: `?vendor=1` sobre las rutas públicas (sin WhatsApp, `noindex`) — reemplaza a los viejos `catalogo-vendedores.html` / `ficha-vendedor.html`.
+
+Las URLs viejas del sitio estático (`/departamentos.html`, `/departamento.html?id=…`, etc.) redirigen con 301 — ver los `redirects` de `nuxt-app/firebase.json` y `nuxt-app/server/routes/`.
 
 ## Estructura de archivos
 
 ```
 /
-├── index.html, departamentos.html, departamento.html, ventas.html, detalle-venta.html, tickets.html
-├── catalogo-vendedores.html, ficha-vendedor.html   # internas, noindex
-├── admin/        # CMS local para editar data/*.json (ver docs/catalogo-datos.md)
-├── css/          # Estilos locales (vendor + style.css propio)
-├── js/           # Scripts locales (vendor + main.js propio)
-├── images/       # Logos, carruseles, fotos de departamentos
-├── fonts/        # Icomoon icon font
-├── sass/         # Fuente SASS (si se edita style.css, compilar desde acá)
-├── data/         # departamentos.json, ventas.json — nunca editar a mano
-├── scripts/      # Scripts de carga/mantenimiento del catálogo
-├── marketing/    # Brand guide y estrategia de Meta Ads
-└── docs/         # Documentación detallada del negocio y la marca
+├── nuxt-app/       # El sitio. Ver nuxt-app/README.md
+│   ├── app/        # pages, components, composables, layouts, utils, types
+│   ├── public/     # css propio, imágenes, fuentes, docs, favicons
+│   ├── server/     # rutas de servidor (redirects legacy, links rastreables)
+│   ├── functions/  # Cloud Functions (setUserRole, submitLead, uploadListingImage…)
+│   └── firebase.json, firestore.rules, storage.rules, firestore.indexes.json
+├── scripts/        # Mantenimiento del catálogo contra Firestore (ver abajo)
+│   └── lib/        # Acceso compartido a Firestore
+├── docs/           # Documentación del negocio y la marca
+├── marketing/      # Brand guide y estrategia de Meta Ads
+└── .github/workflows/
+    ├── deploy-nuxt.yml        # deploy a Firebase (se dispara con un tag v*)
+    └── check-ficha-links.yml  # auditoría semanal de fichas de Tokko
 ```
 
 ## Convenciones
 
-- Todo el contenido está en **español rioplatense** (vos/ustedes).
-- Mantener coherencia visual con los colores y tipografías existentes en `css/style.css`.
-- No introducir dependencias nuevas sin necesidad — preferir lo que ya está cargado.
-- Los cambios de estilo van en `css/style.css`; no tocar los archivos vendor en `css/`.
-- Para probar localmente: abrir `index.html` directamente en el navegador o levantar un servidor estático simple (`python -m http.server` o similar).
+- Todo el contenido está en **español rioplatense** (vos/ustedes), con traducción al inglés en `nuxt-app/i18n/locales/`.
+- Los cambios de estilo van en `nuxt-app/public/css/` (`br-base.css`, `br-catalog.css`, `br-app.css`). No tocar `legacy-template.css`.
+- **Ojo con los `rem`**: `br-catalog.css` está en px a propósito. El diseño original se hizo contra el root de 10px que traía Bootstrap 3 en el sitio estático; Nuxt usa 16px. Ver el encabezado del archivo.
+- No introducir dependencias nuevas sin necesidad.
+- Para probar: `cd nuxt-app && npm run dev`. Para compilar: `npm run build`.
 
 ## Contacto / Redes sociales (datos reales del sitio)
 
@@ -70,31 +73,39 @@ Ver documentación completa:
 - [`docs/marca.md`](docs/marca.md) — tono de voz, paleta de colores, tipografía, logos ([`marketing/brand-guide.md`](marketing/brand-guide.md) tiene el detalle con snippets CSS)
 - [`docs/marketing-canales.md`](docs/marketing-canales.md) — canales de contacto, tracking, estrategia de Meta Ads ([`marketing/estrategia-meta-ads.md`](marketing/estrategia-meta-ads.md))
 
-Resumen rápido: tono cercano y profesional en voseo rioplatense (nunca tutear); color primario `--azul #1A6FE8`; tagline "Tu hogar, nuestro cuidado". Antes de citar precios/comisiones o métricas en contenido nuevo, confirmar contra `docs/negocio.md` (ya incluye una corrección de comisión detectada en `index.html` vs. lo documentado antes).
+Resumen rápido: tono cercano y profesional en voseo rioplatense (nunca tutear); color primario `--azul #1A6FE8`; tagline "Tu hogar, nuestro cuidado". Antes de citar precios/comisiones o métricas en contenido nuevo, confirmar contra `docs/negocio.md`.
 
 ---
 
 ## Carga de propiedades al catálogo
 
-Las propiedades se almacenan en `data/departamentos.json` (array JSON). Por su tamaño, **nunca leer ni editar ese archivo directamente** — siempre usar los scripts de `scripts/`.
+El catálogo vive en **Firestore**: colección `rentals` (alquiler temporario) y `sales` (venta). Escribir ahí publica en el sitio al instante — no hay commit ni deploy de por medio.
+
+Hay dos caminos:
+
+1. **El panel interno** (`/app/admin/rentals`, `/app/admin/sales`) — para ediciones puntuales desde el navegador.
+2. **Los scripts de `scripts/`** — para importar desde Tokko/Tencery y para tareas masivas.
 
 ### Scripts disponibles
 
 | Script | Uso |
 |---|---|
-| `scripts/add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega al catálogo |
-| `scripts/add-from-tencery.js` | Convierte un JSON exportado de Tencery al formato BairesRental (ver [docs/catalogo-datos.md](docs/catalogo-datos.md)) |
-| `scripts/add-property.js` | Valida y agrega un objeto ya en formato BairesRental al catálogo |
-| `scripts/check-ficha-links.js` | Solo lectura: audita links de ficha.info (Tokko) caídos o cedidos a otra inmobiliaria |
+| `scripts/add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega a `rentals` |
+| `scripts/add-from-tencery.js` | Lo mismo desde un JSON exportado de Tencery |
+| `scripts/add-property.js` | Valida y agrega/actualiza una propiedad de alquiler ya en formato BairesRental |
+| `scripts/add-property-venta.js` | Valida y agrega/actualiza una propiedad en venta |
+| `scripts/upload-fotos.js` | Sube fotos locales a Firebase Storage y devuelve las URLs públicas |
+| `scripts/check-ficha-links.js` | Solo lectura: audita fichas de Tokko caídas o cedidas a otra inmobiliaria |
+| `scripts/resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa |
 | `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
 
-Todos requieren Node.js (`node --version` para verificar). Hay además un panel admin local (`npm run dev` / `npm run dev:ventas`) para editar los catálogos sin JSON a mano — ver [docs/catalogo-datos.md](docs/catalogo-datos.md#panel-admin).
+Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`.
 
 ---
 
 ### Flujo 1: Import desde Tokko Broker
 
-El usuario obtiene el JSON de Tokko por su cuenta y lo pega directamente en el chat.
+El usuario obtiene el JSON de Tokko por su cuenta y lo pega directamente en el chat. Está guiado por el comando `/agregar-depto`.
 
 **Pasos:**
 1. Guardar el JSON en `scripts/temp-tokko.json`
@@ -102,7 +113,6 @@ El usuario obtiene el JSON de Tokko por su cuenta y lo pega directamente en el c
 3. El script muestra el mapeo completo y pide confirmación
 4. Revisar con el usuario los campos marcados con ⚠️ antes de confirmar
 5. Eliminar `scripts/temp-tokko.json` después de agregar
-6. Hacer git add + commit
 
 **Con `--out` para revisar antes de agregar:**
 ```
@@ -159,14 +169,13 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
 
 **Pasos:**
 1. Extraer todos los campos posibles del texto (ver schema abajo)
-2. Si el usuario adjunta una foto → guardarla en `images/[id]/main.jpg`
+2. Si el usuario adjunta una foto → subirla con `node scripts/upload-fotos.js alquileres [id] <foto>` y usar la URL que devuelve
 3. Construir el objeto JSON de la propiedad
 4. Guardarlo en `scripts/temp-prop.json`
 5. Ejecutar: `node scripts/add-property.js scripts/temp-prop.json`
 6. Eliminar `scripts/temp-prop.json` después de agregar
-7. Hacer git add + commit
 
-**Schema completo de una propiedad:**
+**Schema completo de una propiedad de alquiler:**
 
 ```json
 {
@@ -184,11 +193,12 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
   "minimoMeses": 1,
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
-  "imagen": "./images/[id]/main.jpg  ← local, o URL externa",
+  "imagen": "https://... ← URL de Storage, de Tokko CDN o de la plataforma",
   "fotos": "https://ficha.info/p/... ← ficha.info para colegas (o álbum Google Photos)",
   "fichaUrl": "https://airbnb.com/... ← solo para links directos de Airbnb o Booking (dejar vacío si hay ficha.info)",
   "direccion": "Calle 1234",
   "direccionUrl": "https://maps.app.goo.gl/...",
+  "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "esPropio": false
 }
@@ -197,31 +207,31 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
 Notas:
 - `precio: 0` muestra "Consultar precio" en el card
 - `serviciosIncluidos: true` = incluye luz **y** wifi
-- Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en lugar del modal interno
-- `imagen` puede ser URL externa (Tokko CDN, Airbnb, etc.) o path local relativo desde la raíz
+- Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en lugar de la ficha interna
+- `lat`/`lng` son los pines del mapa. Si no los ponés, `scripts/resolve-map-coords.js` los completa después
 
 ---
 
 ### Manejo de imágenes
 
+Las fotos viven en **Firebase Storage**, con el layout que declara `nuxt-app/storage.rules`: `rentals/<id>/<archivo>` y `sales/<id>/<archivo>`, de lectura pública.
+
 | Caso | Acción |
 |---|---|
-| Usuario adjunta foto al chat | Guardar en `images/[id]/main.jpg`, usar `./images/[id]/main.jpg` como `imagen` |
-| URL externa (Tokko CDN, etc.) | Usar directamente como `imagen` (puede expirar si el listado se da de baja) |
-| Link Google Photos | Va al campo `fotos`, no en `imagen` |
+| Usuario adjunta foto al chat | Guardarla en el scratchpad y subirla con `scripts/upload-fotos.js` |
+| URL externa (Tokko CDN, Airbnb, etc.) | Usarla directamente (puede expirar si dan de baja el listado) |
+| Link a álbum de Google Photos | Va al campo `fotos`, no en `imagen` |
 | Sin imagen | Dejar `imagen: ""` (el card muestra un placeholder 📸) |
 
 ---
 
-## Catálogo de ventas (data/ventas.json)
+## Catálogo de ventas (colección `sales`)
 
-Flujo **independiente** del de alquileres — propiedades en venta, con hasta **20 fotos** por ficha mostradas en una galería nativa (grid + lightbox a pantalla completa) en `detalle-venta.html`, en vez del link externo a álbum que usan los alquileres.
-
-Por su tamaño, **nunca leer ni editar `data/ventas.json` directamente** — siempre usar `scripts/add-property-venta.js`.
+Flujo **independiente** del de alquileres — propiedades en venta, con hasta **20 fotos** por ficha mostradas en una galería nativa (grid + lightbox a pantalla completa) en `/ventas/[id]`, en vez del link externo a álbum que usan los alquileres.
 
 ### Comando
 
-`/agregar-depto-venta` — guía el flujo completo: recibe texto (PDF o descripción manual) + fotos adjuntadas en el chat, guarda las fotos en `images/ventas/[id]/1.jpg…N.jpg`, arma el JSON y lo agrega al catálogo.
+`/agregar-depto-venta` — guía el flujo completo: recibe texto (PDF o descripción manual) + fotos adjuntadas en el chat, las sube a Storage, arma el JSON y lo agrega al catálogo.
 
 ### Schema de una propiedad en venta
 
@@ -244,9 +254,10 @@ Por su tamaño, **nunca leer ni editar `data/ventas.json` directamente** — sie
   "amueblado": false,
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
-  "fotos": ["./images/ventas/[id]/1.jpg", "... hasta 20"],
+  "fotos": ["https://firebasestorage.googleapis.com/... ", "... hasta 20"],
   "direccion": "Calle 1234",
   "direccionUrl": "https://maps.app.goo.gl/...",
+  "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "fichaUrl": "https://... (opcional — Zonaprop/Argenprop, botón secundario en la ficha)",
   "esPropio": false
@@ -257,16 +268,14 @@ Notas:
 - `superficie` es **obligatoria** (m² totales) — el script rechaza la carga sin ella; el catálogo la usa como filtro ("Superficie mín.")
 - `precio: 0` muestra "Consultar precio"
 - `fotos[0]` es la portada (catálogo + hero de la ficha); el resto arma la galería
-- `disponibilidad: "vendido"` se mantiene en el JSON para uso interno pero no se muestra en el catálogo público (igual que "no disponible" en alquileres)
+- `disponibilidad: "vendido"` se mantiene para uso interno pero no se muestra en el catálogo público (igual que "no disponible" en alquileres)
 - `fichaUrl` es opcional y solo agrega un botón secundario "Ver publicación completa" — no reemplaza la galería nativa
 - Reutiliza el mismo catálogo de `amenities` que los alquileres
 
-### Archivos involucrados
+---
 
-| Archivo | Rol |
-|---|---|
-| `data/ventas.json` | Catálogo de propiedades en venta |
-| `scripts/add-property-venta.js` | Valida y agrega/actualiza una propiedad |
-| `js/ventas.js` | Filtros y renderizado de cards en `ventas.html` |
-| `ventas.html` | Catálogo público con filtros (barrio, tipo, precio, apto crédito, amenities) |
-| `detalle-venta.html` | Ficha de detalle con galería de fotos + lightbox |
+## Auditoría de fichas de Tokko
+
+`scripts/check-ficha-links.js` recorre las fichas de ficha.info enlazadas en `rentals` y marca dos cosas: las que Tokko pasó a "No disponible" y las que aparecen bajo **otra inmobiliaria** (o sea, la propiedad se fue a otra agencia). Es de solo lectura.
+
+Corre todos los lunes desde `.github/workflows/check-ficha-links.yml` y abre/actualiza un Issue con los IDs a revisar. A mano: `npm run catalogo:fichas`.

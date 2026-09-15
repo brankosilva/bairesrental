@@ -1,9 +1,13 @@
 {
-  "name": "bairesrental",
+  "name": "bairesrental-scripts",
   "version": "1.0.0",
   "private": true,
+  "description": "Scripts de mantenimiento del catálogo de BairesRental. El sitio vive en nuxt-app/ y los datos en Firestore.",
   "scripts": {
-    "dev": "node admin/server.js",
-    "dev:ventas": "node admin/server-ventas.js"
+    "catalogo:fichas": "node scripts/check-ficha-links.js",
+    "catalogo:coords": "node scripts/resolve-map-coords.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
   }
 }

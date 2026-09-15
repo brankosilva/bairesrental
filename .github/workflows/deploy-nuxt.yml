@@ -15,9 +15,9 @@
 #   - firestore/storage  → firestore.rules, firestore.indexes.json,
 #     storage.rules (las únicas copias que quedan en el repo).
 #
-# OJO: esto NO toca www.bairesrental.com.ar, que sigue sirviendo el sitio
-# estático de la raíz del repo por GitHub Pages hasta que se haga el
-# cutover de DNS.
+# El cutover de DNS ya está hecho: www.bairesrental.com.ar es un CNAME a
+# bairesrental.web.app, así que este deploy SÍ actualiza el dominio real.
+# El sitio estático de la raíz del repo se eliminó.
 #
 # Secrets/variables que hay que cargar una sola vez (ver README de nuxt-app):
 #   secret FIREBASE_SERVICE_ACCOUNT  → JSON de una service account con
@@ -70,6 +70,17 @@ jobs:
       NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
       NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
       NUXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_APP_ID }}
+      # Dominio con el que se construyen canonical, hreflang y og:url
+      # (nuxt.config.ts's SITE_URL). Tiene que ser el dominio donde vive ESTE
+      # deploy, no el dominio final: WhatsApp y Facebook releen el og:url y
+      # arman el preview con lo que encuentren ahí, así que apuntarlo al
+      # dominio propio —que hoy sirve el sitio estático viejo y devuelve 404
+      # en /departamentos/<id>— dejaba todas las fichas sin preview.
+      #
+      # EN EL CUTOVER DE DNS: borrar esta línea (vuelve solo al dominio propio,
+      # que es el default en nuxt.config.ts) o cargar la variable de repo
+      # NUXT_PUBLIC_SITE_URL con https://www.bairesrental.com.ar.
+      NUXT_PUBLIC_SITE_URL: ${{ vars.NUXT_PUBLIC_SITE_URL || 'https://bairesrental.web.app' }}
 
     steps:
       - name: Checkout
@@ -236,3 +247,48 @@ jobs:
             exit 1
           fi
           grep -o '<title>[^<]*</title>' <<< "$html"
+
+      # El preview de link se rompe de formas que no se ven en la página: un
+      # og:url apuntando a otro dominio, o un og:image que devuelve 404 porque
+      # la extensión de resize nunca generó el derivado. Las dos cosas se
+      # chequean acá, sobre una ficha real y con el user-agent del crawler.
+      - name: Smoke test del preview de link (og:*)
+        if: env.TARGET == 'todo' || env.TARGET == 'hosting'
+        run: |
+          set -o pipefail
+          id=$(curl -sS --fail --retry 3 --retry-delay 5 https://bairesrental.web.app/departamentos \
+               | grep -o '/departamentos/[A-Za-z0-9_-]\+' | head -1 | cut -d/ -f3)
+          if [ -z "$id" ]; then
+            echo "::error::No se pudo sacar ninguna ficha del catálogo para el smoke test."
+            exit 1
+          fi
+          url="https://bairesrental.web.app/departamentos/${id}"
+          echo "Ficha de prueba: $url"
+          html=$(curl -sS --fail --retry 3 --retry-delay 5 \
+                 -A 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)' "$url")
+
+          og_url=$(grep -o '<meta property="og:url" content="[^"]*"' <<< "$html" | head -1 | sed 's/.*content="//;s/"$//')
+          og_img=$(grep -o '<meta property="og:image" content="[^"]*"' <<< "$html" | head -1 | sed 's/.*content="//;s/"$//')
+          echo "og:url   = ${og_url:-<vacío>}"
+          echo "og:image = ${og_img:-<vacío>}"
+
+          # og:url tiene que resolver a una página que exista: si 404ea, el
+          # crawler arma el preview con esa 404 y sale vacío.
+          if [ -z "$og_url" ]; then echo "::error::La ficha salió sin og:url."; exit 1; fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -L "$og_url")
+          if [ "$code" != "200" ]; then
+            echo "::error::og:url ($og_url) devuelve HTTP ${code} — el preview va a salir vacío."
+            exit 1
+          fi
+
+          if [ -z "$og_img" ]; then echo "::error::La ficha salió sin og:image."; exit 1; fi
+          read -r code bytes < <(curl -sS -o /dev/null -w '%{http_code} %{size_download}' -L "$og_img")
+          echo "og:image → HTTP ${code}, ${bytes} bytes"
+          if [ "$code" != "200" ]; then
+            echo "::error::og:image ($og_img) devuelve HTTP ${code} — falta correr nuxt-app/scripts/backfill-og-images.js."
+            exit 1
+          fi
+          # WhatsApp descarta el thumbnail por encima de ~300 KB.
+          if [ "$bytes" -gt 300000 ]; then
+            echo "::warning::og:image pesa ${bytes} bytes (>300 KB): WhatsApp probablemente no muestre la foto."
+          fi

@@ -1,5 +1,11 @@
 #!/usr/bin/env node
-// Validates and adds a BairesRental-format property to data/departamentos.json
+// Valida y agrega una propiedad en formato BairesRental al catálogo de
+// alquileres (colección `rentals` de Firestore).
+//
+// Escribía en data/departamentos.json, que alimentaba el sitio estático. Ese
+// sitio se dio de baja: ahora www.bairesrental.com.ar es la app de nuxt-app/,
+// que lee Firestore. Guardar en el JSON no publicaba nada.
+//
 // Usage:
 //   node scripts/add-property.js property.json
 //   node scripts/add-property.js property.json --yes      (skip confirmation)
@@ -7,10 +13,9 @@
 //   node scripts/add-property.js property.json --dry-run  (preview only)
 
 const fs = require('fs');
-const path = require('path');
 const readline = require('readline');
 
-const DATA_FILE = path.resolve(__dirname, '..', 'data', 'departamentos.json');
+const { leerCatalogo, guardarPropiedad } = require('./lib/catalogo');
 
 const REQUIRED_FIELDS = ['id', 'titulo', 'barrio', 'tipo', 'precio', 'moneda', 'disponibilidad'];
 const VALID_TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa'];
@@ -131,9 +136,9 @@ async function main() {
 
   let catalog;
   try {
-    catalog = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    catalog = await leerCatalogo('alquileres');
   } catch (e) {
-    console.error('Error al leer departamentos.json:', e.message);
+    console.error('Error al leer el catálogo de Firestore:', e.message);
     process.exit(1);
   }
 
@@ -148,24 +153,19 @@ async function main() {
     return;
   }
 
-  const dupIdx = catalog.findIndex(p => p.id === prop.id);
+  const existe = catalog.some(p => p.id === prop.id);
 
-  if (dupIdx >= 0) {
+  if (existe) {
     const answer = (yes || forceUpdate) ? 's' : await prompt(`\n⚠️  ID "${prop.id}" ya existe. ¿Sobreescribir? (s/N): `);
     if (!/^s/i.test(answer)) { console.log('Cancelado.'); return; }
-    catalog[dupIdx] = prop;
-    console.log(`\n✅ Actualizado: "${prop.titulo}" (ID: ${prop.id})`);
-  } else {
-    if (!yes) {
-      const answer = await prompt('\n¿Agregar al catálogo? (S/n): ');
-      if (/^n/i.test(answer)) { console.log('Cancelado.'); return; }
-    }
-    catalog.unshift(prop);
-    console.log(`\n✅ Agregado: "${prop.titulo}" (ID: ${prop.id})`);
+  } else if (!yes) {
+    const answer = await prompt('\n¿Agregar al catálogo? (S/n): ');
+    if (/^n/i.test(answer)) { console.log('Cancelado.'); return; }
   }
 
-  fs.writeFileSync(DATA_FILE, JSON.stringify(catalog, null, 2), 'utf8');
-  console.log('   Archivo guardado: data/departamentos.json');
+  await guardarPropiedad('alquileres', prop);
+  console.log(`\n✅ ${existe ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
+  console.log('   Guardado en Firestore (rentals) — ya está publicado en el sitio.');
 }
 
 main().catch(err => { console.error('Error:', err.message); process.exit(1); });

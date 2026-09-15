@@ -3,7 +3,7 @@
 ![BairesRental](./bairesrental-logo.png)
 
 Carpeta de trabajo para pensar cómo llevar más tráfico y consultas reales al catálogo:
-https://www.bairesrental.com.ar/departamentos.html
+https://www.bairesrental.com.ar/departamentos
 
 Presupuesto actual: **~USD 200/mes**.
 
@@ -11,7 +11,7 @@ Presupuesto actual: **~USD 200/mes**.
 
 ## Diagnóstico (revisado en el código del sitio, 2026-08-13)
 
-- El **Meta Pixel** (`1704524150703684`) está instalado en `index.html` y `departamentos.html`, pero **solo dispara `PageView`**. No hay ningún evento de conversión (`Contact`, `Lead`, `WhatsApp click`) cableado.
+- El **Meta Pixel** (`1704524150703684`) está instalado en la home y en `/departamentos`, pero **solo dispara `PageView`**. No hay ningún evento de conversión (`Contact`, `Lead`, `WhatsApp click`) cableado.
 - Esto significa que, aunque las campañas estén configuradas como "Conversiones" o "Tráfico", **Meta no tiene ninguna señal de qué visita termina en una consulta real** — solo sabe qué visita entró a la página. El algoritmo optimiza para gente que hace clic/entra, no para gente que consulta. Es la explicación más probable de por qué hay tráfico pero poca conversión: **el pixel nunca aprendió a quién targetear**.
 - El catálogo tiene un botón flotante de WhatsApp con mensaje pre-armado ("Hola! Quiero información sobre los departamentos.") — es el punto de conversión real, pero no está instrumentado.
 - Problema reportado: los reels de contenido de Buenos Aires (que sí generan buen engagement) redirigen al perfil de Instagram en vez del catálogo o WhatsApp — se pierde la intención justo en el paso final.
@@ -34,7 +34,7 @@ Sin esto, cualquier optimización de Meta sigue a ciegas.
 - Si el volumen de WhatsApp lo justifica, migrar a **anuncios de clic a WhatsApp** (Click-to-WhatsApp Ads): el objetivo "Mensajes" en Meta Ads Manager abre el chat directo de WhatsApp y manda el evento `Lead`/conversación iniciada nativamente, sin depender del pixel del sitio. Con USD 200/mes y bajo volumen, esto suele funcionar mejor que optimizar por pixel (que necesita ~50 eventos/semana para salir de aprendizaje).
 
 ### 2. Redirigir los reels de Buenos Aires al catálogo o a WhatsApp, no al perfil de IG
-- El perfil de IG es un paso extra sin CTA claro. Cambiar el destino a `departamentos.html` (o directo a `wa.me/5491173735757`) recupera intención que hoy se pierde.
+- El perfil de IG es un paso extra sin CTA claro. Cambiar el destino a `/departamentos` (o directo a `wa.me/5491173735757`) recupera intención que hoy se pierde.
 - Mantener el reel como contenido de descubrimiento/marca, pero con CTA explícito en texto y sticker de link: "Mirá los deptos disponibles 👇".
 
 ### 3. Separar el embudo en dos tipos de campaña
@@ -45,7 +45,7 @@ Con USD 200/mes, algo como 60% awareness liviano / 40% retargeting suele rendir 
 
 ### 4. Repensar el creative de catálogo
 - En vez de "este depto puntual", probar carruseles tipo "3 deptos disponibles esta semana en Palermo/Recoleta" — reduce el rebote por gusto individual y empuja al catálogo completo.
-- Data point del código: el catálogo ya filtra por barrio, tipo, precio — vale la pena que el ad linkee con un filtro pre-aplicado (ej. `departamentos.html?barrio=palermo`) si eso existe, para bajar fricción.
+- Data point del código: el catálogo ya filtra por barrio, tipo, precio — vale la pena que el ad linkee con un filtro pre-aplicado (ej. `/departamentos?barrio=palermo`) si eso existe, para bajar fricción.
 
 ### 5. Segmentación
 - Nicho diferenciador: **nómadas digitales**. Vale una campaña separada con intereses tipo "remote work", "digital nomad", geos EE.UU./Europa, idioma inglés, landing/creative en inglés.

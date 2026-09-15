@@ -6,9 +6,9 @@ Referencia visual y de componentes para el desarrollo del sitio `bairesrental.co
 
 ## Paleta de colores
 
-### Variables CSS (nuevo sistema — `index.html` inline + catálogo)
+### Variables CSS (nuevo sistema — home + catálogo)
 
-Estas variables están definidas en el `<style>` inline de `index.html` y en el bloque `:root` del catálogo en `css/style.css`.
+Estas variables están definidas en `nuxt-app/public/css/br-base.css` y en el bloque `:root` del catálogo en `nuxt-app/public/css/br-catalog.css`.
 
 | Variable | Hex | Uso |
 |---|---|---|
@@ -24,7 +24,7 @@ Estas variables están definidas en el `<style>` inline de `index.html` y en el 
 
 ### Variables del catálogo (`--br-*`)
 
-Definidas en el bloque `:root` al final de `css/style.css` (línea ~3136).
+Definidas en el bloque `:root` de `nuxt-app/public/css/br-catalog.css`.
 
 | Variable | Valor | Uso |
 |---|---|---|
@@ -40,7 +40,7 @@ Definidas en el bloque `:root` al final de `css/style.css` (línea ~3136).
 | `--br-sombra-h` | `0 8px 32px rgba(0,0,0,0.15)` | Sombra hover de card |
 | `--br-card-img-h` | `210px` | Altura de imagen en card catálogo |
 
-### Colores legacy (`css/style.css` — secciones antiguas)
+### Colores legacy (`nuxt-app/public/css/legacy-template.css` — secciones antiguas de la plantilla original)
 
 Estas aparecen en el CSS heredado. **No usar para componentes nuevos** — usar `#1A6FE8` en su lugar.
 
@@ -501,7 +501,7 @@ Alternancia de fondos:
 
 ### Bootstrap Icons (CDN)
 
-Usados en el catálogo y componentes nuevos. Referencia en `departamentos.html`.
+Usados en el catálogo y componentes nuevos. Referencia en `nuxt-app/public/css/br-catalog.css`.
 
 Íconos frecuentes:
 - `bi-whatsapp` — contacto WhatsApp

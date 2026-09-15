@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const DATA_FILE = path.resolve(__dirname, '..', 'data', 'departamentos.json');
+const { leerCatalogo, guardarPropiedad } = require('./lib/catalogo');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -225,7 +225,7 @@ async function main() {
 
   let catalog;
   try {
-    catalog = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    catalog = await leerCatalogo('alquileres');
   } catch (e) {
     console.error('Error al leer departamentos.json:', e.message);
     process.exit(1);
@@ -246,21 +246,18 @@ async function main() {
 
   if (dryRun) { console.log('\n[dry-run] No se guardaron cambios.'); return; }
 
-  const dupIdx = catalog.findIndex(p => p.id === prop.id);
-  if (dupIdx >= 0) {
+  const existe = catalog.some(p => p.id === prop.id);
+  if (existe) {
     const answer = yes ? 's' : await prompt(`\n⚠️  ID "${prop.id}" ya existe. ¿Sobreescribir? (s/N): `);
     if (!/^s/i.test(answer)) { console.log('Cancelado.'); return; }
-    catalog[dupIdx] = prop;
-    console.log(`\n✅ Actualizado: "${prop.titulo}" (ID: ${prop.id})`);
   } else {
     const answer = yes ? 's' : await prompt('\n¿Agregar al catálogo? (S/n): ');
     if (/^n/i.test(answer)) { console.log('Cancelado.'); return; }
-    catalog.unshift(prop);
-    console.log(`\n✅ Agregado: "${prop.titulo}" (ID: ${prop.id})`);
   }
 
-  fs.writeFileSync(DATA_FILE, JSON.stringify(catalog, null, 2), 'utf8');
-  console.log('   Archivo guardado: data/departamentos.json');
+  await guardarPropiedad('alquileres', prop);
+  console.log(`\n✅ ${existe ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
+  console.log('   Guardado en Firestore (rentals) — ya está publicado en el sitio.');
 }
 
 main().catch(err => { console.error('Error:', err.message); process.exit(1); });

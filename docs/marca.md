@@ -21,7 +21,7 @@ Referencia completa (con snippets de CSS por componente) en [`marketing/brand-gu
 | `--gris2` | `#e8e8ec` | Bordes / fondos secundarios claros |
 | `--texto-gris` | `#6b7280` | Texto secundario |
 
-Existe una paleta paralela `--br-*` específica del catálogo (mismos azul/verde, grises y sombras levemente distintos) — usarla dentro de los componentes de catálogo (`departamentos.html`, `ventas.html`, cards, modal de detalle) en vez de mezclarla con las variables globales.
+Existe una paleta paralela `--br-*` específica del catálogo (mismos azul/verde, grises y sombras levemente distintos) — usarla dentro de los componentes de catálogo (`/departamentos`, `/ventas`, cards, ficha de detalle) en vez de mezclarla con las variables globales.
 
 **Colores de estado** (disponibilidad en catálogo): Disponible `#16a34a` (verde), Reservado `#d97706` (naranja), No disponible / Vendido `#dc2626` (rojo), BairesRental (propio) `#1A6FE8` (azul).
 

@@ -1,0 +1,11 @@
+# Dependencias de los scripts de scripts/ (ver package.json de la raíz)
+node_modules/
+
+# Archivos temporales que generan los scripts del catálogo
+scripts/temp-*.json
+
+# Credenciales de Firebase — nunca commitear
+serviceAccountKey.json
+**/serviceAccountKey.json
+
+.DS_Store

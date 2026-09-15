@@ -13,11 +13,11 @@ import type { SellerProfile } from '~/types/link'
 //
 // DOS REGLAS QUE NO SE PUEDEN ROMPER ACÁ:
 //
-//  1. El nombre del DESTINATARIO no entra en ningún meta. El link se reenvía
+//  1. La etiqueta del DESTINATARIO no entra en ningún meta. El link se reenvía
 //     (el cliente se lo pasa a su pareja, a un grupo) y la preview la dibuja
 //     quien lo recibe: "Para Juan Pérez" en el título filtraría a quién se lo
-//     había mandado el vendedor. Adentro de la página sí aparece, porque ahí
-//     ya lo abrió su destinatario.
+//     había mandado el vendedor. Tampoco aparece adentro de la página: es una
+//     anotación interna del vendedor y el endpoint ni siquiera la manda.
 //  2. `robots: noindex, nofollow` se mantiene. og:* es para los previews de
 //     WhatsApp/Facebook/X, que no son buscadores y no respetan —ni les
 //     corresponde— el noindex; son dos cosas distintas y las dos tienen que

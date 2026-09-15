@@ -10,8 +10,9 @@ import { isShareableBySeller, ownFirst } from '~/utils/sellerScope'
 // página y contaría aperturas que nunca pasaron.
 //
 // Lee con el Admin SDK porque `links` dejó de ser público: los documentos
-// llevan el nombre de la persona a la que el vendedor le compartió el link
-// (ver firestore.rules).
+// llevan la etiqueta con la que el vendedor identifica al destinatario (ver
+// firestore.rules). Esa etiqueta NO sale en el payload: es una anotación
+// interna suya, no un dato de la persona que abre la página.
 
 // Los docs de rentals/sales tienen `updatedAt` (Timestamp del Admin SDK,
 // lo escribe adminCrud.saveOne). JSON.stringify lo convierte en
@@ -135,7 +136,6 @@ export default defineEventHandler(async (event) => {
   return {
     code,
     target: link.target ?? (link.propertyId ? 'property' : 'catalog'),
-    recipientName: link.recipientName ?? null,
     seller: profile,
     sellerFallback,
     property,

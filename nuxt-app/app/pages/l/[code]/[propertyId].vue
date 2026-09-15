@@ -22,7 +22,6 @@ const propertyId = route.params.propertyId as string
 
 interface LinkPayload {
   code: string
-  recipientName: string | null
   seller: SellerProfile | null
   sellerFallback: boolean
   property: (RentalProperty & SaleProperty & { id: string }) | null
@@ -47,10 +46,12 @@ const seller = computed(() => data.value?.seller ?? null)
 const firstName = computed(() => (seller.value?.displayName || '').split(/\s+/)[0] || '')
 const contactLabel = computed(() => (firstName.value ? `Contactar a ${firstName.value}` : 'Contactar'))
 
+// Sin el nombre con el que el vendedor etiquetó el link — ver el comentario
+// en index.vue: esa etiqueta es interna y no tiene por qué aparecer en el
+// mensaje que el destinatario manda.
 const contactMessage = computed(() => {
   const p = data.value?.property
-  const quien = data.value?.recipientName ? `Soy ${data.value.recipientName}. ` : ''
-  return p ? `Hola! ${quien}Me interesa "${p.titulo}"${p.barrio ? ` en ${p.barrio}` : ''}.` : `Hola! ${quien}`
+  return p ? `Hola! Me interesa "${p.titulo}"${p.barrio ? ` en ${p.barrio}` : ''}.` : 'Hola!'
 })
 
 const contactHref = computed(() => whatsappUrl(contactMessage.value, seller.value?.whatsapp))

@@ -21,7 +21,6 @@ const code = route.params.code as string
 interface LinkPayload {
   code: string
   target: 'property' | 'catalog'
-  recipientName: string | null
   seller: SellerProfile | null
   sellerFallback: boolean
   property: (RentalProperty & SaleProperty & { id: string }) | null
@@ -45,14 +44,15 @@ const seller = computed(() => data.value?.seller ?? null)
 const firstName = computed(() => (seller.value?.displayName || '').split(/\s+/)[0] || '')
 const contactLabel = computed(() => (firstName.value ? `Contactar a ${firstName.value}` : 'Contactar'))
 
-// Mensaje pre-cargado de WhatsApp. Lleva el nombre del destinatario cuando
-// el vendedor lo puso: así la atribución le llega DENTRO del chat, sin
-// ningún código de tracking a la vista.
+// Mensaje pre-cargado de WhatsApp. NO lleva el nombre con el que el vendedor
+// etiquetó el link: el campo "Para quién" es su anotación interna —ahí pone
+// "Juan del Once", "consulta de Instagram" o lo que le sirva para reconocer
+// la fila en su tabla— y eso, pegado como "Soy …" en el chat, le llega tal
+// cual al destinatario. Que se presente solo.
 const contactMessage = computed(() => {
   const p = data.value?.property
-  const quien = data.value?.recipientName ? `Soy ${data.value.recipientName}. ` : ''
-  if (p) return `Hola! ${quien}Me interesa "${p.titulo}"${p.barrio ? ` en ${p.barrio}` : ''}.`
-  return `Hola! ${quien}Vi tus propiedades y quería consultarte.`
+  if (p) return `Hola! Me interesa "${p.titulo}"${p.barrio ? ` en ${p.barrio}` : ''}.`
+  return 'Hola! Vi tus propiedades y quería consultarte.'
 })
 
 const contactHref = computed(() => whatsappUrl(contactMessage.value, seller.value?.whatsapp))

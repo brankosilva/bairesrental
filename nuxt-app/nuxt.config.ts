@@ -3,24 +3,19 @@
 // nuxt-app/CHANGELOG.md). N1 builds the real public catalog + i18n +
 // sitemap on top of that proven base.
 
-// Origen público del sitio. Lo usan @nuxtjs/sitemap (vía nuxt-site-config)
-// y @nuxtjs/i18n para construir canonical/hreflang/og:url absolutas.
+// Origen público del sitio. Lo usan @nuxtjs/sitemap (vía nuxt-site-config) y
+// @nuxtjs/i18n para construir canonical/hreflang/og:url absolutas, y
+// useLinkUrl() para armar los links que comparten los vendedores (/l/:code).
 //
-// Es override-able por env a propósito. Estaba fijo en el dominio propio,
-// pero ese dominio TODAVÍA sirve el sitio estático viejo por GitHub Pages
-// (el cutover de DNS está pendiente — ver la cabecera de
-// .github/workflows/deploy-nuxt.yml), así que cada ficha publicada en
-// bairesrental.web.app venía declarando `og:url` y `canonical` apuntando a
-// una URL que devuelve un 404 de GitHub Pages. WhatsApp y Facebook toman
-// `og:url` como la identidad real de la página: scrapean el link que pegaste,
-// leen ese `og:url` y vuelven a scrapear ESA URL para armar el preview —
-// caían en el 404, sin og:* de ningún tipo, y por eso el link salía sin
-// imagen ni título. Google, por el mismo motivo, estaba recibiendo un
-// canonical roto para las 88 fichas.
+// Es el dominio propio: el cutover de DNS ya está hecho y
+// www.bairesrental.com.ar sirve este mismo deploy. Mientras estuvo pendiente,
+// el workflow forzaba NUXT_PUBLIC_SITE_URL=https://bairesrental.web.app —
+// necesario en ese momento, porque el dominio propio devolvía el 404 de
+// GitHub Pages y WhatsApp/Facebook, que releen el og:url para armar el
+// preview, dejaban todas las fichas sin imagen ni título. El costo era que
+// los links de los vendedores también salían con el host de Firebase.
 //
-// Mientras dure el split de dominios, el deploy setea
-// NUXT_PUBLIC_SITE_URL=https://bairesrental.web.app. Después del cutover
-// alcanza con sacar esa variable y vuelve solo al dominio propio.
+// Sigue siendo override-able por env, para deploys a un canal de preview.
 const SITE_URL = process.env.NUXT_PUBLIC_SITE_URL || 'https://www.bairesrental.com.ar'
 
 export default defineNuxtConfig({

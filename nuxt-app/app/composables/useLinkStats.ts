@@ -176,10 +176,11 @@ export function distinctVisitors(events: LinkOpenEvent[]): number {
 
 /** Arma la URL pública de un link a partir del origen configurado del sitio. */
 export function useLinkUrl() {
-  // Reutiliza `site.url` de nuxt.config.ts en vez de una constante propia:
-  // ese valor ya es override-able por NUXT_PUBLIC_SITE_URL, que el deploy
-  // setea a https://bairesrental.web.app mientras el dominio propio siga
-  // sirviendo el sitio estático viejo. Un solo lugar para el cutover de DNS.
+  // Reutiliza `site.url` de nuxt.config.ts en vez de una constante propia: es
+  // el mismo origen con el que se arman canonical y og:url, y un solo lugar
+  // donde cambiarlo. Hoy vale https://www.bairesrental.com.ar. OJO: se
+  // resuelve en el BUILD (NUXT_PUBLIC_SITE_URL es de build time), así que
+  // cambiarlo pide redeploy, no basta con tocar una variable del runtime.
   //
   // Antes de esto, la URL estaba hardcodeada a www.bairesrental.com.ar en
   // esta pantalla Y dentro de createTrackableLink — un dominio sin ruta /l/,

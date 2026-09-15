@@ -586,10 +586,10 @@ interface CreateTrackableLinkRequest {
 // También dejó de devolver `url`. Antes armaba
 // `https://www.bairesrental.com.ar/l/${code}` acá adentro, que es el
 // dominio del sitio estático viejo — sin ruta /l/, o sea que todos los
-// links generados hasta hoy están rotos. La URL ahora la arma la UI desde
-// runtimeConfig.public.linkBaseUrl, un solo lugar, para que el día del
-// cambio de DNS sea una línea. Sacarlo es seguro: la pantalla del vendedor
-// descartaba el valor de retorno.
+// links generados hasta entonces estaban rotos. La URL ahora la arma la UI
+// en useLinkUrl() a partir de `site.url` (ver nuxt.config.ts), un solo lugar.
+// Sacarlo de acá es seguro: la pantalla del vendedor descartaba el valor de
+// retorno.
 export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')

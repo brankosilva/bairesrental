@@ -201,11 +201,13 @@ bien o el link sale sin foto:
 
 **1. `og:url` tiene que apuntar al dominio donde vive este deploy.**
 WhatsApp y Facebook no arman el preview con la URL que pegaste: leen el
-`og:url` de esa página y vuelven a scrapear *esa* URL. Mientras el cutover de
-DNS siga pendiente, `www.bairesrental.com.ar` sirve el sitio estático viejo y
-devuelve 404 en `/departamentos/<id>`, así que apuntar ahí deja todas las
-fichas sin preview. Lo maneja `NUXT_PUBLIC_SITE_URL` (ver `SITE_URL` en
-`nuxt.config.ts` y el bloque `env:` de `.github/workflows/deploy-nuxt.yml`).
+`og:url` de esa página y vuelven a scrapear *esa* URL. Con el cutover de DNS
+hecho ese dominio es `www.bairesrental.com.ar`, que es el default de
+`SITE_URL` en `nuxt.config.ts`; `NUXT_PUBLIC_SITE_URL` queda como override
+para deploys a un canal de preview (ver el bloque `env:` de
+`.github/workflows/deploy-nuxt.yml`). Ese mismo origen es el que usan los
+links que comparten los vendedores (`/l/:code`), así que un valor equivocado
+no sólo rompe previews: manda links con el host de Firebase.
 
 **2. `og:image` tiene que ser un derivado 1200x630, no la portada cruda.**
 Las portadas que suben los vendedores son fotos de celular verticales de 2-4 MB.

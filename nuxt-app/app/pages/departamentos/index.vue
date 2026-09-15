@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { collection, getFirestore } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import type { RentalProperty } from '~/types/property'
+import { coordsFor } from '~/utils/geo'
 
 // Ported from app/src/pages/Departamentos.vue. The one real change vs. the
 // old file: getAllRentals() (a one-time SSR-admin-SDK/client-SDK fetch
@@ -157,29 +158,35 @@ const activeFilterCount = computed(() => {
   return n
 })
 
-// ── List / map split view ─────────────────────────────
-// Most listings still only carry a Google Maps link (direccionUrl), not raw
-// coordinates — RentalMap pulls what it can out of that URL client-side and
-// simply skips listings it can't place. See geo.ts.
-// NUXT-NEW: vista Lista/Mapa (RentalMap con Leaflet) — no existe en el sitio
-// estático. El default es 'list' a todo ancho: con el mapa fijo al costado la
-// grilla bajaba de 3 a 2 columnas en escritorio, así que el mapa pasó a ser
-// opt-in y la vista de lista recupera las 3 columnas del estático.
+// ── Vista Lista / Mapa ────────────────────────────────
+// NUXT-NEW: no existe en el sitio estático. El default es 'list' a todo
+// ancho: con el mapa fijo al costado la grilla bajaba de 3 a 2 columnas en
+// escritorio, así que el mapa es opt-in y la lista conserva las 3 columnas.
 const catalogView = ref<'list' | 'map'>('list')
 
-// ── Mobile filter sheet ──────────────────────────────
-const sheetOpen = ref(false)
-watch(sheetOpen, (open) => {
-  document.body.style.overflow = open ? 'hidden' : ''
-})
-function onResize() {
-  if (window.innerWidth > 768) sheetOpen.value = false
-}
-onMounted(() => window.addEventListener('resize', onResize))
-onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
-  document.body.style.overflow = ''
-})
+// Puntos del mapa, ya normalizados para CatalogMap. `coordsFor` prioriza el
+// lat/lng guardado en la propiedad y cae al que se pueda parsear de
+// direccionUrl; las que no se pueden ubicar quedan afuera. Ver geo.ts.
+const mapPoints = computed(() =>
+  filtered.value.flatMap((r) => {
+    const coords = coordsFor(r)
+    if (!coords) return []
+    return [{
+      id: r.id,
+      coords,
+      titulo: r.titulo,
+      subtitulo: `${r.barrio} · ${r.tipo}`,
+      precio: r.precio > 0 ? `${r.moneda || 'USD'} ${r.precio.toLocaleString('es-AR')}` : t('departamentos.card.consultarPrecio'),
+      imagen: r.imagen,
+      href: detailHref(r),
+    }]
+  }),
+)
+
+// ── Panel de filtros ─────────────────────────────────
+// Bottom sheet en mobile, dropdown anclado en escritorio — ver
+// useFilterPanel.ts y `.br-filtros-panel` en br-catalog.css.
+const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPanel()
 
 // ── Card actions ──────────────────────────────────────
 function goTo(r: RentalProperty) {
@@ -277,10 +284,10 @@ function formatFecha(fecha?: string) {
       </div>
     </section>
 
-    <div class="br-filtro-mob-overlay" :class="{ open: sheetOpen }" @click="sheetOpen = false"></div>
+    <div class="br-filtros-overlay" :class="{ open: panelOpen }" @click="closePanel"></div>
 
-    <div class="br-filtros-wrapper" :class="{ 'mob-open': sheetOpen }">
-      <div class="br-filtro-mob-bar">
+    <div class="br-filtros-wrapper" :class="{ open: panelOpen }">
+      <div class="br-filtros-bar">
         <div class="br-quick-search">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -306,18 +313,47 @@ function formatFecha(fecha?: string) {
           </button>
         </div>
 
-        <button class="br-filtros-trigger-mob" type="button" @click="sheetOpen = true">
+        <button
+          class="br-filtros-trigger"
+          :class="{ active: panelOpen }"
+          type="button"
+          :aria-expanded="panelOpen"
+          @click="togglePanel"
+        >
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="14" y2="12" /><line x1="4" y1="18" x2="10" y2="18" />
           </svg>
           {{ t('departamentos.filtros.filtrar') }}
-          <span class="br-filtro-badge" v-show="activeFilterCount > 0">{{ activeFilterCount }}</span>
+          <span v-show="activeFilterCount > 0" class="br-filtro-badge">{{ activeFilterCount }}</span>
         </button>
-        <span class="br-filtro-mob-count">{{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}</span>
+
+        <div class="br-filtros-bar-end">
+          <span class="br-contador-inline">
+            {{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}
+          </span>
+          <button v-show="activeFilterCount > 0" type="button" class="br-btn-limpiar" @click="clearFilters">
+            {{ t('departamentos.filtros.limpiar') }}
+          </button>
+          <div class="br-catalogo-view-toggle">
+            <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'list' }" @click="catalogView = 'list'">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
+                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+              {{ t('departamentos.filtros.vistaLista') }}
+            </button>
+            <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'map' }" @click="catalogView = 'map'">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+              </svg>
+              {{ t('departamentos.filtros.vistaMapa') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="br-filtro-sheet-header">
-        <button class="br-filtro-sheet-close-btn" type="button" :aria-label="t('departamentos.filtros.filtros')" @click="sheetOpen = false">
+        <button class="br-filtro-sheet-close-btn" type="button" :aria-label="t('departamentos.filtros.filtros')" @click="closePanel">
           <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M19 12H5M12 5l-7 7 7 7" />
           </svg>
@@ -326,132 +362,116 @@ function formatFecha(fecha?: string) {
         <button class="br-filtro-sheet-reset-btn" type="button" @click="clearFilters">{{ t('departamentos.filtros.limpiar') }}</button>
       </div>
 
-      <div class="br-filtros-inner">
-        <div class="br-filtros-collapsible">
-          <div class="br-filtros-row">
-            <!-- Buscador / barrio / tipo también acá: en escritorio la barra
-                 rápida está oculta y estos son los controles visibles, como
-                 en departamentos.html:598-620. Comparten los mismos refs que
-                 los de la barra rápida, así que el estado es uno solo. -->
-            <div class="br-filtro-grupo br-busqueda-wrap">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.busqueda') }}</span>
-              <input
-                v-model="search"
-                type="search"
-                class="br-filtro-search"
-                :placeholder="t('departamentos.filtros.busquedaPlaceholder')"
-                autocomplete="off"
-              />
-            </div>
-
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.barrio') }}</span>
-              <select v-model="barrio" class="br-filtro-select">
-                <option value="">{{ t('departamentos.filtros.todos') }}</option>
-                <option v-for="b in barrios" :key="b" :value="b">{{ b }}</option>
-              </select>
-            </div>
-
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.tipo') }}</span>
-              <div class="br-filtro-pills">
-                <button
-                  v-for="tp in TIPOS"
-                  :key="tp.value"
-                  type="button"
-                  class="br-pill-btn"
-                  :class="{ active: tipos.includes(tp.value) }"
-                  @click="toggleTipo(tp.value)"
-                >
-                  {{ t(`departamentos.filtros.${tp.labelKey}`) }}
-                </button>
+      <div class="br-filtros-panel">
+        <div class="br-filtros-inner">
+          <div class="br-filtros-collapsible">
+            <div class="br-filtros-row">
+              <!-- Buscador / barrio / tipo también acá: en escritorio la barra
+                   rápida está oculta y estos son los controles visibles, como
+                   en departamentos.html:598-620. Comparten los mismos refs que
+                   los de la barra rápida, así que el estado es uno solo. -->
+              <div class="br-filtro-grupo br-busqueda-wrap br-filtro-grupo-dup">
+                <span class="br-filtro-label">{{ t('departamentos.filtros.busqueda') }}</span>
+                <input
+                  v-model="search"
+                  type="search"
+                  class="br-filtro-search"
+                  :placeholder="t('departamentos.filtros.busquedaPlaceholder')"
+                  autocomplete="off"
+                />
               </div>
-            </div>
 
-            <div class="br-filtro-grupo br-precio-wrap">
-              <div class="br-precio-top">
-                <span class="br-filtro-label">{{ t('departamentos.filtros.precio') }}</span>
-                <span id="label-precio">USD {{ precioMax.toLocaleString('es-AR') }}</span>
+              <div class="br-filtro-grupo br-filtro-grupo-dup">
+                <span class="br-filtro-label">{{ t('departamentos.filtros.barrio') }}</span>
+                <select v-model="barrio" class="br-filtro-select">
+                  <option value="">{{ t('departamentos.filtros.todos') }}</option>
+                  <option v-for="b in barrios" :key="b" :value="b">{{ b }}</option>
+                </select>
               </div>
-              <input v-model.number="precioMax" type="range" class="br-range" :min="PRECIO_MIN" :max="PRECIO_MAX" :step="PRECIO_STEP" />
-            </div>
 
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.amueblado') }}</span>
-              <div class="br-filtro-pills">
-                <button type="button" class="br-pill-btn" :class="{ active: amueblado === 'si' }" @click="setAmueblado('si')">{{ t('departamentos.filtros.si') }}</button>
-                <button type="button" class="br-pill-btn" :class="{ active: amueblado === 'no' }" @click="setAmueblado('no')">{{ t('departamentos.filtros.no') }}</button>
+              <div class="br-filtro-grupo br-filtro-grupo-dup">
+                <span class="br-filtro-label">{{ t('departamentos.filtros.tipo') }}</span>
+                <div class="br-filtro-pills">
+                  <button
+                    v-for="tp in TIPOS"
+                    :key="tp.value"
+                    type="button"
+                    class="br-pill-btn"
+                    :class="{ active: tipos.includes(tp.value) }"
+                    @click="toggleTipo(tp.value)"
+                  >
+                    {{ t(`departamentos.filtros.${tp.labelKey}`) }}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.mascotas') }}</span>
-              <label class="br-toggle-wrap">
-                <input v-model="mascotas" type="checkbox" />
-              </label>
-            </div>
-
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">BairesRental</span>
-              <div class="br-filtro-pills">
-                <button type="button" class="br-pill-btn br-pill-btn-baires" :class="{ active: soloBairesRental }" @click="soloBairesRental = !soloBairesRental">
-                  {{ t('departamentos.filtros.baires') }}
-                </button>
+              <div class="br-filtro-grupo br-precio-wrap">
+                <div class="br-precio-top">
+                  <span class="br-filtro-label">{{ t('departamentos.filtros.precio') }}</span>
+                  <span id="label-precio">USD {{ precioMax.toLocaleString('es-AR') }}</span>
+                </div>
+                <input v-model.number="precioMax" type="range" class="br-range" :min="PRECIO_MIN" :max="PRECIO_MAX" :step="PRECIO_STEP" />
               </div>
-            </div>
 
-            <div class="br-filtro-grupo">
-              <span class="br-filtro-label">{{ t('departamentos.filtros.disponibilidad') }}</span>
-              <div class="br-filtro-pills">
-                <button type="button" class="br-pill-btn br-pill-btn-disponible" :class="{ active: soloDisponibles }" @click="soloDisponibles = !soloDisponibles">
-                  {{ t('departamentos.filtros.disponible') }}
-                </button>
+              <div class="br-filtro-grupo">
+                <span class="br-filtro-label">{{ t('departamentos.filtros.amueblado') }}</span>
+                <div class="br-filtro-pills">
+                  <button type="button" class="br-pill-btn" :class="{ active: amueblado === 'si' }" @click="setAmueblado('si')">{{ t('departamentos.filtros.si') }}</button>
+                  <button type="button" class="br-pill-btn" :class="{ active: amueblado === 'no' }" @click="setAmueblado('no')">{{ t('departamentos.filtros.no') }}</button>
+                </div>
               </div>
-            </div>
 
-            <div class="br-filtro-grupo">
-              <div class="br-filtro-pills">
-                <label v-for="a in AMENITY_FILTERS" :key="a" class="br-amenity-check">
-                  <input type="checkbox" :checked="amenitiesSel.includes(a)" @change="toggleAmenity(a)" />
-                  <span>{{ amenityLabel(a) }}</span>
+              <div class="br-filtro-grupo">
+                <span class="br-filtro-label">{{ t('departamentos.filtros.mascotas') }}</span>
+                <label class="br-toggle-wrap">
+                  <input v-model="mascotas" type="checkbox" />
                 </label>
               </div>
-            </div>
 
-            <!-- Contador inline + "Limpiar": estaban en la barra de
-                 escritorio del estático (departamentos.html:674-675) y se
-                 habían perdido — para limpiar filtros había que abrir el
-                 modal. En mobile los esconde el CSS: el header del sheet ya
-                 trae su propio "Limpiar". -->
-            <span class="br-contador-inline">
-              {{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}
-            </span>
-            <button type="button" class="br-btn-limpiar" @click="clearFilters">
-              {{ t('departamentos.filtros.limpiar') }}
-            </button>
+              <div class="br-filtro-grupo">
+                <span class="br-filtro-label">BairesRental</span>
+                <div class="br-filtro-pills">
+                  <button type="button" class="br-pill-btn br-pill-btn-baires" :class="{ active: soloBairesRental }" @click="soloBairesRental = !soloBairesRental">
+                    {{ t('departamentos.filtros.baires') }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="br-filtro-grupo">
+                <span class="br-filtro-label">{{ t('departamentos.filtros.disponibilidad') }}</span>
+                <div class="br-filtro-pills">
+                  <button type="button" class="br-pill-btn br-pill-btn-disponible" :class="{ active: soloDisponibles }" @click="soloDisponibles = !soloDisponibles">
+                    {{ t('departamentos.filtros.disponible') }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="br-filtro-grupo">
+                <div class="br-filtro-pills">
+                  <label v-for="a in AMENITY_FILTERS" :key="a" class="br-amenity-check">
+                    <input type="checkbox" :checked="amenitiesSel.includes(a)" @change="toggleAmenity(a)" />
+                    <span>{{ amenityLabel(a) }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="br-filtro-sheet-footer">
-        <button type="button" class="br-filtro-sheet-apply-btn" @click="sheetOpen = false">
-          {{ t('departamentos.filtros.verResultadosCount', { count: filtered.length }) }}
-        </button>
+        <div class="br-filtro-sheet-footer">
+          <button type="button" class="br-filtro-sheet-reset-btn br-reset-escritorio" @click="clearFilters">
+            {{ t('departamentos.filtros.limpiar') }}
+          </button>
+          <button type="button" class="br-filtro-sheet-apply-btn" @click="closePanel">
+            {{ t('departamentos.filtros.verResultadosCount', { count: filtered.length }) }}
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="br-catalogo-section">
-      <div class="br-catalogo-view-toggle">
-        <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'list' }" @click="catalogView = 'list'">
-          {{ t('departamentos.filtros.vistaLista') }}
-        </button>
-        <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'map' }" @click="catalogView = 'map'">
-          {{ t('departamentos.filtros.vistaMapa') }}
-        </button>
-      </div>
-
       <div class="br-catalogo-split">
-        <div class="br-catalogo-list" :class="{ 'br-split-hide-mobile': catalogView === 'map' }">
+        <div class="br-catalogo-list" :class="{ 'br-lista-oculta': catalogView === 'map' }">
           <div v-if="!filtered.length" class="text-center py-5">
             <div class="mb-3" style="font-size: 3rem">🔍</div>
             <h4 class="mb-2" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.title') }}</h4>
@@ -569,9 +589,9 @@ function formatFecha(fecha?: string) {
           </div>
         </div>
 
-        <div class="br-catalogo-map-panel" :class="{ 'br-split-hide-mobile': catalogView === 'list' }">
+        <div class="br-catalogo-map-panel" :class="{ 'br-mapa-oculto': catalogView === 'list' }">
           <ClientOnly>
-            <RentalMap :rentals="filtered" />
+            <CatalogMap v-if="catalogView === 'map'" :points="mapPoints" :ver-detalles="t('departamentos.card.verDetalles')" />
           </ClientOnly>
         </div>
       </div>
@@ -584,43 +604,42 @@ function formatFecha(fecha?: string) {
 <style scoped>
 /* ── Filtros compactos ─────────────────────────────────────────────
    Portado de departamentos.html:366-376, un bloque de overrides propios de
-   la página que no se había migrado. Son px explícitos a propósito: en el
-   estático achicaban la barra de filtros a dos filas. */
-.br-filtros-inner {
-  padding: 7px 24px;
-}
+   la página. Son px explícitos a propósito: en el estático achicaban la
+   barra de filtros a dos filas.
+   Van acotados a `.br-filtros-row` — o sea, al contenido del panel. Sueltos
+   también pegaban en la barra sticky (`.br-pill-btn`, `.br-btn-limpiar`),
+   donde los controles tienen que leerse a tamaño normal. El padding de
+   `.br-filtros-inner` lo fija ahora la hoja compartida según el panel sea
+   dropdown o sheet. */
 .br-filtros-row {
   gap: 9px;
 }
-.br-filtro-grupo {
+.br-filtros-row .br-filtro-grupo {
   gap: 2px;
 }
-.br-filtro-label {
+.br-filtros-row .br-filtro-label {
   font-size: 11px;
 }
-.br-pill-btn {
+.br-filtros-row .br-pill-btn {
   font-size: 11px;
   padding: 3px 9px;
 }
-.br-filtro-select {
+.br-filtros-row .br-filtro-select {
   font-size: 11px;
   padding: 4px 10px;
   min-width: 110px;
 }
-.br-toggle-wrap span {
+.br-filtros-row .br-toggle-wrap span {
   font-size: 11px;
 }
-#label-precio {
+.br-filtros-row #label-precio {
   font-size: 11px;
 }
-.br-precio-wrap {
+.br-filtros-row .br-precio-wrap {
   min-width: 130px;
 }
-.br-btn-limpiar {
-  font-size: 11px;
-}
 @media (max-width: 768px) {
-  .br-amenity-check {
+  .br-filtros-row .br-amenity-check {
     font-size: 10px;
     padding: 2px 6px;
     line-height: 1.2;
@@ -842,13 +861,19 @@ function formatFecha(fecha?: string) {
   }
 }
 
-.br-filtros-wrapper {
+/* El `:not(.open)` importa: con el panel abierto en mobile la hoja compartida
+   pasa el wrapper a `position: fixed; inset: 0` para el bottom sheet, y este
+   `sticky !important` le empataba en especificidad (una clase + el atributo de
+   scope, igual que `.br-filtros-wrapper.open`) y ganaba por orden de fuente.
+   Resultado: el sheet no ocupaba la pantalla, quedaba encajado donde estaba la
+   barra. Acotarlo al estado cerrado saca el empate de la ecuación. */
+.br-filtros-wrapper:not(.open) {
   position: sticky !important;
   top: 64px;
   margin-top: 0 !important;
 }
 @media (max-width: 1100px) {
-  .br-filtros-wrapper {
+  .br-filtros-wrapper:not(.open) {
     top: 58px;
   }
 }

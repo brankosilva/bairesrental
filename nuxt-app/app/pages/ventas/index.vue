@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { collection, getFirestore } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import type { SaleProperty } from '~/types/property'
+import { coordsFor } from '~/utils/geo'
 
 // Reescrita sobre el sistema `br-*`, en paralelo a pages/departamentos/index.vue.
 // Antes eran 118 líneas de utilidades de Bootstrap (container/row/card/h3) contra
@@ -147,19 +148,31 @@ const activeFilterCount = computed(() => {
   return n
 })
 
-// ── Sheet de filtros en mobile ────────────────────────
-const sheetOpen = ref(false)
-watch(sheetOpen, (open) => {
-  document.body.style.overflow = open ? 'hidden' : ''
-})
-function onResize() {
-  if (window.innerWidth > 768) sheetOpen.value = false
-}
-onMounted(() => window.addEventListener('resize', onResize))
-onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
-  document.body.style.overflow = ''
-})
+// ── Panel de filtros ─────────────────────────────────
+// Bottom sheet en mobile, dropdown anclado en escritorio — ver
+// useFilterPanel.ts y `.br-filtros-panel` en br-catalog.css.
+const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPanel()
+
+// ── Vista Lista / Mapa ────────────────────────────────
+// NUXT-NEW, igual que en alquileres: el mapa es opt-in para que la lista
+// conserve sus 3 columnas en escritorio.
+const catalogView = ref<'list' | 'map'>('list')
+
+const mapPoints = computed(() =>
+  filtered.value.flatMap((s) => {
+    const coords = coordsFor(s)
+    if (!coords) return []
+    return [{
+      id: s.id,
+      coords,
+      titulo: s.titulo,
+      subtitulo: `${s.barrio} · ${s.tipo}`,
+      precio: s.precio > 0 ? `${s.moneda || 'USD'} ${s.precio.toLocaleString('es-AR')}` : t('ventas.card.consultarPrecio'),
+      imagen: s.fotos?.[0],
+      href: detailHref(s),
+    }]
+  }),
+)
 
 // ── Acciones de la card ───────────────────────────────
 const SITE_URL = 'https://www.bairesrental.com.ar'
@@ -208,10 +221,10 @@ async function share(s: SaleProperty) {
       </div>
     </section>
 
-    <div class="br-filtro-mob-overlay" :class="{ open: sheetOpen }" @click="sheetOpen = false"></div>
+    <div class="br-filtros-overlay" :class="{ open: panelOpen }" @click="closePanel"></div>
 
-    <div class="br-filtros-wrapper" :class="{ 'mob-open': sheetOpen }">
-      <div class="br-filtro-mob-bar">
+    <div class="br-filtros-wrapper" :class="{ open: panelOpen }">
+      <div class="br-filtros-bar">
         <div class="br-quick-search">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -237,18 +250,47 @@ async function share(s: SaleProperty) {
           </button>
         </div>
 
-        <button class="br-filtros-trigger-mob" type="button" @click="sheetOpen = true">
+        <button
+          class="br-filtros-trigger"
+          :class="{ active: panelOpen }"
+          type="button"
+          :aria-expanded="panelOpen"
+          @click="togglePanel"
+        >
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="14" y2="12" /><line x1="4" y1="18" x2="10" y2="18" />
           </svg>
           {{ t('ventas.filtros.filtrar') }}
           <span v-show="activeFilterCount > 0" class="br-filtro-badge">{{ activeFilterCount }}</span>
         </button>
-        <span class="br-filtro-mob-count">{{ t('ventas.filtros.propsCorto', { count: filtered.length, total: sales.length }) }}</span>
+
+        <div class="br-filtros-bar-end">
+          <span class="br-contador-inline">
+            {{ t('ventas.filtros.propsCorto', { count: filtered.length, total: sales.length }) }}
+          </span>
+          <button v-show="activeFilterCount > 0" type="button" class="br-btn-limpiar" @click="clearFilters">
+            {{ t('ventas.filtros.limpiar') }}
+          </button>
+          <div class="br-catalogo-view-toggle">
+            <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'list' }" @click="catalogView = 'list'">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
+                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+              {{ t('ventas.filtros.vistaLista') }}
+            </button>
+            <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'map' }" @click="catalogView = 'map'">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+              </svg>
+              {{ t('ventas.filtros.vistaMapa') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="br-filtro-sheet-header">
-        <button class="br-filtro-sheet-close-btn" type="button" :aria-label="t('ventas.filtros.filtros')" @click="sheetOpen = false">
+        <button class="br-filtro-sheet-close-btn" type="button" :aria-label="t('ventas.filtros.filtros')" @click="closePanel">
           <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M19 12H5M12 5l-7 7 7 7" />
           </svg>
@@ -257,15 +299,16 @@ async function share(s: SaleProperty) {
         <button class="br-filtro-sheet-reset-btn" type="button" @click="clearFilters">{{ t('ventas.filtros.limpiar') }}</button>
       </div>
 
-      <div class="br-filtros-inner">
+      <div class="br-filtros-panel">
+        <div class="br-filtros-inner">
         <div class="br-filtros-collapsible">
           <div class="br-filtros-row">
-            <div class="br-filtro-grupo br-busqueda-wrap">
+            <div class="br-filtro-grupo br-busqueda-wrap br-filtro-grupo-dup">
               <span class="br-filtro-label">{{ t('ventas.filtros.busqueda') }}</span>
               <input v-model="search" type="search" class="br-filtro-search" :placeholder="t('ventas.filtros.busquedaPlaceholder')" autocomplete="off" />
             </div>
 
-            <div class="br-filtro-grupo">
+            <div class="br-filtro-grupo br-filtro-grupo-dup">
               <span class="br-filtro-label">{{ t('ventas.filtros.barrio') }}</span>
               <select v-model="barrio" class="br-filtro-select">
                 <option value="">{{ t('ventas.filtros.todos') }}</option>
@@ -273,7 +316,7 @@ async function share(s: SaleProperty) {
               </select>
             </div>
 
-            <div class="br-filtro-grupo">
+            <div class="br-filtro-grupo br-filtro-grupo-dup">
               <span class="br-filtro-label">{{ t('ventas.filtros.tipo') }}</span>
               <div class="br-filtro-pills">
                 <button
@@ -344,115 +387,122 @@ async function share(s: SaleProperty) {
                 </label>
               </div>
             </div>
-
-            <span class="br-contador-inline">
-              {{ t('ventas.filtros.propsCorto', { count: filtered.length, total: sales.length }) }}
-            </span>
-            <button type="button" class="br-btn-limpiar" @click="clearFilters">
-              {{ t('ventas.filtros.limpiar') }}
-            </button>
           </div>
         </div>
       </div>
 
-      <div class="br-filtro-sheet-footer">
-        <button class="br-filtro-sheet-apply-btn" type="button" @click="sheetOpen = false">
-          {{ t('ventas.filtros.verResultadosCount', { count: filtered.length }) }}
-        </button>
+        <div class="br-filtro-sheet-footer">
+          <button type="button" class="br-filtro-sheet-reset-btn br-reset-escritorio" @click="clearFilters">
+            {{ t('ventas.filtros.limpiar') }}
+          </button>
+          <button class="br-filtro-sheet-apply-btn" type="button" @click="closePanel">
+            {{ t('ventas.filtros.verResultadosCount', { count: filtered.length }) }}
+          </button>
+        </div>
       </div>
     </div>
 
     <section class="br-catalogo-section">
-      <div v-if="!filtered.length" class="br-sin-resultados">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem">🔍</div>
-        <h2>{{ t('ventas.noResultsTitle') }}</h2>
-        <p>{{ t('ventas.noResultsSub') }}</p>
-        <a
-          :href="whatsappUrl(t('ventas.waGenerico'))"
-          target="_blank"
-          rel="noopener"
-          class="br-btn-wa d-inline-flex"
-          style="width: auto; padding: 0.65rem 1.5rem"
-        >
-          {{ t('ventas.noResultsWa') }}
-        </a>
-      </div>
+      <div class="br-catalogo-split">
+        <div class="br-catalogo-list" :class="{ 'br-lista-oculta': catalogView === 'map' }">
+          <div v-if="!filtered.length" class="br-sin-resultados">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem">🔍</div>
+            <h2>{{ t('ventas.noResultsTitle') }}</h2>
+            <p>{{ t('ventas.noResultsSub') }}</p>
+            <a
+              :href="whatsappUrl(t('ventas.waGenerico'))"
+              target="_blank"
+              rel="noopener"
+              class="br-btn-wa d-inline-flex"
+              style="width: auto; padding: 0.65rem 1.5rem"
+            >
+              {{ t('ventas.noResultsWa') }}
+            </a>
+          </div>
 
-      <div v-else id="catalogo-grid">
-        <div v-for="s in filtered" :key="s.id" class="br-prop-card">
-          <div class="br-prop-img" @click="goTo(s)">
-            <img v-if="s.fotos?.[0]" :src="s.fotos[0]" :alt="s.titulo" loading="lazy" />
-            <div v-else class="br-prop-img-placeholder">📸</div>
-            <div class="br-prop-badges">
-              <span v-if="s.esPropio" class="br-badge br-badge-propio">{{ t('ventas.card.propio') }}</span>
-              <span
-                class="br-badge"
-                :class="{
-                  'br-badge-disponible': s.disponibilidad === 'disponible',
-                  'br-badge-reservado': s.disponibilidad === 'reservado',
-                  'br-badge-nodisponible': s.disponibilidad !== 'disponible' && s.disponibilidad !== 'reservado',
-                }"
-              >
-                {{
-                  s.disponibilidad === 'disponible'
-                    ? t('ventas.card.disponible')
-                    : s.disponibilidad === 'reservado'
-                      ? t('ventas.card.reservado')
-                      : t('ventas.card.vendido')
-                }}
-              </span>
-              <span v-if="(s.fotos?.length ?? 0) > 1" class="br-badge br-fotos-count">📷 {{ s.fotos.length }}</span>
+          <div v-else id="catalogo-grid">
+            <div v-for="s in filtered" :key="s.id" class="br-prop-card">
+              <div class="br-prop-img" @click="goTo(s)">
+                <img v-if="s.fotos?.[0]" :src="s.fotos[0]" :alt="s.titulo" loading="lazy" />
+                <div v-else class="br-prop-img-placeholder">📸</div>
+                <div class="br-prop-badges">
+                  <span v-if="s.esPropio" class="br-badge br-badge-propio">{{ t('ventas.card.propio') }}</span>
+                  <span
+                    class="br-badge"
+                    :class="{
+                      'br-badge-disponible': s.disponibilidad === 'disponible',
+                      'br-badge-reservado': s.disponibilidad === 'reservado',
+                      'br-badge-nodisponible': s.disponibilidad !== 'disponible' && s.disponibilidad !== 'reservado',
+                    }"
+                  >
+                    {{
+                      s.disponibilidad === 'disponible'
+                        ? t('ventas.card.disponible')
+                        : s.disponibilidad === 'reservado'
+                          ? t('ventas.card.reservado')
+                          : t('ventas.card.vendido')
+                    }}
+                  </span>
+                  <span v-if="(s.fotos?.length ?? 0) > 1" class="br-badge br-fotos-count">📷 {{ s.fotos.length }}</span>
+                </div>
+              </div>
+              <div class="br-prop-body">
+                <div class="br-prop-clickzone" @click="goTo(s)">
+                  <div class="br-prop-location">
+                    {{ s.barrio }} · <em style="font-style: normal; font-weight: 500">{{ s.tipo }}</em>
+                  </div>
+                  <div v-if="s.direccion && s.direccionUrl" class="br-prop-direccion">
+                    <a :href="s.direccionUrl" target="_blank" rel="noopener" class="br-btn-ver-mapa" @click.stop>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+                      </svg>
+                      {{ s.direccion }} — {{ t('ventas.card.verMapa') }}
+                    </a>
+                  </div>
+                  <h2 class="br-prop-titulo">{{ s.titulo }}</h2>
+                  <div class="br-prop-precio-row">
+                    <span v-if="s.precio > 0" class="br-precio">{{ s.moneda || 'USD' }} {{ s.precio.toLocaleString('es-AR') }}</span>
+                    <span v-else class="br-precio" style="font-size: 1rem; font-weight: 700">{{ t('ventas.card.consultarPrecio') }}</span>
+                    <span class="br-precio-sub">
+                      <span v-if="s.superficie" class="br-tag-servicios">{{ s.superficie }} m²</span>
+                      <span v-if="s.ambientes" class="br-tag-minimo">{{ s.ambientes }} {{ t('ventas.card.amb') }}</span>
+                      <span v-if="s.aptoCredito" class="br-tag-servicios">{{ t('ventas.card.aptoCredito') }}</span>
+                    </span>
+                  </div>
+                  <div class="br-amenities-row">
+                    <span v-for="a in (s.amenities ?? []).slice(0, 4)" :key="a" class="br-amenity-tag">{{ amenityLabel(a) }}</span>
+                  </div>
+                  <p class="br-prop-desc">{{ truncate(s.descripcion, 120) }}</p>
+                </div>
+                <div class="br-prop-actions">
+                  <NuxtLink :to="detailHref(s)" class="br-btn-detalle-primary w-100 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                      <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                    </svg>
+                    {{ t('ventas.card.verDetalles') }}
+                  </NuxtLink>
+                  <div class="br-btn-detalle-row">
+                    <a :href="whatsappUrl(waMessageFor(s))" target="_blank" rel="noopener" class="br-btn-wa-outline" @click.stop>
+                      <IconWhatsapp :size="15" />
+                      {{ t('ventas.card.whatsapp') }}
+                    </a>
+                    <button type="button" class="br-btn-compartir" :title="t('ventas.card.verDetalles')" @click.stop="share(s)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="br-prop-body">
-            <div class="br-prop-clickzone" @click="goTo(s)">
-              <div class="br-prop-location">
-                {{ s.barrio }} · <em style="font-style: normal; font-weight: 500">{{ s.tipo }}</em>
-              </div>
-              <div v-if="s.direccion && s.direccionUrl" class="br-prop-direccion">
-                <a :href="s.direccionUrl" target="_blank" rel="noopener" class="br-btn-ver-mapa" @click.stop>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
-                  </svg>
-                  {{ s.direccion }} — {{ t('ventas.card.verMapa') }}
-                </a>
-              </div>
-              <h2 class="br-prop-titulo">{{ s.titulo }}</h2>
-              <div class="br-prop-precio-row">
-                <span v-if="s.precio > 0" class="br-precio">{{ s.moneda || 'USD' }} {{ s.precio.toLocaleString('es-AR') }}</span>
-                <span v-else class="br-precio" style="font-size: 1rem; font-weight: 700">{{ t('ventas.card.consultarPrecio') }}</span>
-                <span class="br-precio-sub">
-                  <span v-if="s.superficie" class="br-tag-servicios">{{ s.superficie }} m²</span>
-                  <span v-if="s.ambientes" class="br-tag-minimo">{{ s.ambientes }} {{ t('ventas.card.amb') }}</span>
-                  <span v-if="s.aptoCredito" class="br-tag-servicios">{{ t('ventas.card.aptoCredito') }}</span>
-                </span>
-              </div>
-              <div class="br-amenities-row">
-                <span v-for="a in (s.amenities ?? []).slice(0, 4)" :key="a" class="br-amenity-tag">{{ amenityLabel(a) }}</span>
-              </div>
-              <p class="br-prop-desc">{{ truncate(s.descripcion, 120) }}</p>
-            </div>
-            <div class="br-prop-actions">
-              <NuxtLink :to="detailHref(s)" class="br-btn-detalle-primary w-100 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
-                  <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-                </svg>
-                {{ t('ventas.card.verDetalles') }}
-              </NuxtLink>
-              <div class="br-btn-detalle-row">
-                <a :href="whatsappUrl(waMessageFor(s))" target="_blank" rel="noopener" class="br-btn-wa-outline" @click.stop>
-                  <IconWhatsapp :size="15" />
-                  {{ t('ventas.card.whatsapp') }}
-                </a>
-                <button type="button" class="br-btn-compartir" :title="t('ventas.card.verDetalles')" @click.stop="share(s)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+        </div>
+
+        <div class="br-catalogo-map-panel" :class="{ 'br-mapa-oculto': catalogView === 'list' }">
+          <ClientOnly>
+            <CatalogMap v-if="catalogView === 'map'" :points="mapPoints" :ver-detalles="t('ventas.card.verDetalles')" />
+          </ClientOnly>
         </div>
       </div>
     </section>
@@ -463,46 +513,42 @@ async function share(s: SaleProperty) {
 
 <style scoped>
 /* Misma compactación de filtros que el catálogo de alquileres — ventas.html
-   traía su propio bloque equivalente. */
+   traía su propio bloque equivalente. Acotada a `.br-filtros-row` por el
+   mismo motivo: sueltos, estos selectores achicaban también los controles
+   de la barra sticky. */
 .br-catalogo-page {
   line-height: 1.7;
-}
-.br-filtros-inner {
-  padding: 7px 24px;
 }
 .br-filtros-row {
   gap: 9px;
 }
-.br-filtro-grupo {
+.br-filtros-row .br-filtro-grupo {
   gap: 2px;
 }
-.br-filtro-label {
+.br-filtros-row .br-filtro-label {
   font-size: 11px;
 }
-.br-pill-btn {
+.br-filtros-row .br-pill-btn {
   font-size: 11px;
   padding: 3px 9px;
 }
-.br-filtro-select {
+.br-filtros-row .br-filtro-select {
   font-size: 11px;
   padding: 4px 10px;
   min-width: 110px;
 }
-#label-precio,
-#label-superficie {
+.br-filtros-row #label-precio,
+.br-filtros-row #label-superficie {
   font-size: 11px;
   font-family: 'DM Sans', sans-serif;
   font-weight: 700;
   color: var(--br-azul);
 }
-.br-precio-wrap {
+.br-filtros-row .br-precio-wrap {
   min-width: 130px;
 }
-.br-btn-limpiar {
-  font-size: 11px;
-}
 @media (max-width: 768px) {
-  .br-amenity-check {
+  .br-filtros-row .br-amenity-check {
     font-size: 10px;
     padding: 2px 6px;
     line-height: 1.2;

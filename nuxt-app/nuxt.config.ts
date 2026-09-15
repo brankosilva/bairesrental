@@ -2,18 +2,38 @@
 // preset deploy pipeline (see ~/.claude/plans's Nuxt migration plan and
 // nuxt-app/CHANGELOG.md). N1 builds the real public catalog + i18n +
 // sitemap on top of that proven base.
+
+// Origen público del sitio. Lo usan @nuxtjs/sitemap (vía nuxt-site-config)
+// y @nuxtjs/i18n para construir canonical/hreflang/og:url absolutas.
+//
+// Es override-able por env a propósito. Estaba fijo en el dominio propio,
+// pero ese dominio TODAVÍA sirve el sitio estático viejo por GitHub Pages
+// (el cutover de DNS está pendiente — ver la cabecera de
+// .github/workflows/deploy-nuxt.yml), así que cada ficha publicada en
+// bairesrental.web.app venía declarando `og:url` y `canonical` apuntando a
+// una URL que devuelve un 404 de GitHub Pages. WhatsApp y Facebook toman
+// `og:url` como la identidad real de la página: scrapean el link que pegaste,
+// leen ese `og:url` y vuelven a scrapear ESA URL para armar el preview —
+// caían en el 404, sin og:* de ningún tipo, y por eso el link salía sin
+// imagen ni título. Google, por el mismo motivo, estaba recibiendo un
+// canonical roto para las 88 fichas.
+//
+// Mientras dure el split de dominios, el deploy setea
+// NUXT_PUBLIC_SITE_URL=https://bairesrental.web.app. Después del cutover
+// alcanza con sacar esa variable y vuelve solo al dominio propio.
+const SITE_URL = process.env.NUXT_PUBLIC_SITE_URL || 'https://www.bairesrental.com.ar'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
   modules: ['nuxt-vuefire', '@nuxtjs/i18n', '@nuxtjs/sitemap'],
 
-  // Used by @nuxtjs/sitemap (via nuxt-site-config) to build absolute URLs,
-  // and matches the canonical domain used throughout the old app
-  // (app/src/i18n/useLocaleLinks.ts's SITE_URL) — the live site's actual
-  // custom domain, not the *.web.app preview host.
+  // Used by @nuxtjs/sitemap (via nuxt-site-config) to build absolute URLs.
+  // Ver SITE_URL arriba: por defecto el dominio propio, pisable por env
+  // mientras el cutover de DNS siga pendiente.
   site: {
-    url: 'https://www.bairesrental.com.ar',
+    url: SITE_URL,
   },
 
   // Old app/src/index.html's static <head> (Google Fonts preconnect + DM
@@ -104,7 +124,7 @@ export default defineNuxtConfig({
     // Absolute canonical/hreflang URLs via useLocaleHead() — required or
     // it just warns and emits relative/empty links (see
     // node_modules/@nuxtjs/i18n's routing/head.js).
-    baseUrl: 'https://www.bairesrental.com.ar',
+    baseUrl: SITE_URL,
     defaultLocale: 'es',
     // 'es' unprefixed at root (matches the live site's current URLs),
     // 'en' under /en/... — same scheme as the old hand-rolled
@@ -146,6 +166,22 @@ export default defineNuxtConfig({
   // (autoI18n). Only the per-listing dynamic routes need a runtime
   // source — see server/api/__sitemap__/urls.ts.
   // NUXT-NEW: sitemap.xml generado. El estático tenía un sitemap.xml a mano.
+  // maplibre-gl resuelve su tile worker en runtime con
+  // `new URL('./maplibre-gl-worker.mjs', import.meta.url)`. Ni el optimizador
+  // de deps (dev) ni Rollup (build) dejan ese archivo al lado del bundle —
+  // Rollup ni siquiera lo ve, porque el nombre se arma con un ternario y no es
+  // analizable estaticamente. Resultado: el worker daba 404 y moria al
+  // instante, y como los tiles .pbf los pide el worker (el estilo y los
+  // sprites van por el main thread), el mapa quedaba en blanco.
+  //
+  // CatalogMap.vue lo resuelve llamando a `setWorkerUrl()` con la URL que
+  // devuelve `?worker&url`, que hace que Vite empaquete el worker con sus
+  // dependencias y lo emita como asset. `format: 'es'` es necesario porque
+  // maplibre lo instancia con `new Worker(url, { type: 'module' })`.
+  vite: {
+    worker: { format: 'es' },
+  },
+
   sitemap: {
     sources: ['/api/__sitemap__/urls'],
     // `/app/**` (and its `/en/app/**` locale-prefixed equivalent) is the

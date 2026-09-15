@@ -278,6 +278,8 @@
       "filtrar": "Filter",
       "filtros": "Filters",
       "verResultadosCount": "See {count} properties",
+      "vistaLista": "List",
+      "vistaMapa": "Map",
       "propsCorto": "{count}/{total} props."
     },
     "card": {

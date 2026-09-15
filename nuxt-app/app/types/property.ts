@@ -23,6 +23,10 @@ export interface RentalProperty {
   fichaUrl?: string
   direccion?: string
   direccionUrl?: string
+  // Coordenadas del pin del mapa. Las escribe scripts/resolve-map-coords.js;
+  // si faltan, el mapa cae a parsear direccionUrl. Ver utils/geo.ts.
+  lat?: number
+  lng?: number
   whatsappMsg?: string
   esPropio: boolean
 }
@@ -48,6 +52,8 @@ export interface SaleProperty {
   fotos: string[]
   direccion?: string
   direccionUrl?: string
+  lat?: number
+  lng?: number
   whatsappMsg?: string
   fichaUrl?: string
   esPropio: boolean

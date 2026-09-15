@@ -21,6 +21,11 @@ import type { RentalProperty } from '~/types/property'
 const { t, tm, rt, locale } = useI18n()
 const localePath = useLocalePath()
 
+// El dominio salía hardcodeado acá, lo que pisaba el override de
+// NUXT_PUBLIC_SITE_URL y dejaba la home declarando un og:url de un dominio
+// distinto al de las fichas. Ahora sale de la misma fuente (site.url).
+const siteUrl = useSiteConfig().url.replace(/\/$/, '')
+
 useSeoMeta({
   title: () =>
     locale.value === 'en'
@@ -34,7 +39,7 @@ useSeoMeta({
   // cualquier link de la home compartido por WhatsApp/Facebook/LinkedIn salía
   // sin preview.
   ogType: 'website',
-  ogUrl: () => (locale.value === 'en' ? 'https://www.bairesrental.com.ar/en' : 'https://www.bairesrental.com.ar/'),
+  ogUrl: () => (locale.value === 'en' ? `${siteUrl}/en` : `${siteUrl}/`),
   ogLocale: () => (locale.value === 'en' ? 'en_US' : 'es_AR'),
   ogTitle: () =>
     locale.value === 'en'
@@ -44,7 +49,10 @@ useSeoMeta({
     locale.value === 'en'
       ? 'We manage your apartment in Buenos Aires: verified guests, income in dollars, clear reports, and your property always cared for.'
       : 'Gestionamos tu departamento en Buenos Aires: huéspedes verificados, ingresos en dólares, reportes claros y tu propiedad siempre cuidada. Sin sorpresas.',
-  ogImage: 'https://www.bairesrental.com.ar/images/bairesrentallogoblanco.png',
+  ogImage: `${siteUrl}/images/bairesrentallogoblanco.png`,
+  ogImageAlt: 'BairesRental',
+  twitterCard: 'summary',
+  twitterImage: `${siteUrl}/images/bairesrentallogoblanco.png`,
 })
 
 useHead({

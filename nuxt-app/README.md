@@ -192,3 +192,63 @@ grep -rn "NUXT-NEW\|NUXT-DEVIATION" app/ public/css/ nuxt.config.ts
   `disabled` del botón de contacto, barra rápida de filtros en mobile.
 - `NUXT-DEVIATION` — se apartó del estático a propósito: los FABs ahora
   aparecen también en las fichas de detalle (en el estático no estaban).
+
+## Previews de link (og:image)
+
+Cuando se comparte una ficha por WhatsApp, Facebook, X o LinkedIn, el preview
+sale de los `og:*` que renderiza el SSR. Hay dos piezas que tienen que estar
+bien o el link sale sin foto:
+
+**1. `og:url` tiene que apuntar al dominio donde vive este deploy.**
+WhatsApp y Facebook no arman el preview con la URL que pegaste: leen el
+`og:url` de esa página y vuelven a scrapear *esa* URL. Mientras el cutover de
+DNS siga pendiente, `www.bairesrental.com.ar` sirve el sitio estático viejo y
+devuelve 404 en `/departamentos/<id>`, así que apuntar ahí deja todas las
+fichas sin preview. Lo maneja `NUXT_PUBLIC_SITE_URL` (ver `SITE_URL` en
+`nuxt.config.ts` y el bloque `env:` de `.github/workflows/deploy-nuxt.yml`).
+
+**2. `og:image` tiene que ser un derivado 1200x630, no la portada cruda.**
+Las portadas que suben los vendedores son fotos de celular verticales de 2-4 MB.
+WhatsApp descarta cualquier `og:image` de más de ~300 KB —no muestra nada— y
+todas las plataformas esperan un apaisado ~1.91:1. La extensión
+`storage-resize-images` genera el derivado en cada upload y `app/utils/ogImage.ts`
+construye su URL.
+
+### Poner la extensión en marcha (una sola vez)
+
+La extensión está declarada en `firebase.json` y parametrizada en
+`extensions/storage-resize-images.env`, así que se despliega como todo lo demás:
+
+```bash
+firebase deploy --only extensions --project bairesrental
+```
+
+Ojo: **no tiene backfill** — los parámetros están comenteados upstream en su
+`extension.yaml`. Solo procesa uploads nuevos, así que las portadas que ya
+estaban en el bucket necesitan que se reescriba el objeto para disparar el
+trigger. Eso hace `scripts/backfill-og-images.js`.
+
+### Orden de los pasos
+
+El orden importa: si se despliega el sitio antes de que existan los derivados,
+las fichas quedan apuntando a un `og:image` que devuelve 404 y el preview sale
+*peor* que sin nada.
+
+```bash
+firebase deploy --only extensions --project bairesrental  # 1. instalar
+node scripts/backfill-og-images.js                        # 2. chequear (no escribe)
+node scripts/backfill-og-images.js --run                  # 3. disparar los que falten
+node scripts/backfill-og-images.js                        # 4. confirmar 0 faltantes
+                                                          # 5. recién ahí, desplegar
+```
+
+El paso 4 tiene que terminar en "✅ Todas las portadas tienen su derivado".
+El smoke test del workflow de deploy vuelve a chequear lo mismo contra el sitio
+publicado (que `og:url` resuelva 200 y que `og:image` exista y pese poco), así
+que si algo de esto se rompe, el deploy falla en vez de publicar links mudos.
+
+### Volver a scrapear un link ya compartido
+
+Facebook y WhatsApp cachean el preview por URL. Después de arreglar algo hay que
+forzar el re-scrape en <https://developers.facebook.com/tools/debug/> pegando la
+URL y tocando "Scrape Again" — WhatsApp usa el mismo caché.

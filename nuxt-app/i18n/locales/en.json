@@ -52,6 +52,25 @@
       "whatsapp": "Chat on WhatsApp"
     }
   },
+  "error": {
+    "metaTitle": "Page not found",
+    "eyebrow": "Error 404",
+    "title": "Oops… didn\u2019t find what you were looking for?",
+    "lead": "This page doesn\u2019t exist, moved out, or someone rented it before you. It happens.",
+    "hint": "You might have better luck browsing apartments over here 😉",
+    "ctaRentals": "Browse rentals",
+    "ctaSales": "Browse properties for sale",
+    "ctaHome": "Back to home",
+    "help": "Looking for something specific and can\u2019t find it?",
+    "helpCta": "Message us on WhatsApp",
+    "waMessage": "Hi! I was looking for something on your website and couldn\u2019t find it. Can you help?",
+    "crash": {
+      "eyebrow": "Error {code}",
+      "title": "Oops… something broke on our end",
+      "lead": "It\u2019s not you, it\u2019s us. We\u2019ll be looking into it.",
+      "hint": "Try again in a bit, or keep browsing apartments in the meantime 😉"
+    }
+  },
   "nav": {
     "home": "Home",
     "services": "Services",

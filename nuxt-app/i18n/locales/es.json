@@ -52,6 +52,25 @@
       "whatsapp": "Consultar por WhatsApp"
     }
   },
+  "error": {
+    "metaTitle": "Página no encontrada",
+    "eyebrow": "Error 404",
+    "title": "Ups… ¿no encontraste lo que buscabas?",
+    "lead": "Esta página no existe, se mudó o alguien la alquiló antes que vos. Pasa en las mejores familias.",
+    "hint": "Capaz tenés mejor suerte buscando departamentos acá 😉",
+    "ctaRentals": "Ver departamentos",
+    "ctaSales": "Ver propiedades en venta",
+    "ctaHome": "Volver al inicio",
+    "help": "¿Buscabas algo puntual y no lo encontrás?",
+    "helpCta": "Escribinos por WhatsApp",
+    "waMessage": "Hola! Estaba buscando algo en la web y no lo encontré. Me ayudan?",
+    "crash": {
+      "eyebrow": "Error {code}",
+      "title": "Ups… se nos rompió algo",
+      "lead": "No sos vos, somos nosotros. Ya vamos a estar mirando qué pasó.",
+      "hint": "Probá de nuevo en un rato, o seguí viendo departamentos mientras tanto 😉"
+    }
+  },
   "nav": {
     "home": "Inicio",
     "services": "Servicios",

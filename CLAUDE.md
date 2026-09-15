@@ -77,6 +77,9 @@ no puedan divergir.
 - El formulario de `/app/seller/links` es para links **aparte** (una
   publicación o una campaña). El nombre del link es opcional y es del link,
   no de un destinatario.
+- **Los códigos se leen**: los links aparte cuelgan del slug personal
+  (`juan-perez-monoambientes`). Los arma `createTrackableLink` con
+  `primaryLinkCodeFor()` + el slug del nombre.
 - **Todo el catálogo es compartible por cualquier vendedor.** Editar sigue
   siendo sólo de quien cargó la publicación.
 - Los contadores (`opens`, `botOpens`, `whatsappClicks`, `leads`) los escribe
@@ -84,9 +87,10 @@ no puedan divergir.
 
 ### Acoplamientos — si tocás uno, tocá el otro
 
-1. **El patrón del código del link** vive en `01.link-open.ts` y en
-   `ensurePrimaryLink()`. Si no coinciden, el link anda pero sus aperturas no
-   se cuentan en ningún lado.
+1. **El patrón del código del link** vive en `01.link-open.ts` (hoy hasta 80
+   caracteres) y los largos de cada parte, en `functions/src/index.ts`
+   (40 del slug personal + 30 del sufijo). Si no coinciden, el link anda pero
+   sus aperturas no se cuentan en ningún lado.
 2. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
    en `createTrackableLink` y en la página compartida. `functions/` es un
    paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.

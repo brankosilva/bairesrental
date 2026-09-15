@@ -389,15 +389,20 @@ type LinkChannel = (typeof VALID_CHANNELS)[number]
 // desactiva. Los links de createTrackableLink siguen existiendo para lo
 // otro: seguir una publicación puntual o una campaña con su propio nombre.
 
-function slugifyName(value: string): string {
-  return value
+function slugifyName(value: string, maxLength = 40): string {
+  const slug = value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // saca los acentos: "Martín" → "martin"
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-    .replace(/-+$/g, '')
+  if (slug.length <= maxLength) return slug
+  // Corta en el guión anterior al límite: "monoambiente-en-parque-chacabuco"
+  // recortado a la bruta queda "monoambiente-en-parque-chac", que se lee como
+  // un error de tipeo. Mejor una palabra menos.
+  const cut = slug.slice(0, maxLength)
+  const lastDash = cut.lastIndexOf('-')
+  return (lastDash > 0 ? cut.slice(0, lastDash) : cut).replace(/-+$/g, '')
 }
 
 // El código tiene que entrar en el patrón que matchea el middleware que
@@ -504,6 +509,23 @@ async function ensurePrimaryLink(
     updatedAt: FieldValue.serverTimestamp(),
   })
   return code
+}
+
+/**
+ * El código del link personal del vendedor, que es el prefijo de todos los
+ * demás. Lo crea si la cuenta es anterior a que fuera automático, así que
+ * siempre devuelve algo.
+ */
+async function primaryLinkCodeFor(uid: string): Promise<string> {
+  const snap = await db
+    .collection('links')
+    .where('sellerUid', '==', uid)
+    .where('primary', '==', true)
+    .limit(1)
+    .get()
+  if (!snap.empty) return snap.docs[0]!.id
+  const user = (await db.collection('users').doc(uid).get()).data() ?? {}
+  return ensurePrimaryLink(uid, (user.displayName as string | null) ?? null, (user.email as string | null) ?? null)
 }
 
 interface EnsureSellerLinkRequest {
@@ -666,20 +688,17 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
     return { code: duplicate.docs[0].id, existing: true }
   }
 
-  let code = ''
-  let attempts = 0
-  // Collision retry — at 7 chars from a 32-symbol alphabet this is
-  // astronomically unlikely to ever loop more than once, but a fixed
-  // Firestore doc ID needs the check regardless of how unlikely.
-  while (attempts < 5) {
-    code = randomCode()
-    const existing = await db.collection('links').doc(code).get()
-    if (!existing.exists) break
-    attempts++
-  }
-  if (attempts === 5) {
-    throw new HttpsError('resource-exhausted', 'No se pudo generar un código único, intentá de nuevo.')
-  }
+  // El código cuelga del link personal: juan-perez-monoambientes, no ab3f9k.
+  // Lo que el cliente ve en el chat antes de tocar dice de quién es y de qué
+  // se trata, y el vendedor puede dictarlo por teléfono. El sufijo sale del
+  // nombre del link —o del título de la publicación, que es el nombre por
+  // defecto— recortado a 30 caracteres para que el total entre en el patrón
+  // que matchea server/middleware/01.link-open.ts.
+  //
+  // Si el nombre no da ningún slug (un emoji, puros signos), cae en los 7
+  // caracteres al azar de siempre: un link feo es mejor que un error.
+  const suffix = slugifyName(label, 30) || randomCode()
+  const code = await freeLinkCode(`${await primaryLinkCodeFor(sellerUid)}-${suffix}`)
 
   await db.collection('links').doc(code).set({
     sellerUid,

@@ -9,8 +9,9 @@
 #     Cloud Function gen 2, o sea que por debajo ya corre sobre Cloud Run:
 #     no hay un servicio de Cloud Run aparte que desplegar.
 #   - functions:default  → los callables/triggers de nuxt-app/functions/
-#     (setUserRole, inviteUser, createTrackableLink, submitLead,
-#     uploadListingImage, onUserCreate + los 2 redirects legacy).
+#     (setUserRole, inviteUser, updateUser, deleteUser, createTrackableLink,
+#     ensureSellerLink, submitLead, uploadListingImage, onUserCreate + los 2
+#     redirects legacy).
 #   - hosting            → la release viva de bairesrental.web.app.
 #   - firestore/storage  → firestore.rules, firestore.indexes.json,
 #     storage.rules (las únicas copias que quedan en el repo).

@@ -19,12 +19,14 @@
 // Corre en CADA request del sitio, así que el guard de path va primero y
 // es estricto.
 //
-// El código dejó de ser siempre 7 caracteres al azar: el link personal del
-// vendedor usa el slug de su nombre (/l/juan-perez), así que el patrón
-// acepta guiones y hasta 40 caracteres. Es el mismo límite que aplica
-// ensurePrimaryLink() en functions/src/index.ts al armarlo — si uno cambia,
-// el otro también, o el link existe pero sus aperturas no se cuentan.
-const LINK_PATH = /^\/l\/([a-z0-9][a-z0-9-]{1,39})(?:\/([^/?#]+))?\/?$/i
+// El código dejó de ser 7 caracteres al azar: ahora sale del nombre del
+// vendedor (/l/juan-perez) y, en los links aparte, de eso más el nombre del
+// link (/l/juan-perez-monoambientes). Así que el patrón acepta guiones y
+// hasta 80 caracteres: 40 del slug personal + 30 del sufijo + el separador y
+// el "-2" de una eventual colisión. Los límites de cada parte los aplica
+// functions/src/index.ts al armar el código — si allá se agrandan y acá no,
+// el link existe pero sus aperturas no se cuentan en ningún lado.
+const LINK_PATH = /^\/l\/([a-z0-9][a-z0-9-]{1,79})(?:\/([^/?#]+))?\/?$/i
 
 export default defineEventHandler(async (event) => {
   const path = (event.path || '').split('?')[0] || ''

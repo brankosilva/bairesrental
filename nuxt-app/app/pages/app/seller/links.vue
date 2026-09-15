@@ -398,6 +398,10 @@ const canSubmit = computed(() => targetKind.value === 'catalog' || !!selectedPro
             <span v-if="l.active === false" class="br-link-chip is-off">Desactivado</span>
           </div>
           <div class="br-link-prop br-app-truncate">{{ propertyLabel(l) }}</div>
+          <!-- El código dejó de ser ab3f9k: cuelga del nombre del vendedor y
+               del nombre del link, así que la URL dice sola de qué es esta
+               fila y se puede dictar por teléfono. Mostrarla es gratis. -->
+          <code class="br-link-url br-app-truncate">{{ linkUrl(l.id) }}</code>
           <div v-if="l.note" class="br-link-note">{{ l.note }}</div>
 
           <!-- La cifra que importa es "visitantes": una apertura repetida es

@@ -39,9 +39,9 @@ llama al callable `ensureSellerLink` **sólo si** la lista que acaba de leer no
 trae el link personal. No hizo falta backfill contra producción.
 
 `server/middleware/01.link-open.ts` acepta el nuevo formato de código
-(`[a-z0-9][a-z0-9-]{1,39}`, antes `[a-z0-9]{4,12}`). **Es un límite acoplado**
-a `ensurePrimaryLink()`: si uno cambia y el otro no, el link existe pero sus
-aperturas no se cuentan en ningún lado.
+(`[a-z0-9][a-z0-9-]{1,79}`, antes `[a-z0-9]{4,12}`). **Es un límite acoplado**
+a los slugs que arma `functions/src/index.ts`: si allá se agrandan y acá no,
+el link existe pero sus aperturas no se cuentan en ningún lado.
 
 ### 2. "Para quién" pasó a ser el nombre del link
 
@@ -55,7 +55,14 @@ el nombre de un link pasa por `linkLabel()` (`composables/useLinkStats.ts`),
 nunca lee los campos directo.
 
 El formulario quedó para lo único que el link personal no cubre: seguir
-aparte una publicación o una campaña.
+aparte una publicación o una campaña. **Esos links también dejaron de ser
+`ab3f9k`**: cuelgan del slug personal —`juan-perez-monoambientes`—, con el
+sufijo sacado del nombre del link (o del título de la publicación, que es el
+nombre por defecto) recortado a 30 caracteres en un guión, no a la mitad de
+una palabra. Un nombre que no da ningún slug (un emoji, puros signos) cae en
+los 7 caracteres al azar de siempre: un link feo es mejor que un error.
+Ahora que la URL se lee, la pantalla del vendedor la muestra en cada fila en
+vez de esconderla detrás del botón de copiar.
 
 ### 3. El catálogo se comparte entero
 

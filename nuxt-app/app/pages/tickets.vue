@@ -15,6 +15,12 @@ useSeoMeta({
   <main class="tk-page">
     <section class="tk-hero">
       <div class="tk-hero-bg"></div>
+      <!-- Cuadrícula tipo cancha + orbes de color desenfocados: estaban en
+           tickets.html y no se habían migrado, que es lo que dejaba el hero
+           plano comparado con el estático. -->
+      <div class="tk-lines" aria-hidden="true"></div>
+      <div class="tk-orb tk-orb-1" aria-hidden="true"></div>
+      <div class="tk-orb tk-orb-2" aria-hidden="true"></div>
       <div class="tk-hero-content">
         <div class="tk-badge">{{ t('tickets.badge') }}</div>
         <h1 class="tk-title">
@@ -60,7 +66,8 @@ useSeoMeta({
 }
 .tk-hero {
   position: relative;
-  min-height: 80vh;
+  /* 100vh como el estático (tickets.html:145); estaba en 80vh. */
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,6 +81,52 @@ useSeoMeta({
   z-index: 0;
   background: radial-gradient(ellipse 90% 55% at 50% 35%, rgba(45, 122, 34, 0.22) 0%, transparent 65%),
     radial-gradient(ellipse 50% 40% at 80% 70%, rgba(212, 166, 26, 0.08) 0%, transparent 60%), linear-gradient(170deg, #070e07 0%, #0a160a 50%, #050a05 100%);
+}
+
+/* tickets.html:157-167 */
+.tk-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.04;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.5) 0px,
+      transparent 1px,
+      transparent 60px,
+      rgba(255, 255, 255, 0.5) 61px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.5) 0px,
+      transparent 1px,
+      transparent 60px,
+      rgba(255, 255, 255, 0.5) 61px
+    );
+}
+.tk-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: 0;
+  pointer-events: none;
+}
+.tk-orb-1 {
+  width: 600px;
+  height: 600px;
+  top: -15%;
+  left: -10%;
+  background: rgba(45, 122, 34, 0.1);
+}
+.tk-orb-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -10%;
+  right: -8%;
+  background: rgba(212, 166, 26, 0.08);
 }
 .tk-hero-content {
   position: relative;
@@ -110,7 +163,13 @@ useSeoMeta({
   color: #d4a61a;
 }
 .tk-sub {
-  font-size: clamp(15px, 1.8vw, 18px);
+  /* 14px, no el clamp(15px,1.8vw,18px) que pedía el CSS propio de
+     tickets.html. En el sitio estático esta regla nunca ganaba: css/style.css
+     traía `p { font-size: 14px !important }` y lo pisaba, así que el sitio
+     publicado siempre mostró 14px. Al sacar esa hoja el clamp empezaba a
+     aplicar y el subtítulo crecía a 18px — decisión explícita de mantener lo
+     que se ve hoy en producción. */
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.5);
   margin-bottom: 44px;
   line-height: 1.65;

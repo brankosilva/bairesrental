@@ -57,6 +57,14 @@ let leafletMod: typeof import('leaflet') | null = null
 async function initMap() {
   const L = (await import('leaflet')).default
   leafletMod = L
+  // Icon.Default._getIconUrl le antepone su `imagePath` autodetectado a lo
+  // que devuelvan las opciones. Bajo Vite ese path se detecta como
+  // `/_nuxt/@fs/.../leaflet/dist/images/`, así que las URLs absolutas del CDN
+  // terminaban concatenadas detrás de él
+  // (`/_nuxt/@fs/.../images/https://cdn.jsdelivr.net/...` → 404, marcadores
+  // invisibles). Borrando el override queda el _getIconUrl de Icon, que usa
+  // las opciones tal cual. Es el workaround estándar de Leaflet + bundlers.
+  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: `${LEAFLET_CDN}/marker-icon-2x.png`,
     iconUrl: `${LEAFLET_CDN}/marker-icon.png`,

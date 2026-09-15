@@ -158,7 +158,11 @@ const activeFilterCount = computed(() => {
 // Most listings still only carry a Google Maps link (direccionUrl), not raw
 // coordinates — RentalMap pulls what it can out of that URL client-side and
 // simply skips listings it can't place. See geo.ts.
-const mobileView = ref<'list' | 'map'>('list')
+// NUXT-NEW: vista Lista/Mapa (RentalMap con Leaflet) — no existe en el sitio
+// estático. El default es 'list' a todo ancho: con el mapa fijo al costado la
+// grilla bajaba de 3 a 2 columnas en escritorio, así que el mapa pasó a ser
+// opt-in y la vista de lista recupera las 3 columnas del estático.
+const catalogView = ref<'list' | 'map'>('list')
 
 // ── Mobile filter sheet ──────────────────────────────
 const sheetOpen = ref(false)
@@ -222,11 +226,50 @@ function formatFecha(fecha?: string) {
 
 <template>
   <div class="br-catalogo-page">
-    <section class="br-dept-hero-lite">
-      <div class="br-dept-hero-lite-content">
+    <!-- Hero completo, restaurado desde departamentos.html:533-563. Estaba
+         reducido a `.br-dept-hero-lite`: un gradiente plano de 300px, sin
+         fotos, con el título a menos de la mitad de tamaño y sin acento,
+         sin la 2da línea del subtítulo, sin los dos botones y sin el
+         indicador de scroll. -->
+    <section class="br-dept-hero">
+      <div class="br-dept-hero-bg" aria-hidden="true">
+        <div class="br-slide br-slide-1"></div>
+        <div class="br-slide br-slide-2"></div>
+        <div class="br-slide br-slide-3"></div>
+      </div>
+      <div class="br-dept-hero-content">
         <span class="br-dept-eyebrow">{{ t('departamentos.eyebrow') }}</span>
-        <h1 class="br-dept-title-lite">{{ t('departamentos.title') }}</h1>
-        <p class="br-dept-sub-lite">{{ t('departamentos.subtitle') }}</p>
+        <h1 class="br-dept-title">
+          <span>{{ t('departamentos.title') }}</span>
+          <span class="accent">{{ t('departamentos.titleAccent') }}</span>
+        </h1>
+        <p class="br-dept-sub">
+          <span>{{ t('departamentos.subtitle') }}</span><br />
+          <span>{{ t('departamentos.subtitle2') }}</span>
+        </p>
+        <div class="br-dept-hero-btns">
+          <a href="/docs/requisitos-alquiler.pdf" target="_blank" rel="noopener" class="br-dept-hero-btn">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+            </svg>
+            {{ t('departamentos.reqBtn') }}
+          </a>
+          <a
+            href="https://chat.whatsapp.com/FeYh0RpkLqN0JnWiEi5ucG?mode=gi_t"
+            target="_blank"
+            rel="noopener"
+            class="br-dept-hero-btn"
+          >
+            <IconWhatsapp :size="12" />
+            {{ t('departamentos.comunidadBtn') }}
+          </a>
+        </div>
+      </div>
+      <div class="br-dept-scroll-hint" aria-hidden="true">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12l7 7 7-7" />
+        </svg>
+        <span>{{ t('departamentos.scrollHint') }}</span>
       </div>
     </section>
 
@@ -282,6 +325,45 @@ function formatFecha(fecha?: string) {
       <div class="br-filtros-inner">
         <div class="br-filtros-collapsible">
           <div class="br-filtros-row">
+            <!-- Buscador / barrio / tipo también acá: en escritorio la barra
+                 rápida está oculta y estos son los controles visibles, como
+                 en departamentos.html:598-620. Comparten los mismos refs que
+                 los de la barra rápida, así que el estado es uno solo. -->
+            <div class="br-filtro-grupo br-busqueda-wrap">
+              <span class="br-filtro-label">{{ t('departamentos.filtros.busqueda') }}</span>
+              <input
+                v-model="search"
+                type="search"
+                class="br-filtro-search"
+                :placeholder="t('departamentos.filtros.busquedaPlaceholder')"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="br-filtro-grupo">
+              <span class="br-filtro-label">{{ t('departamentos.filtros.barrio') }}</span>
+              <select v-model="barrio" class="br-filtro-select">
+                <option value="">{{ t('departamentos.filtros.todos') }}</option>
+                <option v-for="b in barrios" :key="b" :value="b">{{ b }}</option>
+              </select>
+            </div>
+
+            <div class="br-filtro-grupo">
+              <span class="br-filtro-label">{{ t('departamentos.filtros.tipo') }}</span>
+              <div class="br-filtro-pills">
+                <button
+                  v-for="tp in TIPOS"
+                  :key="tp.value"
+                  type="button"
+                  class="br-pill-btn"
+                  :class="{ active: tipos.includes(tp.value) }"
+                  @click="toggleTipo(tp.value)"
+                >
+                  {{ t(`departamentos.filtros.${tp.labelKey}`) }}
+                </button>
+              </div>
+            </div>
+
             <div class="br-filtro-grupo br-precio-wrap">
               <div class="br-precio-top">
                 <span class="br-filtro-label">{{ t('departamentos.filtros.precio') }}</span>
@@ -331,6 +413,18 @@ function formatFecha(fecha?: string) {
                 </label>
               </div>
             </div>
+
+            <!-- Contador inline + "Limpiar": estaban en la barra de
+                 escritorio del estático (departamentos.html:674-675) y se
+                 habían perdido — para limpiar filtros había que abrir el
+                 modal. En mobile los esconde el CSS: el header del sheet ya
+                 trae su propio "Limpiar". -->
+            <span class="br-contador-inline">
+              {{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}
+            </span>
+            <button v-show="activeFilterCount > 0" type="button" class="br-btn-limpiar" @click="clearFilters">
+              {{ t('departamentos.filtros.limpiar') }}
+            </button>
           </div>
         </div>
       </div>
@@ -344,16 +438,16 @@ function formatFecha(fecha?: string) {
 
     <div class="br-catalogo-section">
       <div class="br-catalogo-view-toggle">
-        <button type="button" class="br-view-toggle-btn" :class="{ active: mobileView === 'list' }" @click="mobileView = 'list'">
+        <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'list' }" @click="catalogView = 'list'">
           {{ t('departamentos.filtros.vistaLista') }}
         </button>
-        <button type="button" class="br-view-toggle-btn" :class="{ active: mobileView === 'map' }" @click="mobileView = 'map'">
+        <button type="button" class="br-view-toggle-btn" :class="{ active: catalogView === 'map' }" @click="catalogView = 'map'">
           {{ t('departamentos.filtros.vistaMapa') }}
         </button>
       </div>
 
       <div class="br-catalogo-split">
-        <div class="br-catalogo-list" :class="{ 'br-split-hide-mobile': mobileView === 'map' }">
+        <div class="br-catalogo-list" :class="{ 'br-split-hide-mobile': catalogView === 'map' }">
           <div v-if="!filtered.length" class="text-center py-5">
             <div class="mb-3" style="font-size: 3rem">🔍</div>
             <h4 class="mb-2" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.title') }}</h4>
@@ -463,7 +557,7 @@ function formatFecha(fecha?: string) {
           </div>
         </div>
 
-        <div class="br-catalogo-map-panel" :class="{ 'br-split-hide-mobile': mobileView === 'list' }">
+        <div class="br-catalogo-map-panel" :class="{ 'br-split-hide-mobile': catalogView === 'list' }">
           <ClientOnly>
             <RentalMap :rentals="filtered" />
           </ClientOnly>
@@ -476,6 +570,51 @@ function formatFecha(fecha?: string) {
 </template>
 
 <style scoped>
+/* ── Filtros compactos ─────────────────────────────────────────────
+   Portado de departamentos.html:366-376, un bloque de overrides propios de
+   la página que no se había migrado. Son px explícitos a propósito: en el
+   estático achicaban la barra de filtros a dos filas. */
+.br-filtros-inner {
+  padding: 7px 24px;
+}
+.br-filtros-row {
+  gap: 9px;
+}
+.br-filtro-grupo {
+  gap: 2px;
+}
+.br-filtro-label {
+  font-size: 11px;
+}
+.br-pill-btn {
+  font-size: 11px;
+  padding: 3px 9px;
+}
+.br-filtro-select {
+  font-size: 11px;
+  padding: 4px 10px;
+  min-width: 110px;
+}
+.br-toggle-wrap span {
+  font-size: 11px;
+}
+#label-precio {
+  font-size: 11px;
+}
+.br-precio-wrap {
+  min-width: 130px;
+}
+.br-btn-limpiar {
+  font-size: 11px;
+}
+@media (max-width: 768px) {
+  .br-amenity-check {
+    font-size: 10px;
+    padding: 2px 6px;
+    line-height: 1.2;
+  }
+}
+
 /* departamentos.html cargaba css/style.css, que ponía
    `body { line-height: 1.7 }` por encima de Bootstrap. Esa hoja ya no se
    carga (ver public/css/legacy-template.css), así que el valor se
@@ -487,17 +626,84 @@ function formatFecha(fecha?: string) {
 /* Hero + sticky-filter positioning are page-specific in the original static
    site too (departamentos.html's own inline <style>, not css/style.css) —
    ported the same way here instead of into the shared stylesheet. */
-.br-dept-hero-lite {
-  background: linear-gradient(180deg, #0a0a12 0%, #12121c 100%);
-  min-height: 300px;
+.br-dept-hero {
+  position: relative;
+  min-height: max(420px, 58vh);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 96px 32px 48px;
+  overflow: hidden;
+  background: #0a0a12;
 }
-.br-dept-hero-lite-content {
-  max-width: 700px;
+.br-dept-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+/* Velo oscuro por encima de las fotos, para que el texto se lea. */
+.br-dept-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(10, 10, 18, 0.55) 0%, rgba(10, 10, 18, 0.72) 100%);
+}
+/* Crossfade de 3 fotos, 21s de ciclo con 7s de desfasaje entre cada una.
+   Los JPG originales pesaban 2,6 / 3,5 / 3,6 MB (9,6 MB en total, todos en
+   la ruta crítica porque la animación arranca en t=0). Se reencodearon a
+   WebP de 1920px: 752 KB entre las tres. */
+.br-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  animation: brSlide 21s infinite;
+}
+.br-slide-1 {
+  background-image: url('/images/galeria-2.webp');
+  animation-delay: 0s;
+}
+.br-slide-2 {
+  background-image: url('/images/galeria-4.webp');
+  animation-delay: 7s;
+}
+.br-slide-3 {
+  background-image: url('/images/galeria-6.webp');
+  animation-delay: 14s;
+}
+@keyframes brSlide {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  26% {
+    opacity: 1;
+  }
+  38% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+/* Con prefers-reduced-motion se queda fija la primera foto. */
+@media (prefers-reduced-motion: reduce) {
+  .br-slide {
+    animation: none;
+  }
+  .br-slide-1 {
+    opacity: 1;
+  }
+}
+.br-dept-hero-content {
+  position: relative;
+  z-index: 11;
+  max-width: 740px;
+  padding: 48px 32px 64px;
 }
 .br-dept-eyebrow {
   display: inline-block;
@@ -513,19 +719,115 @@ function formatFecha(fecha?: string) {
   border-radius: 100px;
   margin-bottom: 18px;
 }
-.br-dept-title-lite {
-  font-family: 'DM Sans', sans-serif;
-  font-size: clamp(28px, 5vw, 52px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: #fff;
-  margin-bottom: 12px;
+@media (max-width: 600px) {
+  .br-dept-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 5px 12px;
+  }
 }
-.br-dept-sub-lite {
+.br-dept-title {
   font-family: 'DM Sans', sans-serif;
-  font-size: clamp(14px, 1.5vw, 17px);
+  font-size: clamp(30px, 7vw, 96px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: #fff;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.br-dept-title .accent {
+  color: var(--azul);
+  white-space: nowrap;
+}
+.br-dept-sub {
+  font-family: 'DM Sans', sans-serif;
+  /* 14px, no el clamp(14px,1.5vw,17px) propio: en el estático
+     `p { font-size:14px !important }` de css/style.css siempre le ganaba,
+     así que es lo que se ve en producción. Ver el mismo caso en
+     tickets.vue. */
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 0;
+  font-weight: 400;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+@media (min-width: 1185px) {
+  .br-dept-title {
+    font-size: clamp(30px, calc(7vw - 10px), 86px);
+  }
+  /* A partir de 1185px el estático sí subía el subtítulo a 21px: esa regla
+     era `.br-dept-sub { font-size: 21px !important }`, con más especificidad
+     que el `p` de la hoja legacy, así que ganaba. */
+  .br-dept-sub {
+    font-size: 21px;
+  }
+}
+.br-dept-hero-btns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* departamentos.html tenía .br-dept-req-btn y .br-dept-comunidad-btn con
+   reglas idénticas; acá es una sola clase. */
+.br-dept-hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 7px 16px;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.br-dept-hero-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.br-dept-scroll-hint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  z-index: 11;
+}
+.br-dept-scroll-hint svg {
+  animation: bounceY 1.8s ease-in-out infinite;
+}
+@keyframes bounceY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@media (max-width: 1060px) {
+  .br-dept-scroll-hint {
+    display: none;
+  }
 }
 
 .br-filtros-wrapper {

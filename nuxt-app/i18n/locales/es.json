@@ -167,7 +167,7 @@
   },
   "departamentos": {
     "eyebrow": "Alquiler temporario · Buenos Aires",
-    "title": "Viví Buenos Aires sin complicaciones.",
+    "title": "Viví Buenos Aires",
     "subtitle": "Departamentos verificados, precio claro y soporte real.",
     "perMonth": "/ mes",
     "filtros": {
@@ -234,7 +234,12 @@
       "title": "No encontramos propiedades con esos filtros",
       "sub": "Probá ajustando los filtros o consultanos directamente",
       "wa": "Consultar por WhatsApp"
-    }
+    },
+    "titleAccent": "sin complicaciones.",
+    "subtitle2": "Contactanos y te ayudamos a encontrar tu próximo hogar.",
+    "reqBtn": "Requisitos de alquiler",
+    "comunidadBtn": "Comunidad",
+    "scrollHint": "Explorar"
   },
   "ventas": {
     "eyebrow": "Buenos Aires · Propiedades",

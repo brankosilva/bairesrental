@@ -167,7 +167,7 @@
   },
   "departamentos": {
     "eyebrow": "Short-term rentals · Buenos Aires",
-    "title": "Experience Buenos Aires without the hassle.",
+    "title": "Experience Buenos Aires",
     "subtitle": "Verified apartments, clear pricing, and real support.",
     "perMonth": "/ month",
     "filtros": {
@@ -234,7 +234,12 @@
       "title": "No properties found with those filters",
       "sub": "Try adjusting the filters or contact us directly",
       "wa": "Ask on WhatsApp"
-    }
+    },
+    "titleAccent": "without the hassle.",
+    "subtitle2": "Contact us and we'll help you find your next home.",
+    "reqBtn": "Rental requirements",
+    "comunidadBtn": "Community",
+    "scrollHint": "Explore"
   },
   "ventas": {
     "eyebrow": "Buenos Aires · Properties",

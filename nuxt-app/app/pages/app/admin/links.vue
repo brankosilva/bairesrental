@@ -5,6 +5,7 @@ import { useFirestore } from 'vuefire'
 import {
   type LinkRow,
   channelLabel,
+  linkLabel,
   outcomeLabel,
   outcomeClass,
   n,
@@ -74,7 +75,12 @@ function sellerName(uid?: string | null): string {
 
 const globalTotals = computed(() => totalsFor(links.value))
 
-const activeSellers = computed(() => new Set(links.value.map((l) => l.sellerUid).filter(Boolean)).size)
+// Vendedores cuyos links tuvieron al menos una apertura. Contar los que
+// TIENEN links dejó de decir nada: desde que el link personal se crea con la
+// cuenta, ese número es la cantidad de vendedores que hay.
+const activeSellers = computed(
+  () => new Set(links.value.filter((l) => n(l.opens) > 0).map((l) => l.sellerUid).filter(Boolean)).size,
+)
 
 // Ranking por vendedor. Ordenado por aperturas: es la señal de que alguien
 // está efectivamente moviendo el catálogo, no de cuántos links generó (que
@@ -99,7 +105,7 @@ const filtered = computed(() => {
     .filter((l) => {
       if (!q) return true
       return (
-        (l.recipientName || '').toLowerCase().includes(q) ||
+        linkLabel(l).toLowerCase().includes(q) ||
         (l.propertyTitulo || '').toLowerCase().includes(q) ||
         l.id.toLowerCase().includes(q)
       )
@@ -131,7 +137,7 @@ async function copyLink(code: string) {
 }
 
 function propertyLabel(l: LinkRow) {
-  if (l.target === 'catalog' || !l.propertyId) return 'Todo el catálogo del vendedor'
+  if (l.target === 'catalog' || !l.propertyId) return 'Todo el catálogo'
   return l.propertyTitulo || l.propertyId
 }
 </script>
@@ -157,7 +163,10 @@ function propertyLabel(l: LinkRow) {
                lea como una tasa de conversión que nadie midió. -->
           <span class="br-stat-lbl">Tasa de contacto</span>
         </div>
-        <div class="br-stat"><span class="br-stat-num">{{ activeSellers }}</span><span class="br-stat-lbl">Vendedores</span></div>
+        <div class="br-stat">
+          <span class="br-stat-num">{{ activeSellers }}</span>
+          <span class="br-stat-lbl">Vendedores activos</span>
+        </div>
       </div>
 
       <h2 class="h6 mt-4 mb-2">Por vendedor</h2>
@@ -202,7 +211,7 @@ function propertyLabel(l: LinkRow) {
           </select>
         </div>
         <div class="col-12 col-sm-7">
-          <input v-model="search" type="search" class="form-control" placeholder="Buscar por destinatario, publicación o código…" />
+          <input v-model="search" type="search" class="form-control" placeholder="Buscar por nombre del link, publicación o código…" />
         </div>
       </div>
 
@@ -216,8 +225,9 @@ function propertyLabel(l: LinkRow) {
         >
           <div class="br-link-main">
             <div class="br-link-ident">
-              <strong class="br-link-name">{{ l.recipientName || 'Sin etiquetar' }}</strong>
-              <span class="br-link-chip">{{ channelLabel(l.channel) }}</span>
+              <strong class="br-link-name">{{ linkLabel(l) }}</strong>
+              <span v-if="l.primary" class="br-link-chip is-primary">link personal</span>
+              <span v-if="l.channel" class="br-link-chip">{{ channelLabel(l.channel) }}</span>
               <span class="br-link-chip">{{ sellerName(l.sellerUid) }}</span>
               <span v-if="l.active === false" class="br-link-chip is-off">Desactivado</span>
             </div>
@@ -244,7 +254,10 @@ function propertyLabel(l: LinkRow) {
               >
                 <i :class="copiedCode === l.id ? 'bi bi-clipboard-check' : 'bi bi-clipboard'"></i>
               </button>
+              <!-- El link personal no se apaga: es el que el vendedor tiene
+                   puesto en su bio y en su firma, y nadie lo vuelve a crear. -->
               <button
+                v-if="!l.primary"
                 class="btn btn-sm btn-outline-secondary br-app-icon-btn"
                 :title="l.active === false ? 'Reactivar' : 'Desactivar'"
                 :aria-label="l.active === false ? 'Reactivar' : 'Desactivar'"

@@ -48,6 +48,15 @@ export function channelLabel(c?: LinkChannel | null): string {
   return c ? CHANNEL_LABELS[c] ?? c : '—'
 }
 
+// Cómo se llama un link. `label` es el campo de hoy —el nombre que le puso
+// el vendedor— y `recipientName` el de antes, cuando un link era de un
+// cliente concreto. Los links viejos siguen en Firestore con el segundo y no
+// hubo backfill, así que TODO lo que muestre el nombre de un link pasa por
+// acá y no lee los campos directo.
+export function linkLabel(l: Pick<TrackableLink, 'label' | 'recipientName'>): string {
+  return (l.label || l.recipientName || '').trim() || 'Sin nombre'
+}
+
 export function outcomeLabel(o?: LinkOutcome | null): string {
   return o ? OUTCOME_LABELS[o] ?? o : OUTCOME_LABELS.pending
 }

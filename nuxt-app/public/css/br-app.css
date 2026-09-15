@@ -886,6 +886,13 @@
   border-color: #fecaca;
   color: #b91c1c;
 }
+/* Marca el link personal en la lista del admin, donde conviven los de todos
+   los vendedores y no hay forma de distinguirlo del resto. */
+.br-link-chip.is-primary {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
 
 .br-link-prop {
   font-size: 14px;
@@ -1020,6 +1027,74 @@
     min-width: 0;
     width: 100%;
   }
+}
+
+/* ---------------------------------------------------------------------
+   El link personal del vendedor (seller/links.vue).
+
+   No es una .br-link-card más y no tiene que parecerlo: la card es una fila
+   de una lista que se escanea, y esto es UNA sola cosa que el vendedor viene
+   a buscar acá —la URL que va a pegar en su bio de Instagram o mandar por
+   WhatsApp—, así que la URL se muestra entera y en grande en vez de vivir
+   detrás de un botón de copiar de 44px.
+
+   El borde azul es el único de todo el panel: separa "esto ya existe, es
+   tuyo" de "esto lo generás vos", que es la distinción que la pantalla
+   necesita que se entienda en el primer vistazo.
+   --------------------------------------------------------------------- */
+
+.br-my-link {
+  padding: 16px;
+  border: 1px solid var(--br-app-azul);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.br-my-link-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.br-my-link-lead {
+  font-size: 13px;
+  color: var(--br-app-mute);
+  margin-bottom: 12px;
+}
+
+.br-my-link-url {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 10px;
+  background: var(--br-app-fondo);
+  margin-bottom: 10px;
+}
+
+/* `flex: 1 1 260px` + `min-width: 0`: sin el min-width, un flex item no baja
+   de su contenido y el ellipsis de .br-app-truncate no llega a aplicarse
+   nunca — la fila se desborda en vez de recortarse. */
+.br-my-link-url code {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: 15px;
+  color: #111827;
+}
+
+.br-my-link-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.br-my-link .br-link-activity {
+  margin-top: 10px;
 }
 
 /* ---------------------------------------------------------------------

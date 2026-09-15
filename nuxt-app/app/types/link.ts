@@ -24,7 +24,7 @@ export type LinkOutcome = 'pending' | 'replied' | 'visited' | 'closed' | 'lost'
 export const LINK_OUTCOMES: LinkOutcome[] = ['pending', 'replied', 'visited', 'closed', 'lost']
 
 // `property` apunta a una publicación concreta; `catalog` renderiza el
-// catálogo del vendedor (sus propias publicaciones) con su marca.
+// catálogo entero con la marca del vendedor.
 export type LinkTarget = 'property' | 'catalog'
 
 export type PropertyType = 'rental' | 'sale'
@@ -41,13 +41,33 @@ export interface TrackableLink {
   // la publicación se renombra; es una etiqueta, no la fuente de verdad.
   propertyTitulo: string | null
 
-  recipientName: string
+  // Cómo llama el vendedor a ESTE link ("Todos los monoambientes",
+  // "Campaña de Instagram"). Antes era `recipientName`: el nombre de la
+  // persona a la que se lo mandaba, o sea un link por cliente. Terminó
+  // siendo un campo obligatorio que había que inventar para poder generar
+  // un link, y partía las métricas de una misma publicación en tantas filas
+  // como clientes. Ahora es la etiqueta del link y nada más.
+  label: string
   // Copia en minúsculas para la query de deduplicación en
   // createTrackableLink (Firestore no tiene comparaciones case-insensitive).
-  recipientNameLower: string
-  channel: LinkChannel
+  labelLower: string
+  // Nombre viejo del par de arriba. Los links creados antes de este cambio
+  // sólo tienen estos dos campos; se leen con `linkLabel()` (ver
+  // composables/useLinkStats.ts) y no se escriben nunca más.
+  recipientName?: string
+  recipientNameLower?: string
+  // Por dónde se lo mandó. `null` en el link personal, que no se manda por
+  // un canal: es el que va en la bio de Instagram, en la firma, en el estado
+  // de WhatsApp.
+  channel: LinkChannel | null
   note: string | null
   outcome: LinkOutcome
+
+  // El link personal del vendedor: uno solo por cuenta, creado solo cuando
+  // se crea la cuenta, con el slug de su nombre de ID (/l/juan-perez) y
+  // apuntado a todo el catálogo. No se desactiva ni se duplica — ver
+  // ensurePrimaryLink() en functions/src/index.ts.
+  primary?: boolean
 
   active: boolean
   createdAt?: unknown

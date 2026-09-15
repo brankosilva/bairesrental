@@ -46,11 +46,10 @@ service cloud.firestore {
     // Document ID IS the shareable short code (e.g. links/ab3f9k).
     //
     // El `allow get: if true` que había acá SE SACÓ. Existía para que la
-    // ruta /l/:code pudiera resolver el link con el SDK cliente, pero
-    // desde que los documentos llevan `recipientName`/`note` —el nombre y
-    // una nota sobre la persona a la que el vendedor le compartió el
-    // link— dejarlos legibles por cualquiera que tuviese un código de 7
-    // caracteres publicaba datos de un tercero. Ahora esa ruta lee con el
+    // ruta /l/:code pudiera resolver el link con el SDK cliente, pero los
+    // documentos llevan `note` —lo que el vendedor anotó sobre el cliente
+    // al que se lo mandó—, y dejarlos legibles por cualquiera que tuviese
+    // el código publicaba datos de un tercero. Ahora esa ruta lee con el
     // Admin SDK (server/utils/linkTracking.ts), que no pasa por reglas.
     //
     // `list` ("mis links") exige que la query filtre por sellerUid;
@@ -59,20 +58,27 @@ service cloud.firestore {
       allow get: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
       allow list: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
 
-      // Crear pasa SIEMPRE por el callable createTrackableLink (Admin SDK,
-      // saltea reglas). La regla anterior permitía que un vendedor
-      // escribiera el documento directo desde el cliente, con los
-      // contadores que quisiera y salteándose la validación de que la
-      // propiedad exista y sea suya.
+      // Crear pasa SIEMPRE por un callable (createTrackableLink o
+      // ensureSellerLink, los dos con Admin SDK, que saltea reglas). La
+      // regla anterior permitía que un vendedor escribiera el documento
+      // directo desde el cliente, con los contadores que quisiera y
+      // salteándose la validación de que la propiedad exista.
       allow create: if false;
 
       // El vendedor etiqueta y desactiva sus propios links; los contadores
       // no los toca nadie desde el cliente.
+      //
+      // El link personal (`primary`) es la excepción: NO se puede
+      // desactivar. Es la URL que el vendedor tiene puesta en la bio de
+      // Instagram y en su firma, nadie la vuelve a crear si la apaga, y
+      // apagarla no le sirve para nada — no es un link de un cliente.
       allow update: if isAdmin()
         || (isSignedIn()
             && resource.data.sellerUid == request.auth.uid
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
-                 ['recipientName', 'recipientNameLower', 'channel', 'note', 'outcome', 'active', 'updatedAt']));
+                 ['label', 'labelLower', 'channel', 'note', 'outcome', 'active', 'updatedAt'])
+            && (resource.data.get('primary', false) != true
+                || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['active'])));
 
       // `leads` referencia links por linkId: borrar uno rompe el historial
       // de atribución. deleteUser ya desactiva en vez de borrar.

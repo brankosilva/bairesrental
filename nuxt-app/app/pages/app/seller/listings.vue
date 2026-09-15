@@ -83,7 +83,8 @@ const {
 
 onMounted(async () => {
   // listAll() y no listBySeller(): las reglas ya dan lectura pública sobre
-  // `rentals`/`sales`, así que el recorte lo hace isShareableBySeller().
+  // `rentals`/`sales`, y el recorte lo decide isShareableBySeller() — hoy,
+  // ninguno: el equipo comparte un catálogo solo.
   const [r, s] = await Promise.all([listAll<RentalRow>('rentals'), listAll<SaleRow>('sales')])
   rentals.value = r.filter((p) => isShareableBySeller(p, uid.value)).sort(ownFirst(uid.value))
   sales.value = s.filter((p) => isShareableBySeller(p, uid.value)).sort(ownFirst(uid.value))
@@ -105,9 +106,10 @@ function originLabel(p: { sellerUid?: string | null }) {
   return mine(p) ? '★ mía' : 'sólo lectura'
 }
 
-// Prellenado del formulario de /app/seller/links. La generación del link pide
-// para quién es —es el dato que hace que la métrica sirva— así que desde acá
-// no se puede crear de una: se llega al formulario con la publicación elegida.
+// Prellenado del formulario de /app/seller/links. No genera el link de una
+// porque ahí se le pone nombre, canal y nota: se llega al formulario con la
+// publicación ya elegida. Para compartir el catálogo entero no hace falta
+// pasar por acá — el link personal del vendedor ya lo hace.
 function shareTo(id: string, k: PropertyKind) {
   return `/app/seller/links?kind=${k}&prop=${encodeURIComponent(id)}`
 }
@@ -124,9 +126,9 @@ function shareTo(id: string, k: PropertyKind) {
     </div>
 
     <p class="text-muted small mb-2">
-      Todo el catálogo de BairesRental más tus propias publicaciones. Con
-      <i class="bi bi-link-45deg"></i> generás un link con tu nombre y tu WhatsApp; las de BairesRental las compartís pero
-      las edita el admin.
+      El catálogo completo: el de BairesRental, las tuyas y las que cargaron tus colegas. Con
+      <i class="bi bi-link-45deg"></i> generás el link de una publicación con tu nombre y tu WhatsApp; las que no son
+      tuyas las compartís igual, pero las edita quien las cargó.
     </p>
 
     <div class="br-app-filters" role="tablist" aria-label="Tipo de operación">

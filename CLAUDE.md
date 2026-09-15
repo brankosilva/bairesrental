@@ -49,6 +49,63 @@ Las URLs viejas del sitio estático (`/departamentos.html`, `/departamento.html?
     └── check-ficha-links.yml  # auditoría semanal de fichas de Tokko
 ```
 
+## Panel interno (`/app/*`) y links de vendedores
+
+Mapa para no tener que reconstruirlo leyendo archivo por archivo. Detalle
+histórico de cada decisión en [`nuxt-app/CHANGELOG.md`](nuxt-app/CHANGELOG.md).
+
+**Roles** (`admin` / `seller` / `owner`): claim de Auth + espejo en
+`users/{uid}`. Los escribe **siempre** una Cloud Function — `firestore.rules`
+tiene `allow write: if false` sobre `/users`, para que el claim y el documento
+no puedan divergir.
+
+| Archivo | De qué es dueño |
+|---|---|
+| `nuxt-app/functions/src/index.ts` | Todos los callables: `inviteUser`, `updateUser`, `deleteUser`, `createTrackableLink`, `ensureSellerLink`, `submitLead`, `uploadListingImage` |
+| `nuxt-app/app/types/link.ts` | Forma de `links/{code}`, `links/{code}/opens/{id}` y `sellerProfiles/{uid}` |
+| `nuxt-app/app/utils/sellerScope.ts` | Qué publicaciones ve y comparte un vendedor (`isShareableBySeller`) y cuáles puede **editar** (`isOwnListing`) |
+| `nuxt-app/app/composables/useLinkStats.ts` | Métricas y etiquetas compartidas entre la pantalla del vendedor y la del admin |
+| `nuxt-app/server/middleware/01.link-open.ts` | Cuenta las aperturas de `/l/*` (ve la request real del visitante) |
+| `nuxt-app/server/api/l/[code].get.ts` | Payload de la página compartida (Admin SDK: `links` no es público) |
+| `nuxt-app/firestore.rules` | Quién lee y escribe cada colección |
+
+### Links de vendedor — las reglas del juego
+
+- **Cada vendedor tiene un link personal creado con la cuenta**, con el slug
+  de su nombre de código (`/l/juan-perez`), apuntado a **todo el catálogo**.
+  Lo hace `ensurePrimaryLink()`; no se genera a mano y no se desactiva.
+- El formulario de `/app/seller/links` es para links **aparte** (una
+  publicación o una campaña). El nombre del link es opcional y es del link,
+  no de un destinatario.
+- **Todo el catálogo es compartible por cualquier vendedor.** Editar sigue
+  siendo sólo de quien cargó la publicación.
+- Los contadores (`opens`, `botOpens`, `whatsappClicks`, `leads`) los escribe
+  **sólo** el Admin SDK. Pueden faltar en documentos viejos: leerlos con `n()`.
+
+### Acoplamientos — si tocás uno, tocá el otro
+
+1. **El patrón del código del link** vive en `01.link-open.ts` y en
+   `ensurePrimaryLink()`. Si no coinciden, el link anda pero sus aperturas no
+   se cuentan en ningún lado.
+2. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
+   en `createTrackableLink` y en la página compartida. `functions/` es un
+   paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.
+3. **`label` / `labelLower`** son los campos de hoy; `recipientName` /
+   `recipientNameLower` son los viejos, que se leen pero no se escriben. Todo
+   lo que muestre el nombre de un link usa `linkLabel()`.
+4. **`firestore.rules`** enumera con `hasOnly()` los campos que el cliente
+   puede tocar de un link. Un campo nuevo que el vendedor edite desde el
+   navegador hay que agregarlo ahí o falla en silencio.
+
+### Para probar
+
+```
+cd nuxt-app && npm install && npm run build     # el build typechequea las páginas
+cd nuxt-app/functions && npm install && npx tsc --noEmit
+```
+
+---
+
 ## Convenciones
 
 - Todo el contenido está en **español rioplatense** (vos/ustedes), con traducción al inglés en `nuxt-app/i18n/locales/`.

@@ -9,44 +9,48 @@ import { LINK_CHANNELS, LINK_OUTCOMES } from '~/types/link'
 import {
   type LinkRow,
   channelLabel,
+  linkLabel,
   outcomeLabel,
   outcomeClass,
-  deviceLabel,
   n,
   relativeTime,
-  eventDateTime,
-  distinctVisitors,
-  splitEvents,
   toMillis,
   useLinkUrl,
 } from '~/composables/useLinkStats'
 
-// Reescritura completa de la pantalla de links.
+// La pantalla de links del vendedor.
 //
-// Lo que había medía mal y mostraba poco: una columna "Clicks" que en
-// realidad contaba leads (el único incremento de ese campo estaba en
-// submitLead, nunca en la apertura del link), links sin destinatario —o sea
-// que el vendedor no sabía cuál le había mandado a quién— y una URL armada
-// contra www.bairesrental.com.ar, que todavía sirve el sitio estático viejo
-// y no tiene ruta /l/. Ahora:
+// EL CAMBIO DE AHORA: el vendedor ya no tiene que generar nada para tener
+// algo que mandar. Su cuenta viene con un link personal —creado por
+// ensurePrimaryLink() en functions/src/index.ts apenas se crea el usuario—
+// cuyo código es el slug de su nombre (/l/juan-perez) y que abre TODO el
+// catálogo con su marca. Es el que va en la bio de Instagram, en la firma o
+// en el estado de WhatsApp, y es lo primero que se ve acá arriba.
 //
-//  · cada link se genera PARA alguien, con nombre y canal;
-//  · las aperturas las cuenta el servidor (server/routes/l/[code].get.ts);
+// Lo que antes era obligatorio para generar un link era "Para quién": el
+// nombre del cliente al que se lo mandaba. O sea que no había forma de tener
+// una URL sin inventar un destinatario, y las métricas de una misma
+// publicación quedaban partidas en una fila por persona. Ahora el nombre es
+// del LINK ("Todos los monoambientes", "Campaña de Instagram"), es opcional
+// —si no lo ponen sale el título de la publicación— y el formulario quedó
+// para lo único que el link personal no cubre: seguir aparte una publicación
+// o una campaña.
+//
+// Lo de siempre, que no cambió:
+//  · las aperturas las cuenta el servidor (server/middleware/01.link-open.ts);
 //  · "visitantes" ≠ "aperturas": la misma persona abriendo tres veces es un
 //    visitante, y eso es justo lo que el vendedor quiere saber;
 //  · las vistas previas de WhatsApp/Instagram se cuentan aparte y se
-//    muestran plegadas, para que no inflen el número.
+//    muestran plegadas, para que no inflen el número;
+//  · la query de `links` es inline filtrada por sellerUid (lo exige
+//    firestore.rules) y el orden se hace del lado del cliente, misma
+//    convención que leads.vue — no agregar orderBy, haría falta un índice
+//    compuesto.
 //
-// La query de `links` sigue siendo inline filtrada por sellerUid (lo exige
-// firestore.rules) y el orden se hace del lado del cliente, misma convención
-// que leads.vue — no agregar orderBy, haría falta un índice compuesto.
-//
-// El SELECTOR DE PUBLICACIÓN ya no es sólo lo que cargó el vendedor. Como
-// ningún documento del catálogo tiene `sellerUid`, ese recorte dejaba el
-// desplegable vacío y la pantalla entera inservible. Ahora ofrece todo lo que
-// alcanza `isShareableBySeller()` (app/utils/sellerScope.ts) — el catálogo de
-// BairesRental más lo propio—, agrupado para que se note cuál es cuál. El
-// callable `createTrackableLink` valida la misma regla del lado del servidor.
+// El SELECTOR DE PUBLICACIÓN ofrece el catálogo entero: el de BairesRental,
+// lo del vendedor y también las exclusivas de sus colegas. Lo decide
+// `isShareableBySeller()` (app/utils/sellerScope.ts) y lo vuelve a validar
+// el callable `createTrackableLink` del lado del servidor.
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['seller'] })
 useHead({ title: 'BairesRental — Mis links', meta: [{ name: 'robots', content: 'noindex' }] })
 
@@ -56,11 +60,16 @@ const { linkUrl } = useLinkUrl()
 type RentalRow = RentalProperty & { id: string; sellerUid?: string | null }
 type SaleRow = SaleProperty & { id: string; sellerUid?: string | null }
 
+function callable<Req, Res>(name: string) {
+  return httpsCallable<Req, Res>(getFunctions(useFirebaseApp(), 'southamerica-east1'), name)
+}
+
 const links = ref<LinkRow[]>([])
 const rentals = ref<RentalRow[]>([])
 const sales = ref<SaleRow[]>([])
 const profile = ref<SellerProfile | null>(null)
 const loading = ref(true)
+const ensuring = ref(false)
 const creating = ref(false)
 const copiedCode = ref<string | null>(null)
 const savingId = ref<string | null>(null)
@@ -71,11 +80,10 @@ const feedback = ref<{ text: string; tone: 'success' | 'warning' } | null>(null)
 const openFor = ref<string | null>(null)
 const events = ref<Record<string, LinkOpenEvent[]>>({})
 const loadingEvents = ref(false)
-const showBotsFor = ref<string | null>(null)
 
 const targetKind = ref<'rental' | 'sale' | 'catalog'>('rental')
 const selectedPropertyId = ref('')
-const recipientName = ref('')
+const linkName = ref('')
 const channel = ref<LinkChannel>('whatsapp')
 const note = ref('')
 
@@ -83,20 +91,23 @@ const propertyChoices = computed<(RentalRow | SaleRow)[]>(() =>
   targetKind.value === 'sale' ? sales.value : rentals.value,
 )
 const ownChoices = computed(() => propertyChoices.value.filter((p) => isOwnListing(p, user.value?.uid)))
-const brChoices = computed(() => propertyChoices.value.filter((p) => !isOwnListing(p, user.value?.uid)))
+const restChoices = computed(() => propertyChoices.value.filter((p) => !isOwnListing(p, user.value?.uid)))
 
-// El botón "compartir" de /app/seller/listings llega acá con la publicación ya
-// elegida: desde la lista no se puede generar el link de una porque falta el
-// dato que hace que la métrica sirva —para quién es—, así que trae hasta acá
-// lo único que sí sabe y deja el foco en ese campo.
+// El botón "compartir" de /app/seller/listings llega acá con la publicación
+// ya elegida y el foco puesto en el nombre del link.
 const route = useRoute()
 if (route.query.kind === 'rental' || route.query.kind === 'sale') {
   targetKind.value = route.query.kind
   selectedPropertyId.value = (route.query.prop as string) || ''
 }
 
-const sortedLinks = computed(() =>
-  [...links.value].sort((a, b) => (toMillis(b.createdAt) ?? 0) - (toMillis(a.createdAt) ?? 0)),
+// El link personal se muestra aparte, arriba de todo: no es uno más de la
+// lista y no se desactiva ni se reemplaza.
+const primaryLink = computed(() => links.value.find((l) => l.primary) ?? null)
+const extraLinks = computed(() =>
+  links.value
+    .filter((l) => !l.primary)
+    .sort((a, b) => (toMillis(b.createdAt) ?? 0) - (toMillis(a.createdAt) ?? 0)),
 )
 
 async function loadLinks() {
@@ -104,6 +115,21 @@ async function loadLinks() {
   if (!uid) return
   const snap = await getDocs(query(collection(useFirestore(), 'links'), where('sellerUid', '==', uid)))
   links.value = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<LinkRow, 'id'>) }))
+}
+
+// Remiendo para las cuentas anteriores a que el link personal fuera
+// automático: se pide sólo si la lista que acabamos de leer no lo trae, así
+// que en una cuenta creada después de este cambio no se llama nunca.
+async function ensurePrimary() {
+  ensuring.value = true
+  try {
+    await callable<{ uid?: string }, { code: string }>('ensureSellerLink')({})
+    await loadLinks()
+  } catch (err) {
+    feedback.value = { text: (err as Error).message, tone: 'warning' }
+  } finally {
+    ensuring.value = false
+  }
 }
 
 onMounted(async () => {
@@ -118,36 +144,34 @@ onMounted(async () => {
     sales.value = s.filter((x) => isShareableBySeller(x, uid)).sort(ownFirst(uid))
     profile.value = p.exists() ? (p.data() as SellerProfile) : null
     await loadLinks()
+    if (!primaryLink.value) await ensurePrimary()
   }
   loading.value = false
 })
 
 async function createLink() {
-  if (!recipientName.value.trim()) return
+  if (!canSubmit.value) return
   creating.value = true
   feedback.value = null
   try {
-    const fn = httpsCallable<Record<string, unknown>, { code: string; existing: boolean }>(
-      getFunctions(useFirebaseApp(), 'southamerica-east1'),
-      'createTrackableLink',
-    )
+    const fn = callable<Record<string, unknown>, { code: string; existing: boolean }>('createTrackableLink')
     const res = await fn({
       target: targetKind.value === 'catalog' ? 'catalog' : 'property',
       propertyId: targetKind.value === 'catalog' ? null : selectedPropertyId.value,
       propertyType: targetKind.value === 'catalog' ? null : targetKind.value,
-      recipientName: recipientName.value.trim(),
+      label: linkName.value.trim() || null,
       channel: channel.value,
       note: note.value.trim() || null,
     })
     await loadLinks()
-    // La función es idempotente: pedir dos veces el mismo link para la misma
-    // persona devuelve el que ya existía. Decirlo evita que el vendedor
-    // piense que no funcionó y siga tocando el botón.
+    // La función es idempotente: pedir dos veces el mismo link devuelve el
+    // que ya existía. Decirlo evita que el vendedor piense que no funcionó y
+    // siga tocando el botón.
     feedback.value = res.data.existing
-      ? { text: `Ya tenías un link para ${recipientName.value.trim()} en esa publicación: es el mismo.`, tone: 'success' }
+      ? { text: 'Ese link ya lo tenías generado: es el mismo, y ya está copiado.', tone: 'success' }
       : { text: 'Link generado y copiado. Mandáselo.', tone: 'success' }
     await copyLink(res.data.code)
-    recipientName.value = ''
+    linkName.value = ''
     note.value = ''
     selectedPropertyId.value = ''
   } catch (err) {
@@ -213,16 +237,6 @@ async function toggleActivity(link: LinkRow) {
   }
 }
 
-function humanEvents(id: string) {
-  return splitEvents(events.value[id] || []).human
-}
-function botEvents(id: string) {
-  return splitEvents(events.value[id] || []).bots
-}
-function refererHost(referer: string | null) {
-  return referer ? referer.replace(/^https?:\/\//, '').split('/')[0] : ''
-}
-
 function propertyLabel(link: LinkRow) {
   if (link.target === 'catalog' || !link.propertyId) return 'Todo el catálogo'
   if (link.propertyTitulo) return link.propertyTitulo
@@ -230,9 +244,7 @@ function propertyLabel(link: LinkRow) {
   return list.find((p) => p.id === link.propertyId)?.titulo || link.propertyId
 }
 
-const canSubmit = computed(
-  () => !!recipientName.value.trim() && (targetKind.value === 'catalog' || !!selectedPropertyId.value),
-)
+const canSubmit = computed(() => targetKind.value === 'catalog' || !!selectedPropertyId.value)
 </script>
 
 <template>
@@ -242,12 +254,7 @@ const canSubmit = computed(
       <NuxtLink to="/app/seller/profile" class="btn btn-sm btn-outline-secondary">Mi ficha</NuxtLink>
     </div>
 
-    <p class="text-muted small">
-      Generá un link por cliente sobre cualquier publicación del catálogo. La página se abre con tu nombre y tu
-      WhatsApp, sin la marca de BairesRental, y vas a ver cuándo la abrió, cuántas veces y si tocó contacto.
-    </p>
-
-    <!-- Sin número cargado, el botón de contacto de sus propios links abre el
+    <!-- Sin número cargado, el botón de contacto de sus links abre el
          WhatsApp de BairesRental. Es exactamente lo que un vendedor NO quiere
          y no hay forma de que se entere solo. -->
     <div v-if="!loading && !profile?.whatsapp" class="alert alert-warning py-2 small">
@@ -259,10 +266,72 @@ const canSubmit = computed(
       {{ feedback.text }}
     </div>
 
+    <!-- 1. El link personal. Ya existe: acá no se genera nada, se copia. -->
+    <section v-if="primaryLink" class="br-my-link">
+      <div class="br-my-link-head">
+        <h2 class="h6 mb-0">Tu link</h2>
+        <span class="br-link-chip">Todo el catálogo</span>
+        <!-- No debería pasar —ni la UI ni las reglas lo permiten— pero un
+             link apagado devuelve 410 y el vendedor no tendría cómo
+             enterarse: lo seguiría mandando. -->
+        <span v-if="primaryLink.active === false" class="br-link-chip is-off">Desactivado</span>
+      </div>
+      <p class="br-my-link-lead">
+        Se creó solo con tu cuenta y no cambia. Abre el catálogo completo con tu nombre y tu WhatsApp: ponelo en tu bio
+        de Instagram, en tu estado de WhatsApp o mandáselo a quien te consulte.
+      </p>
+
+      <div class="br-my-link-url">
+        <code class="br-app-truncate">{{ linkUrl(primaryLink.id) }}</code>
+        <div class="br-my-link-btns">
+          <button class="btn btn-primary btn-sm" @click="copyLink(primaryLink.id)">
+            <i :class="copiedCode === primaryLink.id ? 'bi bi-clipboard-check' : 'bi bi-clipboard'"></i>
+            {{ copiedCode === primaryLink.id ? 'Copiado' : 'Copiar' }}
+          </button>
+          <a :href="linkUrl(primaryLink.id)" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right"></i> Abrir
+          </a>
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            :aria-expanded="openFor === primaryLink.id"
+            @click="toggleActivity(primaryLink)"
+          >
+            <i class="bi bi-activity"></i> {{ openFor === primaryLink.id ? 'Ocultar actividad' : 'Ver actividad' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="br-link-stats">
+        <span :class="{ 'is-zero': n(primaryLink.opens) === 0 }">
+          <strong>{{ n(primaryLink.opens) }}</strong> {{ n(primaryLink.opens) === 1 ? 'apertura' : 'aperturas' }}
+        </span>
+        <span v-if="n(primaryLink.whatsappClicks) > 0" class="is-good">
+          <strong>{{ n(primaryLink.whatsappClicks) }}</strong>
+          contacto{{ n(primaryLink.whatsappClicks) === 1 ? '' : 's' }}
+        </span>
+        <span class="br-link-when">{{ n(primaryLink.opens) ? relativeTime(primaryLink.lastOpenAt) : 'sin abrir' }}</span>
+      </div>
+
+      <LinkActivity
+        v-if="openFor === primaryLink.id"
+        :events="events[primaryLink.id] || []"
+        :loading="loadingEvents"
+      />
+    </section>
+
+    <p v-else-if="loading || ensuring" class="text-muted">Preparando tu link…</p>
+
+    <!-- 2. Los links extra: una publicación puntual, o una campaña. -->
+    <h2 class="h6 mt-4 mb-1">Links aparte</h2>
+    <p class="text-muted small">
+      Para seguir por separado una publicación o una campaña. Ponele un nombre y después vas a ver, en esa fila, cuántas
+      veces la abrieron y si tocaron contacto.
+    </p>
+
     <form class="card card-body mb-4" @submit.prevent="createLink">
       <div class="row g-2">
         <div class="col-12 col-sm-4">
-          <label class="form-label small" for="lk-kind">¿Qué le mandás?</label>
+          <label class="form-label small" for="lk-kind">¿Qué compartís?</label>
           <select id="lk-kind" v-model="targetKind" class="form-select">
             <option value="rental">Un alquiler</option>
             <option value="sale">Una venta</option>
@@ -276,14 +345,21 @@ const canSubmit = computed(
             <optgroup v-if="ownChoices.length" label="Mis publicaciones">
               <option v-for="p in ownChoices" :key="p.id" :value="p.id">{{ p.titulo }}</option>
             </optgroup>
-            <optgroup v-if="brChoices.length" label="Catálogo BairesRental">
-              <option v-for="p in brChoices" :key="p.id" :value="p.id">{{ p.titulo }}</option>
+            <optgroup v-if="restChoices.length" label="Resto del catálogo">
+              <option v-for="p in restChoices" :key="p.id" :value="p.id">{{ p.titulo }}</option>
             </optgroup>
           </select>
         </div>
         <div class="col-12 col-sm-5">
-          <label class="form-label small" for="lk-to">Para quién *</label>
-          <input id="lk-to" v-model="recipientName" type="text" class="form-control" maxlength="80" placeholder="Juan Pérez" required />
+          <label class="form-label small" for="lk-name">Nombre del link <span class="text-muted">(opcional)</span></label>
+          <input
+            id="lk-name"
+            v-model="linkName"
+            type="text"
+            class="form-control"
+            maxlength="80"
+            placeholder="Todos los monoambientes"
+          />
         </div>
         <div class="col-12 col-sm-3">
           <label class="form-label small" for="lk-ch">Canal</label>
@@ -304,21 +380,21 @@ const canSubmit = computed(
     </form>
 
     <p v-if="loading">Cargando…</p>
-    <div v-else-if="!links.length" class="br-app-empty">
-      Todavía no generaste ningún link. Elegí una publicación, poné para quién es y compartilo.
+    <div v-else-if="!extraLinks.length" class="br-app-empty">
+      Todavía no generaste ningún link aparte. Con el de arriba ya podés compartir todo el catálogo.
     </div>
 
     <div v-else class="br-app-list">
       <article
-        v-for="l in sortedLinks"
+        v-for="l in extraLinks"
         :key="l.id"
         class="br-link-card"
         :class="{ 'is-inactive': l.active === false, 'is-saving': savingId === l.id }"
       >
         <div class="br-link-main">
           <div class="br-link-ident">
-            <strong class="br-link-name">{{ l.recipientName || 'Sin etiquetar' }}</strong>
-            <span class="br-link-chip">{{ channelLabel(l.channel) }}</span>
+            <strong class="br-link-name">{{ linkLabel(l) }}</strong>
+            <span v-if="l.channel" class="br-link-chip">{{ channelLabel(l.channel) }}</span>
             <span v-if="l.active === false" class="br-link-chip is-off">Desactivado</span>
           </div>
           <div class="br-link-prop br-app-truncate">{{ propertyLabel(l) }}</div>
@@ -377,38 +453,7 @@ const canSubmit = computed(
           </div>
         </div>
 
-        <div v-if="openFor === l.id" class="br-link-activity">
-          <p v-if="loadingEvents" class="small text-muted mb-0">Cargando actividad…</p>
-          <template v-else>
-            <p class="small text-muted mb-2">
-              {{ distinctVisitors(events[l.id] || []) }}
-              {{ distinctVisitors(events[l.id] || []) === 1 ? 'visitante distinto' : 'visitantes distintos' }}
-            </p>
-            <ul class="br-link-events">
-              <li v-for="(e, i) in humanEvents(l.id)" :key="i">
-                <span class="br-link-event-when">{{ eventDateTime(e.at) }}</span>
-                <span>{{ deviceLabel(e.device) }}</span>
-                <span v-if="e.type === 'whatsapp'" class="is-good">tocó contacto</span>
-                <span v-else-if="e.referer" class="text-muted">desde {{ refererHost(e.referer) }}</span>
-              </li>
-              <li v-if="!humanEvents(l.id).length" class="text-muted">Nadie lo abrió todavía.</li>
-            </ul>
-
-            <!-- Las vistas previas de las apps no cuentan como aperturas,
-                 pero se guardan igual: si alguna vez el filtro se come gente
-                 real, se ve acá en vez de desaparecer. -->
-            <p v-if="botEvents(l.id).length" class="small text-muted mb-0">
-              <button class="btn btn-link btn-sm p-0 align-baseline" @click="showBotsFor = showBotsFor === l.id ? null : l.id">
-                + {{ botEvents(l.id).length }} vista(s) previa(s) de apps
-              </button>
-              <span v-if="showBotsFor === l.id" class="d-block mt-1">
-                <span v-for="(e, i) in botEvents(l.id)" :key="i" class="d-block">
-                  {{ eventDateTime(e.at) }} · {{ e.botName }}
-                </span>
-              </span>
-            </p>
-          </template>
-        </div>
+        <LinkActivity v-if="openFor === l.id" :events="events[l.id] || []" :loading="loadingEvents" />
       </article>
     </div>
   </main>

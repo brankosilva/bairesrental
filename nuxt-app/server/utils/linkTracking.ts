@@ -1,10 +1,10 @@
 // Resolución de links compartibles y registro de su actividad.
 //
 // Todo lo que toca `links` desde el servidor pasa por acá, con el Admin
-// SDK: desde esta milestone la colección dejó de ser públicamente legible
-// (los documentos llevan el nombre de la persona a la que el vendedor le
-// compartió el link, que es dato de un tercero), así que ya no alcanza con
-// el SDK cliente y las reglas públicas que usaba antes esta ruta.
+// SDK: la colección no es públicamente legible (los documentos llevan las
+// notas que el vendedor escribió sobre sus clientes, que son datos de un
+// tercero), así que no alcanza con el SDK cliente y las reglas públicas que
+// usaba antes esta ruta.
 import { FieldValue } from 'firebase-admin/firestore'
 import type { H3Event } from 'h3'
 import type { LinkEventType, TrackableLink } from '~/types/link'
@@ -24,10 +24,12 @@ export interface ResolvedLink extends TrackableLink {
  * 404. O sea: cualquiera podía inflarle los números a un vendedor, y el
  * detalle de actividad mostraba propiedades que no son suyas.
  *
- * Antes exigía que la publicación FUERA del vendedor. Ahora el criterio es
- * `isShareableBySeller()` —el catálogo de BairesRental más lo propio, nunca
- * la exclusiva de otro vendedor—, el mismo que aplican el panel y el
- * callable que genera los links. Ver app/utils/sellerScope.ts.
+ * El criterio es `isShareableBySeller()`, el mismo que aplican el panel, el
+ * callable que genera los links y la página compartida — hoy devuelve true
+ * para todo el catálogo. Ver app/utils/sellerScope.ts: la llamada se
+ * mantiene para que el día que el recorte vuelva, vuelva en los cuatro
+ * lugares a la vez. Lo que sigue haciendo esta función es confirmar que la
+ * publicación EXISTE, o sea que /l/<code>/<id-inventado> no suma aperturas.
  */
 export async function propertyShareableBySeller(propertyId: string, sellerUid: string): Promise<boolean> {
   const db = getAdminFirestore()

@@ -205,7 +205,13 @@ export const inviteUser = onCall<InviteUserRequest>(async (request) => {
     { merge: true },
   )
   if (role === 'seller') {
-    await ensureSellerProfile(user.uid, displayName ?? user.displayName ?? null)
+    const name = displayName ?? user.displayName ?? null
+    await ensureSellerProfile(user.uid, name)
+    // El link que va a compartir queda hecho acá, con la cuenta. Antes el
+    // vendedor entraba a "Mis links" y tenía que generarse uno a mano para
+    // poder mostrar algo, eligiendo una publicación y poniéndole el nombre
+    // de un cliente: tres decisiones antes de tener una URL que mandar.
+    await ensurePrimaryLink(user.uid, name, user.email ?? email)
   }
   const link = await auth.generatePasswordResetLink(email)
 
@@ -269,9 +275,17 @@ export const updateUser = onCall<UpdateUserRequest>(async (request) => {
 
   await db.collection('users').doc(uid).set(profile, { merge: true })
 
-  if (role === 'seller') {
-    const name = displayName !== undefined ? displayName?.trim() || null : (await auth.getUser(uid)).displayName ?? null
+  // `role === 'seller'` a secas sólo cubría el alta del rol en ESTA llamada,
+  // así que corregirle el nombre a un vendedor que ya lo era no llegaba ni a
+  // la ficha ni al link. El rol efectivo se lee del documento recién
+  // escrito, que ya refleja el cambio si lo hubo.
+  const effectiveRole =
+    role !== undefined ? role : ((await db.collection('users').doc(uid).get()).data()?.role ?? null)
+  if (effectiveRole === 'seller') {
+    const authUser = await auth.getUser(uid)
+    const name = displayName !== undefined ? displayName?.trim() || null : authUser.displayName ?? null
     await ensureSellerProfile(uid, name)
+    await ensurePrimaryLink(uid, name, authUser.email ?? null)
   }
 
   return { ok: true }
@@ -366,11 +380,171 @@ function randomCode(length = 7): string {
 const VALID_CHANNELS = ['whatsapp', 'instagram', 'email', 'sms', 'facebook', 'presencial', 'otro'] as const
 type LinkChannel = (typeof VALID_CHANNELS)[number]
 
+// --- El link personal del vendedor ---
+//
+// Cada cuenta de vendedor tiene UN link permanente, creado junto con la
+// cuenta, cuyo código es el slug de su nombre: /l/juan-perez. Apunta a todo
+// el catálogo y es el que la persona pone en la bio de Instagram, en su
+// firma o en el estado de WhatsApp — no se genera, no se elige, no se
+// desactiva. Los links de createTrackableLink siguen existiendo para lo
+// otro: seguir una publicación puntual o una campaña con su propio nombre.
+
+function slugifyName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // saca los acentos: "Martín" → "martin"
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+    .replace(/-+$/g, '')
+}
+
+// El código tiene que entrar en el patrón que matchea el middleware que
+// cuenta las aperturas (server/middleware/01.link-open.ts): de 2 a 40
+// caracteres de [a-z0-9-]. Si el nombre no da para eso —una sola letra, o
+// puros símbolos— se cae al mail y después al uid, porque quedarse sin link
+// es peor que quedarse sin un link lindo.
+function primaryLinkBase(displayName?: string | null, email?: string | null, uid = ''): string {
+  for (const candidate of [displayName || '', (email || '').split('@')[0] || '']) {
+    const slug = slugifyName(candidate)
+    if (slug.length >= 2) return slug
+  }
+  return `vendedor-${uid.slice(0, 6).toLowerCase()}`
+}
+
+async function freeLinkCode(base: string): Promise<string> {
+  // juan-perez, juan-perez-2, juan-perez-3… Dos vendedores homónimos son
+  // raros pero posibles, y el ID de un documento no admite duplicados.
+  for (let i = 1; i <= 20; i++) {
+    const candidate = i === 1 ? base : `${base}-${i}`
+    if (!(await db.collection('links').doc(candidate).get()).exists) return candidate
+  }
+  return `${base}-${randomCode(4)}`
+}
+
+/**
+ * Deja listo el link personal del vendedor y devuelve su código.
+ *
+ * Idempotente: se la puede llamar en cada invitación y en cada edición del
+ * usuario sin que duplique nada. Son dos igualdades, así que la búsqueda no
+ * necesita índice compuesto (Firestore la resuelve con zigzag merge join).
+ */
+async function ensurePrimaryLink(
+  uid: string,
+  displayName?: string | null,
+  email?: string | null,
+): Promise<string> {
+  const name = displayName?.trim() || null
+  const base = primaryLinkBase(name, email, uid)
+  const existing = await db
+    .collection('links')
+    .where('sellerUid', '==', uid)
+    .where('primary', '==', true)
+    .limit(1)
+    .get()
+
+  if (!existing.empty) {
+    const doc = existing.docs[0]!
+    const data = doc.data()
+    const label = name || (data.label as string) || 'Todo el catálogo'
+
+    // El código se renombra SÓLO mientras el link no se haya usado nunca. A
+    // partir de la primera apertura —incluida la vista previa de WhatsApp,
+    // que cuenta en botOpens— hay una URL dando vueltas en el chat de
+    // alguien, y cambiarla la rompe. Esto está para el caso real: invitar
+    // sin nombre (el código sale del mail) y cargarlo un minuto después.
+    const untouched = !data.opens && !data.botOpens && !data.whatsappClicks && !data.leads && !data.clicks
+    const baseFree = doc.id !== base && !(await db.collection('links').doc(base).get()).exists
+    if (untouched && baseFree) {
+      // Y sólo al slug exacto, nunca a un "juan-perez-2" derivado: si el
+      // código bueno está ocupado, se queda con el que tiene. Renombrar a un
+      // sufijo distinto en cada edición sería un link que se mueve solo.
+      await db
+        .collection('links')
+        .doc(base)
+        .set({ ...data, label, labelLower: label.toLowerCase(), updatedAt: FieldValue.serverTimestamp() })
+      await doc.ref.delete()
+      return base
+    }
+
+    if (data.label !== label) {
+      await doc.ref.set(
+        { label, labelLower: label.toLowerCase(), updatedAt: FieldValue.serverTimestamp() },
+        { merge: true },
+      )
+    }
+    return doc.id
+  }
+
+  const code = await freeLinkCode(base)
+  const label = name || 'Todo el catálogo'
+  await db.collection('links').doc(code).set({
+    sellerUid: uid,
+    target: 'catalog',
+    propertyId: null,
+    propertyType: null,
+    propertyTitulo: null,
+    label,
+    labelLower: label.toLowerCase(),
+    // Sin canal: éste no se manda por ningún lado en particular.
+    channel: null,
+    note: null,
+    outcome: 'pending',
+    primary: true,
+    active: true,
+    opens: 0,
+    botOpens: 0,
+    whatsappClicks: 0,
+    leads: 0,
+    clicks: 0,
+    firstOpenAt: null,
+    lastOpenAt: null,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  })
+  return code
+}
+
+interface EnsureSellerLinkRequest {
+  uid?: string
+}
+
+// Callable, vendedor (para sí mismo) o admin (para cualquier vendedor).
+//
+// Es el remiendo de las cuentas que ya existían antes de que el link
+// personal fuera automático: /app/seller/links la llama sólo cuando no
+// encuentra el link personal en la lista que acaba de leer, así que en una
+// cuenta creada después de este cambio no se llama nunca. Evita tener que
+// correr un backfill a mano contra producción.
+export const ensureSellerLink = onCall<EnsureSellerLinkRequest>(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
+  }
+  const callerRole = request.auth.token.role
+  if (callerRole !== 'seller' && callerRole !== 'admin') {
+    throw new HttpsError('permission-denied', 'Solo un vendedor tiene link personal.')
+  }
+  const uid = callerRole === 'admin' && request.data?.uid ? request.data.uid : request.auth.uid
+
+  const userSnap = await db.collection('users').doc(uid).get()
+  if (!userSnap.exists || userSnap.data()?.role !== 'seller') {
+    throw new HttpsError('invalid-argument', 'El usuario no existe o no tiene rol de vendedor.')
+  }
+  const data = userSnap.data()!
+  const code = await ensurePrimaryLink(
+    uid,
+    (data.displayName as string | null) ?? null,
+    (data.email as string | null) ?? null,
+  )
+  return { code }
+})
+
 interface CreateTrackableLinkRequest {
   target?: 'property' | 'catalog'
   propertyId?: string | null
   propertyType?: 'rental' | 'sale' | null
-  recipientName?: string
+  label?: string
   channel?: LinkChannel
   note?: string | null
   sellerUid?: string // only honored when the caller is admin creating on a seller's behalf
@@ -378,12 +552,14 @@ interface CreateTrackableLinkRequest {
 
 // Callable, seller or admin. Document ID is the code itself.
 //
+// Es el link EXTRA: el personal ya lo tiene cada vendedor desde que se crea
+// la cuenta (ensurePrimaryLink, arriba). Éste sirve para seguir aparte una
+// publicación puntual o una campaña, con el nombre que el vendedor le ponga.
+//
 // Esta función no validaba NADA de lo que le mandaban: aceptaba cualquier
-// propertyId (existente o no, propio o ajeno) y lo escribía tal cual. La
-// pantalla sólo ofrece las propiedades del vendedor en un <select>, pero
-// eso es una restricción de UI: invocando el callable directo, un vendedor
-// podía generar un link apuntado a la publicación de otro y quedarse con
-// los leads que generara. Ahora se valida server-side.
+// propertyId, existente o no, y lo escribía tal cual — un link a una
+// publicación inventada es una página rota que el vendedor descubre recién
+// cuando el cliente no le contesta. Eso se sigue validando server-side.
 //
 // También dejó de devolver `url`. Antes armaba
 // `https://www.bairesrental.com.ar/l/${code}` acá adentro, que es el
@@ -413,12 +589,15 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
     }
   }
 
-  const recipientName = request.data.recipientName?.trim()
-  if (!recipientName) {
-    throw new HttpsError('invalid-argument', 'Decí para quién es el link.')
-  }
-  if (recipientName.length > 80) {
-    throw new HttpsError('invalid-argument', 'El nombre del destinatario es demasiado largo (máximo 80).')
+  // El nombre es del LINK, no de un destinatario: "Todos los monoambientes",
+  // "Campaña de Instagram". Y es opcional — si no lo ponen, sale el título de
+  // la publicación, que es lo que la persona habría escrito igual. Antes era
+  // obligatorio y era el nombre del cliente: un dato que había que inventar
+  // para poder generar un link y que partía las métricas de una misma
+  // publicación en una fila por cliente.
+  const requestedLabel = request.data.label?.trim() || ''
+  if (requestedLabel.length > 80) {
+    throw new HttpsError('invalid-argument', 'El nombre del link es demasiado largo (máximo 80).')
   }
 
   const channel: LinkChannel = request.data.channel ?? 'whatsapp'
@@ -453,32 +632,25 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
     if (!propertySnap.exists) {
       throw new HttpsError('not-found', 'Esa publicación no existe.')
     }
-    // Un admin puede generar un link para cualquier publicación. Un vendedor,
-    // para el catálogo de BairesRental (los documentos sin `sellerUid`, que hoy
-    // son todos) y para lo que cargó él.
-    //
-    // Antes exigía que fuera SUYA, y como ningún documento del catálogo tiene
-    // `sellerUid`, un vendedor no podía generar un link de nada. Lo que sigue
-    // prohibido es la exclusiva de OTRO vendedor: publicarla sería mostrar la
-    // propiedad de un colega con el nombre y el WhatsApp propios encima.
+    // Acá había un chequeo de pertenencia: un vendedor podía generar links
+    // del catálogo de BairesRental y de lo suyo, pero no de la exclusiva de
+    // otro vendedor. El equipo pasó a compartir un catálogo solo, así que
+    // toda publicación que exista es compartible.
     //
     // Es la misma regla que `isShareableBySeller()` en
     // nuxt-app/app/utils/sellerScope.ts. Se repite acá porque functions/ es un
     // paquete TypeScript aparte y no comparte módulos con la app: si cambia
     // una, cambiar la otra.
-    const propertyOwner = (propertySnap.data()?.sellerUid as string | null | undefined) || null
-    if (callerRole !== 'admin' && propertyOwner && propertyOwner !== sellerUid) {
-      throw new HttpsError('permission-denied', 'Esa publicación es de otro vendedor.')
-    }
     propertyTitulo = propertySnap.data()?.titulo ?? null
   }
 
-  const recipientNameLower = recipientName.toLowerCase()
+  const label = requestedLabel || propertyTitulo || 'Todo el catálogo'
+  const labelLower = label.toLowerCase()
 
-  // Idempotencia: generar dos veces el mismo link para la misma persona y
+  // Idempotencia: generar dos veces el mismo link con el mismo nombre sobre
   // la misma publicación devuelve el que ya existe en vez de duplicarlo
-  // (tocar "Generar" dos veces es lo más fácil del mundo, y dos links para
-  // el mismo destinatario parten las métricas en dos).
+  // (tocar "Generar" dos veces es lo más fácil del mundo, y dos links iguales
+  // parten las métricas en dos).
   //
   // Son todas igualdades, así que Firestore lo resuelve con zigzag merge
   // join sobre los índices de campo único — no hace falta índice compuesto.
@@ -486,7 +658,7 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
     .collection('links')
     .where('sellerUid', '==', sellerUid)
     .where('propertyId', '==', propertyId)
-    .where('recipientNameLower', '==', recipientNameLower)
+    .where('labelLower', '==', labelLower)
     .where('active', '==', true)
     .limit(1)
     .get()
@@ -515,8 +687,8 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
     propertyId,
     propertyType,
     propertyTitulo,
-    recipientName,
-    recipientNameLower,
+    label,
+    labelLower,
     channel,
     note,
     outcome: 'pending',

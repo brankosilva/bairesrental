@@ -18,15 +18,22 @@
 //
 // Corre en CADA request del sitio, así que el guard de path va primero y
 // es estricto.
-const LINK_PATH = /^\/l\/([a-z0-9]{4,12})(?:\/([^/?#]+))?\/?$/i
+//
+// El código dejó de ser siempre 7 caracteres al azar: el link personal del
+// vendedor usa el slug de su nombre (/l/juan-perez), así que el patrón
+// acepta guiones y hasta 40 caracteres. Es el mismo límite que aplica
+// ensurePrimaryLink() en functions/src/index.ts al armarlo — si uno cambia,
+// el otro también, o el link existe pero sus aperturas no se cuentan.
+const LINK_PATH = /^\/l\/([a-z0-9][a-z0-9-]{1,39})(?:\/([^/?#]+))?\/?$/i
 
 export default defineEventHandler(async (event) => {
   const path = (event.path || '').split('?')[0] || ''
   if (!path.startsWith('/l/')) return
 
-  // Un código de un solo uso no se cachea: si el CDN de Firebase Hosting
-  // respondiera sin pasar por la función, la apertura no se registraría
-  // nunca. Y la página es privada de un destinatario: jamás indexable.
+  // Esto no se cachea: si el CDN de Firebase Hosting respondiera sin pasar
+  // por la función, la apertura no se registraría nunca. Y la página es la
+  // versión de alguien de un catálogo que ya está indexado en su versión
+  // pública: jamás indexable, o serían dos páginas compitiendo por lo mismo.
   setResponseHeader(event, 'cache-control', 'no-store, max-age=0')
   setResponseHeader(event, 'X-Robots-Tag', 'noindex, nofollow')
 

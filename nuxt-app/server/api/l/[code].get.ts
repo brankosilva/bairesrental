@@ -9,10 +9,10 @@ import { isShareableBySeller, ownFirst } from '~/utils/sellerScope'
 // endpoint también se llamaría desde el cliente al navegar dentro de la
 // página y contaría aperturas que nunca pasaron.
 //
-// Lee con el Admin SDK porque `links` dejó de ser público: los documentos
-// llevan la etiqueta con la que el vendedor identifica al destinatario (ver
-// firestore.rules). Esa etiqueta NO sale en el payload: es una anotación
-// interna suya, no un dato de la persona que abre la página.
+// Lee con el Admin SDK porque `links` no es público: los documentos llevan
+// el nombre que el vendedor le puso al link y la nota que escribió sobre a
+// quién se lo mandó (ver firestore.rules). Nada de eso sale en el payload:
+// son anotaciones internas suyas, no datos de quien abre la página.
 
 // Los docs de rentals/sales tienen `updatedAt` (Timestamp del Admin SDK,
 // lo escribe adminCrud.saveOne). JSON.stringify lo convierte en
@@ -83,16 +83,12 @@ export default defineEventHandler(async (event) => {
   let catalog: { rentals: Row[]; sales: Row[] } | null = null
 
   if (isCatalog) {
-    // El catálogo que el vendedor presenta como propio: el de BairesRental
-    // más lo que cargó él.
-    //
-    // Antes eran dos queries `where('sellerUid', '==', ...)`, o sea sólo lo
-    // suyo — y como ningún documento del catálogo tiene `sellerUid`, esta
-    // página salía siempre con "No hay propiedades disponibles". Ahora se
-    // leen las dos colecciones enteras y el recorte lo hace
-    // isShareableBySeller(), que también deja afuera la exclusiva de otro
-    // vendedor. Son ~88 lecturas por apertura: exactamente lo mismo que ya
-    // hace /departamentos en cada request de SSR.
+    // El catálogo entero, que es lo que el vendedor presenta como propio:
+    // el de BairesRental, lo que cargó él y también las exclusivas de sus
+    // colegas. El recorte lo decide isShareableBySeller() —hoy, ninguno— y
+    // no esta función, para que el panel y la página compartida no puedan
+    // mostrar cosas distintas. Son ~88 lecturas por apertura: exactamente lo
+    // mismo que ya hace /departamentos en cada request de SSR.
     const [r, s] = await Promise.all([db.collection('rentals').get(), db.collection('sales').get()])
     const rows = (snap: typeof r) =>
       snap.docs.map((d) => ({ id: d.id, ...plain(d.data()) }) as Row).filter((p) => isShareableBySeller(p, link.sellerUid))
@@ -124,10 +120,10 @@ export default defineEventHandler(async (event) => {
     }
     if (!property) throw createError({ statusCode: 404, statusMessage: 'Publicación no encontrada' })
 
-    // Un link de catálogo sólo abre fichas que ese vendedor puede mostrar:
-    // sin este chequeo, /l/<mi-code>?p=<cualquier-id> renderizaría la
-    // publicación de OTRO VENDEDOR con mi nombre y mi WhatsApp encima. Las de
-    // BairesRental sí entran — son las que se acaban de listar arriba.
+    // Un link de catálogo sólo abre fichas que ese vendedor puede mostrar.
+    // Hoy son todas, pero el chequeo se queda: es el mismo predicado que
+    // arma la lista de arriba, y sin él una ficha que la lista NO muestre
+    // igual se abriría por URL directa.
     if (requestedProperty && !isShareableBySeller(property, link.sellerUid)) {
       throw createError({ statusCode: 404, statusMessage: 'Publicación no encontrada' })
     }

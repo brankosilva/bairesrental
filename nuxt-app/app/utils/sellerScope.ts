@@ -7,14 +7,15 @@
 // cero, y un link de "todo mi catálogo" renderizaba "No hay propiedades
 // disponibles". La feature entera estaba apagada por los datos reales.
 //
-// La regla ahora: una publicación es suya para ver y compartir si la gestiona
-// BairesRental (sin `sellerUid`) o si la cargó él.
+// La regla ahora: TODO el catálogo se comparte. Las que gestiona
+// BairesRental (sin `sellerUid`), las que cargó él y también las exclusivas
+// que cargó otro vendedor.
 //
-// LAS DE OTRO VENDEDOR SIGUEN AFUERA, y eso es a propósito: renderizar la
-// exclusiva de un colega bajo el propio nombre y el propio WhatsApp es el caso
-// que el chequeo anterior evitaba (ver server/api/l/[code].get.ts), y no es lo
-// que se pidió abrir. Si alguna vez se decide que el equipo comparte todo,
-// `isShareableBySeller` pasa a devolver true y no hay que tocar nada más.
+// Ése es el cambio: hasta acá la exclusiva de un colega quedaba afuera para
+// que nadie la mostrara bajo su nombre y su WhatsApp. Es una decisión del
+// negocio, no técnica, y la decisión pasó a ser la contraria — el equipo
+// comparte un solo catálogo y cada uno lo presenta con su marca. Quién puede
+// EDITAR una publicación no cambió: eso sigue siendo `isOwnListing()`.
 //
 // Se importa explícito desde server/ (que no tiene los auto-imports de la app)
 // para que cliente y servidor no puedan quedar con criterios distintos.
@@ -28,12 +29,25 @@ export function isOwnListing(p: SellerScoped, uid: string | null | undefined): b
   return !!uid && !!p.sellerUid && p.sellerUid === uid
 }
 
-/** La puede ver y generar links con su marca. */
-export function isShareableBySeller(p: SellerScoped, uid: string | null | undefined): boolean {
-  return !p.sellerUid || isOwnListing(p, uid)
+/**
+ * La puede ver y generar links con su marca: todas.
+ *
+ * Se mantiene como función (en vez de borrar las llamadas) porque es el
+ * único lugar donde vive esta decisión: el día que el negocio quiera volver
+ * a recortar el catálogo por vendedor, se cambia acá y vuelve a valer para
+ * el panel, el selector de links, el callable que los crea y la página
+ * compartida, sin que ninguno quede con un criterio distinto.
+ */
+export function isShareableBySeller(_p: SellerScoped, _uid: string | null | undefined): boolean {
+  return true
 }
 
-/** Las suyas primero y después por título: lo propio es lo que busca antes. */
+/**
+ * Las suyas primero y después por título: lo propio es lo que busca antes.
+ * Sigue importando aunque el catálogo sea de todos — en la lista del panel
+ * es el orden útil, y en la página compartida hace que la portada del
+ * preview salga de una publicación suya.
+ */
 export function ownFirst<T extends SellerScoped & { titulo?: string }>(uid: string | null | undefined) {
   return (a: T, b: T): number => {
     const rank = Number(isOwnListing(b, uid)) - Number(isOwnListing(a, uid))

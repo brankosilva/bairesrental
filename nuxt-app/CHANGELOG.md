@@ -1,5 +1,87 @@
 # Migration log — Nuxt SSR rewrite
 
+## N10 — El vendedor ya no genera su link: viene con la cuenta
+
+Para tener algo que mandarle a un cliente, un vendedor tenía que entrar a
+"Mis links", elegir una publicación, elegir un canal y **escribir el nombre de
+la persona** (campo "Para quién", obligatorio). Tres decisiones y un dato
+inventado antes de tener una URL. Y como el nombre del destinatario era parte
+de la clave de deduplicación, las métricas de una misma publicación quedaban
+partidas en una fila por cliente: nunca se veía "esta publicación la abrieron
+40 veces", se veían 12 filas de 3.
+
+### 1. El link personal
+
+Cada cuenta de vendedor tiene ahora **un link permanente, creado con la
+cuenta**, cuyo código es el slug de su nombre: `/l/juan-perez`. Apunta a todo
+el catálogo y es el que va en la bio de Instagram, en la firma o en el estado
+de WhatsApp.
+
+Lo crea `ensurePrimaryLink()` (`functions/src/index.ts`), llamada desde
+`inviteUser` y desde `updateUser`. Es idempotente y se puede llamar en cada
+edición del usuario. Tres decisiones que vale la pena conocer:
+
+- **El slug se renombra sólo mientras el link no se usó nunca.** A partir de
+  la primera apertura —incluida la vista previa de WhatsApp, que suma a
+  `botOpens`— hay una URL dando vueltas en el chat de alguien y cambiarla la
+  rompe. Está para el caso real: invitar sin nombre (el código sale del mail)
+  y cargar el nombre un minuto después.
+- **Sólo renombra al slug exacto**, nunca a un `juan-perez-2` derivado. Si el
+  código bueno está ocupado se queda con el que tiene; renombrar a un sufijo
+  distinto en cada edición sería un link que se mueve solo.
+- **`updateUser` mira el rol efectivo**, no el que viene en el payload:
+  `role === 'seller'` a secas sólo cubría el alta del rol en esa llamada, así
+  que corregirle el nombre a un vendedor que ya lo era no llegaba ni a la
+  ficha ni al link.
+
+Las cuentas anteriores a este cambio se reparan solas: `/app/seller/links`
+llama al callable `ensureSellerLink` **sólo si** la lista que acaba de leer no
+trae el link personal. No hizo falta backfill contra producción.
+
+`server/middleware/01.link-open.ts` acepta el nuevo formato de código
+(`[a-z0-9][a-z0-9-]{1,39}`, antes `[a-z0-9]{4,12}`). **Es un límite acoplado**
+a `ensurePrimaryLink()`: si uno cambia y el otro no, el link existe pero sus
+aperturas no se cuentan en ningún lado.
+
+### 2. "Para quién" pasó a ser el nombre del link
+
+El campo se quedó, con otro significado y **opcional**: es cómo el vendedor
+llama a ese link ("Todos los monoambientes", "Campaña de Instagram"). Si lo
+deja vacío sale el título de la publicación. En Firestore es `label` /
+`labelLower`; `recipientName` / `recipientNameLower` quedan como los nombres
+viejos, que **no se escriben más** pero siguen leyéndose — los links que ya
+están en producción sólo tienen esos, y no hubo backfill. Todo lo que muestre
+el nombre de un link pasa por `linkLabel()` (`composables/useLinkStats.ts`),
+nunca lee los campos directo.
+
+El formulario quedó para lo único que el link personal no cubre: seguir
+aparte una publicación o una campaña.
+
+### 3. El catálogo se comparte entero
+
+`isShareableBySeller()` (`app/utils/sellerScope.ts`) devuelve `true`. Hasta
+acá dejaba afuera las exclusivas cargadas por otro vendedor, para que nadie
+las mostrara bajo su nombre y su WhatsApp; el equipo pasó a compartir un
+catálogo solo. Es una decisión del negocio, no técnica, y por eso la función
+sigue existiendo en vez de borrarse en cada llamada: es el único lugar donde
+vive, y el día que el recorte vuelva, vuelve a la vez en el panel, en el
+selector de links, en el callable que los crea y en la página compartida.
+
+El chequeo espejo que había en `createTrackableLink` se sacó por lo mismo.
+
+### 4. UI
+
+- `components/LinkActivity.vue` (nuevo): el detalle de actividad salió de
+  `seller/links.vue` porque ahora se muestra en dos lugares de esa pantalla.
+- `.br-my-link` (`public/css/br-app.css`): la URL se muestra entera y en
+  grande en vez de vivir detrás de un botón de copiar. Borde azul, el único
+  del panel, para separar "esto ya existe, es tuyo" de "esto lo generás vos".
+- El link personal **no se puede desactivar**, ni desde la UI ni desde las
+  reglas: nadie lo vuelve a crear si lo apaga, y no es el link de un cliente.
+- Admin · Links: el KPI "Vendedores" pasó a "Vendedores activos" (los que
+  tuvieron al menos una apertura). Contar los que *tienen* links dejó de
+  decir nada desde que el link se crea con la cuenta.
+
 ## N9 — El panel `/app/*` se puede usar desde el celular
 
 El panel autenticado estaba construido con tablas Bootstrap de 5-6 columnas

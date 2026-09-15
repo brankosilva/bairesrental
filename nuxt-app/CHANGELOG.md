@@ -89,6 +89,39 @@ count, the last-admin refusal) surface in a banner instead of an `alert()`
 - `npm --prefix functions run build` (`tsc`) — clean.
 - `npm run build` (Nuxt) — clean; only the pre-existing chunk-size warning.
 
+### Deploy (live `bairesrental.web.app`, 2026-09-14)
+
+Scoped, in the documented order — `functions:default`, then
+`functions:nuxtssr`, then `hosting` (the `**` rewrite points at `nuxtSsr`,
+so the function has to be up before the release publishes). The customer
+domain `www.bairesrental.com.ar` is still GitHub Pages serving the static
+site and was not touched.
+
+- **Before**: 9 functions. **After**: 11 — `updateUser` and `deleteUser`
+  created, the other 9 updated in place, none deleted (`setUserRole`
+  deliberately kept).
+- `https://bairesrental.web.app/` → `200`, title unchanged.
+  `/app/admin/users` → `302` (the auth middleware rejecting server-side
+  without a session, as expected).
+- This deploy also carried in-flight work that was in the tree at the time
+  and is **not** part of this milestone's commit: the restored
+  `departamentos` hero (confirmed live via `br-dept-hero-bg` in the served
+  HTML), `tickets.vue`, the i18n locales, `br-catalog.css`, and the new
+  `public/docs/` + `galeria-*.webp` assets.
+
+**Gotcha N0 #2, sharper**: the rehydrate step after `npm run build` has to
+be run **from inside `.output/server`** (`cd .output/server && npm install
+--omit=dev`). Doing it as `npm --prefix .output/server install --omit=dev`
+from `nuxt-app/` left `node_modules/firebase-functions/lib/v2/index.js`
+still missing — the exact file `firebase-tools`' `findFunctionsBinary()`
+resolves — and the deploy failed with a bare `Error: An unexpected error
+has occurred.` whose cause is only visible under `--debug`. A fresh build
+ships `lib/v2/` with just `options.js`, `providers/`, `trace.js`; after a
+correct rehydrate it has `index.js` alongside them, which is the cheap
+thing to check before deploying. Deploying against a stale `.output` fails
+differently again (`Could not read source directory ... ENOENT
+chunks/build/*.mjs`) — that one means rebuild from scratch.
+
 ## N7 — Two sitemap fixes + cutover: `bairesrental.web.app` now serves Nuxt
 
 The final milestone of this plan. Fixed the two real (non-blocking) gaps

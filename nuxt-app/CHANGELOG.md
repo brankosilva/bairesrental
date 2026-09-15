@@ -1,5 +1,94 @@
 # Migration log — Nuxt SSR rewrite
 
+## N8 — Admin `Usuarios` becomes a real CRUD
+
+`/app/admin/users` was the only admin screen that wasn't one: it could
+invite a user (C) and list users (R), but the only thing editable was the
+role, and there was no way to remove anyone — `admin/rentals.vue` and
+`admin/sales.vue` have had edit + delete since N3.
+
+### Why every write is a Cloud Function
+
+`firestore.rules` has `allow write: if false` on `/users/{uid}` (since M4),
+because a role lives in **two** places that must never drift: the Firestore
+profile doc and the Firebase Auth custom claim that `app/middleware/auth.ts`
+actually enforces. Only the Admin SDK can write both, so this screen gets
+two new callables rather than the `saveOne`/`removeOne` helpers the listing
+screens use. **No rules change was needed or made.**
+
+### Functions (`functions/src/index.ts`) — `default` codebase now has 11
+
+1. **`updateUser`** (new, admin-only). Every field optional, only the ones
+   present in the payload are touched, so the same callable serves both the
+   row's inline edit (name / phone / role) and the suspend toggle without
+   either clobbering the other.
+   - `displayName` is mirrored into Firebase Auth; **`phone` deliberately
+     is not.** Auth's `phoneNumber` must be a globally-unique E.164 value
+     tied to phone sign-in, so an ordinary contact number like
+     `11 7373-5757` would fail the whole update. It stays a Firestore
+     profile field, the same way `leads` stores one.
+   - `disabled` maps to Auth's own disabled flag (a reversible "baja"), and
+     is mirrored into the profile doc so the list can render the state
+     without a `listUsers()` scan.
+2. **`deleteUser`** (new, admin-only). Deletes the Auth account *and* the
+   profile, with three guards:
+   - **Not yourself** (`uid === request.auth.uid`).
+   - **Not the last admin** — shared `assertNotLastAdmin()` helper, also
+     applied when demoting or suspending. Recovering from locking every
+     admin out needs service-account credentials and a manual re-run of
+     `functions/scripts/bootstrap-admin.js`, so it's refused up front.
+   - **Not while they still hold listings** — four `count()` aggregations
+     over `rentals`/`sales` × `sellerUid`/`ownerUid`. It **refuses and says
+     how many** instead of cascading: a listing whose seller resolves to
+     nobody stays on the public catalog, and reassigning a property is a
+     business decision, not a side effect of removing a login.
+   - `links` owned by the user are **deactivated, not deleted** — `leads`
+     reference them by `linkId`, so deleting them would break the
+     attribution history of leads that seller already brought in.
+   - Auth is deleted before the profile on purpose: a leftover profile doc
+     is an orphan visible in this very screen and retryable, whereas the
+     reverse order could leave an account that can still sign in with no
+     profile row to find it by. `auth/user-not-found` is swallowed so a
+     profile whose Auth user was removed from the console can still be
+     cleaned up here.
+3. **`onUserCreate` race fixed** (pre-existing bug, found while wiring the
+   invite form). It wrote the profile with a plain non-merge `set`
+   including `role: null`. That trigger fires asynchronously a beat *after*
+   `createUser()` returns inside `inviteUser`, so it could land **after**
+   `inviteUser` had written the assigned role and silently reset it to
+   null — the invited user would then log in to the "sin rol" dashboard.
+   Now a transaction reads first and never overwrites an existing `role`
+   or `createdAt`, making the trigger idempotent.
+4. **`inviteUser`** additionally accepts optional `displayName` / `phone`,
+   and only overwrites those fields when they're actually filled in (so
+   re-inviting an existing user with the name box empty can't wipe the name
+   they already have).
+5. **`setUserRole` kept, unchanged, no longer called by the UI.** Stable
+   endpoint documented since M4; `updateUser` supersedes it (same role
+   write, plus the rest of the profile and the last-admin guard). Removing
+   a deployed function is its own deliberate deploy, not a side effect of
+   this one.
+6. Shared `requireAdmin(request, mensaje)` replaces the `signed in` +
+   `is admin` pair each admin-only callable inlined, keeping each one's
+   original user-facing wording verbatim.
+
+### Page (`app/pages/app/admin/users.vue`)
+
+Invite panel gains name + phone; the table gains name / phone / estado
+columns, a search box matching `admin/rentals.vue`, inline per-row edit
+(one row at a time, cancel restores without a reload), a
+suspend/reactivate toggle, and delete. Self-row is badged `vos` with
+suspend and delete disabled; demoting **yourself** is allowed but
+confirms first, since you lose the panel as soon as the ID token
+refreshes. `failed-precondition` messages from the backend (the listing
+count, the last-admin refusal) surface in a banner instead of an `alert()`
+— they're the admin's cue for what to do next, not just a failure.
+
+### Verification
+
+- `npm --prefix functions run build` (`tsc`) — clean.
+- `npm run build` (Nuxt) — clean; only the pre-existing chunk-size warning.
+
 ## N7 — Two sitemap fixes + cutover: `bairesrental.web.app` now serves Nuxt
 
 The final milestone of this plan. Fixed the two real (non-blocking) gaps

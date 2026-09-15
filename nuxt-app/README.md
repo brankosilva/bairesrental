@@ -30,13 +30,13 @@ admin/seller/owner app yet (N2/N3).
 
 - This folder now owns **two separate Functions codebases** in the
   `bairesrental` project: `"nuxtssr"` (the SSR handler, built from
-  `.output/server` by `npm run build`) and `"default"` (the 9 callable /
+  `.output/server` by `npm run build`) and `"default"` (the 11 callable /
   trigger functions in `functions/` — `setUserRole`, `inviteUser`,
-  `createTrackableLink`, `submitLead`, `uploadListingImage`,
-  `onUserCreate`, plus the two legacy `?id=` redirect functions). Always
-  deploy scoped to the one you changed (`firebase deploy --only
-  functions:nuxtssr` or `--only functions:default`), never a bare
-  `firebase deploy`.
+  `updateUser`, `deleteUser`, `createTrackableLink`, `submitLead`,
+  `uploadListingImage`, `onUserCreate`, plus the two legacy `?id=`
+  redirect functions). Always deploy scoped to the one you changed
+  (`firebase deploy --only functions:nuxtssr` or `--only
+  functions:default`), never a bare `firebase deploy`.
 - `firebase deploy --only hosting` here publishes the live release at
   `bairesrental.web.app` — use `firebase hosting:channel:deploy
   <channel-name>` for anything you want to check first.

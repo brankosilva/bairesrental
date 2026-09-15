@@ -9,9 +9,12 @@
 // (onRentalWrite/onSaleWrite + scheduledRebuildCheck), since removed by
 // N5 of the Nuxt SSR migration (see nuxt-docs/historial-app-vue.md and
 // docs/historial-app-vue.md's N5 entry) — real per-request SSR reads Firestore
-// live on every request, so there's nothing left to "rebuild."
+// live on every request, so there's nothing left to "rebuild." N8
+// completes the admin Usuarios screen's CRUD: updateUser + deleteUser
+// join inviteUser here, and onUserCreate stops clobbering the role an
+// invite just assigned (see below).
 import * as functionsV1 from 'firebase-functions/v1'
-import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https'
+import { onCall, onRequest, HttpsError, type CallableRequest } from 'firebase-functions/v2/https'
 import { setGlobalOptions } from 'firebase-functions/v2'
 import { initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
@@ -28,18 +31,64 @@ const auth = getAuth()
 // gen1 default.
 setGlobalOptions({ region: 'southamerica-east1' })
 
+// Runs on every Auth account creation, including the one inviteUser does
+// itself. It used to write the profile with a plain (non-merge) `set`
+// including `role: null`, which races inviteUser: the trigger fires
+// asynchronously a beat *after* createUser() returns, so it could land
+// after inviteUser had already written the assigned role and silently
+// reset it to null — the invited user would then log in to the "sin rol"
+// dashboard. Reading first inside a transaction makes the trigger
+// idempotent: it fills in what's missing and never overwrites a role (or
+// a createdAt) that is already there.
 export const onUserCreate = functionsV1.auth.user().onCreate(async (user) => {
-  await db.collection('users').doc(user.uid).set({
-    email: user.email ?? null,
-    displayName: user.displayName ?? null,
-    phone: user.phoneNumber ?? null,
-    role: null,
-    createdAt: FieldValue.serverTimestamp(),
+  const ref = db.collection('users').doc(user.uid)
+  await db.runTransaction(async (tx) => {
+    const existing = (await tx.get(ref)).data() ?? {}
+    tx.set(
+      ref,
+      {
+        email: user.email ?? existing.email ?? null,
+        displayName: user.displayName ?? existing.displayName ?? null,
+        phone: user.phoneNumber ?? existing.phone ?? null,
+        role: existing.role ?? null,
+        createdAt: existing.createdAt ?? FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    )
   })
 })
 
 const VALID_ROLES = ['admin', 'seller', 'owner'] as const
 type Role = (typeof VALID_ROLES)[number]
+
+// The `signed in` + `is admin` pair every admin-only callable below opens
+// with. Takes the action-specific message so the user-facing wording stays
+// per-function, exactly as it was when each one inlined these two checks.
+function requireAdmin<T>(request: CallableRequest<T>, denied: string): void {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
+  }
+  if (request.auth.token.role !== 'admin') {
+    throw new HttpsError('permission-denied', denied)
+  }
+}
+
+// Guard for the three ways an admin can lock everyone out of the app:
+// demoting, suspending or deleting the last remaining admin. Recovering
+// from that needs service-account credentials and a manual re-run of
+// functions/scripts/bootstrap-admin.js, so it's worth refusing up front.
+// Counts against the Firestore mirror rather than listing Auth users —
+// inviteUser/updateUser/setUserRole all keep the two in sync, and a full
+// listUsers() pagination scan to answer "is there another admin" would be
+// disproportionate here.
+async function assertNotLastAdmin(uid: string, action: string): Promise<void> {
+  const target = await db.collection('users').doc(uid).get()
+  if (target.data()?.role !== 'admin') return
+  const admins = await db.collection('users').where('role', '==', 'admin').count().get()
+  if (admins.data().count <= 1) {
+    throw new HttpsError('failed-precondition', `No podés ${action} al único admin que queda.`)
+  }
+}
 
 interface SetUserRoleRequest {
   uid?: string
@@ -50,13 +99,14 @@ interface SetUserRoleRequest {
 // function (nothing is admin yet) — that one-time bootstrap is done
 // directly via the Admin SDK (see functions/scripts/bootstrap-admin.js),
 // same pattern as the M1 data migration script.
+//
+// N8 note: the admin Usuarios screen no longer calls this — updateUser
+// (below) does the same role write plus the rest of the profile, and adds
+// the last-admin guard this one lacks. Kept deployed and unchanged
+// because it's a stable endpoint documented since M4; delete it only in a
+// deliberate `firebase deploy` that's expecting to remove a function.
 export const setUserRole = onCall<SetUserRoleRequest>(async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
-  }
-  if (request.auth.token.role !== 'admin') {
-    throw new HttpsError('permission-denied', 'Solo un admin puede asignar roles.')
-  }
+  requireAdmin(request, 'Solo un admin puede asignar roles.')
 
   const { uid, role } = request.data
   if (!uid || !role || !VALID_ROLES.includes(role)) {
@@ -73,6 +123,8 @@ export const setUserRole = onCall<SetUserRoleRequest>(async (request) => {
 interface InviteUserRequest {
   email?: string
   role?: Role
+  displayName?: string
+  phone?: string
 }
 
 // Callable, admin-only. Lets an admin provision a new seller/owner/admin
@@ -84,35 +136,175 @@ interface InviteUserRequest {
 // dependency) for the admin to copy and send however they already reach
 // this person — WhatsApp, in this business's case, not email.
 export const inviteUser = onCall<InviteUserRequest>(async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
-  }
-  if (request.auth.token.role !== 'admin') {
-    throw new HttpsError('permission-denied', 'Solo un admin puede invitar usuarios.')
-  }
+  requireAdmin(request, 'Solo un admin puede invitar usuarios.')
 
   const email = request.data.email?.trim()
   const role = request.data.role
   if (!email || !role || !VALID_ROLES.includes(role)) {
     throw new HttpsError('invalid-argument', `role debe ser uno de: ${VALID_ROLES.join(', ')}`)
   }
+  const displayName = request.data.displayName?.trim() || null
+  const phone = request.data.phone?.trim() || null
 
   let user
   try {
     user = await auth.getUserByEmail(email)
+    if (displayName) user = await auth.updateUser(user.uid, { displayName })
   } catch {
-    user = await auth.createUser({ email })
+    user = await auth.createUser(displayName ? { email, displayName } : { email })
   }
 
   const existingClaims = user.customClaims ?? {}
   await auth.setCustomUserClaims(user.uid, { ...existingClaims, role })
   await db.collection('users').doc(user.uid).set(
-    { email: user.email ?? email, role, updatedAt: FieldValue.serverTimestamp() },
+    {
+      email: user.email ?? email,
+      role,
+      // Only overwrite the profile fields the admin actually filled in —
+      // re-inviting an existing user with the name box left empty must not
+      // wipe the name they already have.
+      ...(displayName ? { displayName } : {}),
+      ...(phone ? { phone } : {}),
+      updatedAt: FieldValue.serverTimestamp(),
+    },
     { merge: true },
   )
   const link = await auth.generatePasswordResetLink(email)
 
   return { uid: user.uid, link }
+})
+
+interface UpdateUserRequest {
+  uid?: string
+  role?: Role | null
+  displayName?: string | null
+  phone?: string | null
+  disabled?: boolean
+}
+
+// Callable, admin-only — the U of the Usuarios CRUD. Every field is
+// optional and only the ones actually present in the payload are touched,
+// so the same callable serves the row's inline edit (name/phone/role) and
+// the suspend/reactivate toggle without either clobbering the other.
+//
+// `displayName` is mirrored into Firebase Auth (free-form field, nothing
+// validates it); `phone` deliberately is NOT written to Auth's
+// phoneNumber, which must be a globally-unique E.164 number tied to
+// phone sign-in — a perfectly good contact number like "11 7373-5757"
+// would fail the whole update there. Here it's just a profile field, the
+// same way `leads` stores one.
+export const updateUser = onCall<UpdateUserRequest>(async (request) => {
+  requireAdmin(request, 'Solo un admin puede editar usuarios.')
+
+  const { uid, role, displayName, phone, disabled } = request.data
+  if (!uid) {
+    throw new HttpsError('invalid-argument', 'Falta el uid del usuario.')
+  }
+  if (role !== undefined && role !== null && !VALID_ROLES.includes(role)) {
+    throw new HttpsError('invalid-argument', `role debe ser uno de: ${VALID_ROLES.join(', ')}`)
+  }
+
+  const profile: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() }
+
+  if (role !== undefined) {
+    if (role !== 'admin') await assertNotLastAdmin(uid, 'sacarle el rol de admin')
+    const existingClaims = (await auth.getUser(uid)).customClaims ?? {}
+    await auth.setCustomUserClaims(uid, { ...existingClaims, role })
+    profile.role = role
+  }
+
+  if (displayName !== undefined) {
+    const name = displayName?.trim() || null
+    await auth.updateUser(uid, { displayName: name })
+    profile.displayName = name
+  }
+
+  if (phone !== undefined) {
+    profile.phone = phone?.trim() || null
+  }
+
+  if (disabled !== undefined) {
+    if (disabled) await assertNotLastAdmin(uid, 'suspender')
+    await auth.updateUser(uid, { disabled })
+    profile.disabled = disabled
+  }
+
+  await db.collection('users').doc(uid).set(profile, { merge: true })
+
+  return { ok: true }
+})
+
+interface DeleteUserRequest {
+  uid?: string
+}
+
+// Callable, admin-only — the D of the Usuarios CRUD. Deletes the Firebase
+// Auth account *and* the Firestore profile; the screen also offers
+// updateUser({ disabled: true }) as the reversible alternative, which is
+// the right choice for someone who may come back.
+//
+// Refuses rather than cascades when the user still has listings: a rental
+// or sale whose sellerUid/ownerUid points at a deleted account keeps
+// showing on the public catalog with an attribution that resolves to
+// nobody, and reassigning a property is a business decision, not a side
+// effect of removing a login.
+export const deleteUser = onCall<DeleteUserRequest>(async (request) => {
+  requireAdmin(request, 'Solo un admin puede eliminar usuarios.')
+
+  const { uid } = request.data
+  if (!uid) {
+    throw new HttpsError('invalid-argument', 'Falta el uid del usuario.')
+  }
+  if (uid === request.auth!.uid) {
+    throw new HttpsError('failed-precondition', 'No podés eliminar tu propio usuario.')
+  }
+  await assertNotLastAdmin(uid, 'eliminar')
+
+  const [rentalsAsSeller, salesAsSeller, rentalsAsOwner, salesAsOwner] = await Promise.all([
+    db.collection('rentals').where('sellerUid', '==', uid).count().get(),
+    db.collection('sales').where('sellerUid', '==', uid).count().get(),
+    db.collection('rentals').where('ownerUid', '==', uid).count().get(),
+    db.collection('sales').where('ownerUid', '==', uid).count().get(),
+  ])
+  const asSeller = rentalsAsSeller.data().count + salesAsSeller.data().count
+  const asOwner = rentalsAsOwner.data().count + salesAsOwner.data().count
+  if (asSeller + asOwner > 0) {
+    const detalle = [
+      ...(asSeller ? [`${asSeller} como vendedor`] : []),
+      ...(asOwner ? [`${asOwner} como propietario`] : []),
+    ].join(' y ')
+    throw new HttpsError(
+      'failed-precondition',
+      `No se puede eliminar: todavía tiene propiedades asignadas (${detalle}). Reasignalas o eliminalas primero, o suspendé el usuario en lugar de borrarlo.`,
+    )
+  }
+
+  // Trackable links are deactivated, not deleted: `leads` reference them
+  // by linkId, so removing them outright would break the attribution
+  // history of leads this seller already brought in. Deactivated means a
+  // /l/:code that outlives its seller stops capturing new ones.
+  const links = await db.collection('links').where('sellerUid', '==', uid).get()
+  if (!links.empty) {
+    const batch = db.batch()
+    links.docs.forEach((doc) => batch.update(doc.ref, { active: false }))
+    await batch.commit()
+  }
+
+  // Auth first, then the profile: if the second step failed, what's left
+  // is an orphan Firestore doc visible in this very screen, which an admin
+  // can retry away. The reverse order could leave an account that can
+  // still sign in with no profile row to find it by.
+  try {
+    await auth.deleteUser(uid)
+  } catch (e) {
+    // A profile can outlive its Auth user (e.g. the account was removed
+    // from the Firebase console); that shouldn't block cleaning up the
+    // leftover doc here.
+    if ((e as { code?: string }).code !== 'auth/user-not-found') throw e
+  }
+  await db.collection('users').doc(uid).delete()
+
+  return { ok: true, linksDeactivated: links.size }
 })
 
 // --- M6: seller CRM (trackable links + lead capture) ---

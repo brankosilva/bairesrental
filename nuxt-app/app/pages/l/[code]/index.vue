@@ -83,7 +83,6 @@ function onContact() {
 
 const rentals = computed(() => data.value?.catalog?.rentals ?? [])
 const sales = computed(() => data.value?.catalog?.sales ?? [])
-const catalogCount = computed(() => rentals.value.length + sales.value.length)
 </script>
 
 <template>
@@ -120,53 +119,11 @@ const catalogCount = computed(() => rentals.value.length + sales.value.length)
       />
     </template>
 
-    <main v-else class="br-brand-catalog">
-      <h1 class="br-brand-catalog-title">
-        {{ catalogCount }} {{ catalogCount === 1 ? 'propiedad disponible' : 'propiedades disponibles' }}
-      </h1>
-
-      <div v-if="!catalogCount" class="br-brand-empty">No hay propiedades disponibles en este momento.</div>
-
-      <div v-else class="br-brand-grid">
-        <NuxtLink
-          v-for="p in rentals"
-          :key="`r-${p.id}`"
-          :to="`/l/${code}/${encodeURIComponent(p.id)}`"
-          class="br-brand-card"
-        >
-          <div class="br-brand-card-img">
-            <img v-if="p.imagen" :src="p.imagen" :alt="p.titulo" loading="lazy" />
-            <span v-else>📷</span>
-          </div>
-          <div class="br-brand-card-body">
-            <span class="br-brand-card-loc">{{ [p.barrio, p.tipo].filter(Boolean).join(' · ') }}</span>
-            <strong class="br-brand-card-title">{{ p.titulo }}</strong>
-            <span class="br-brand-card-price">
-              {{ p.precio ? `${p.moneda || 'USD'} ${Number(p.precio).toLocaleString('es-AR')}` : 'Consultar precio' }}
-            </span>
-          </div>
-        </NuxtLink>
-
-        <NuxtLink
-          v-for="p in sales"
-          :key="`s-${p.id}`"
-          :to="`/l/${code}/${encodeURIComponent(p.id)}`"
-          class="br-brand-card"
-        >
-          <div class="br-brand-card-img">
-            <img v-if="p.fotos?.[0]" :src="p.fotos[0]" :alt="p.titulo" loading="lazy" />
-            <span v-else>📷</span>
-          </div>
-          <div class="br-brand-card-body">
-            <span class="br-brand-card-loc">{{ [p.barrio, p.tipo].filter(Boolean).join(' · ') }} · Venta</span>
-            <strong class="br-brand-card-title">{{ p.titulo }}</strong>
-            <span class="br-brand-card-price">
-              {{ p.precio ? `${p.moneda || 'USD'} ${Number(p.precio).toLocaleString('es-AR')}` : 'Consultar precio' }}
-            </span>
-          </div>
-        </NuxtLink>
-      </div>
-    </main>
+    <!-- Mismos filtros y misma vista de mapa que el catálogo público: el
+         vendedor comparte una lista que puede tener 80 propiedades, y sin
+         filtros el cliente tiene que scrollearlas todas. Ver
+         components/SellerCatalog.vue. -->
+    <SellerCatalog v-else :rentals="rentals" :sales="sales" :code="code" />
 
     <!-- El cierre de la página: el cliente terminó de mirar y acá tiene todos
          los datos del vendedor juntos, no sólo el botón de la barra de

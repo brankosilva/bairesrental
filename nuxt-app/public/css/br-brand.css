@@ -20,6 +20,15 @@
   --br-brand-accent: var(--azul, #1a6fe8);
   --br-brand-borde: #e4e4e7;
   --br-brand-mute: #6b7280;
+  /* Tinte del acento, para fondos y bordes suaves. Se calcula del acento
+     del vendedor, así que personalizar la marca sigue siendo un cambio de
+     datos: no hay ningún azul escrito a mano acá abajo. */
+  --br-brand-accent-soft: color-mix(in srgb, var(--br-brand-accent) 10%, #fff);
+  --br-brand-accent-line: color-mix(in srgb, var(--br-brand-accent) 28%, #fff);
+  /* Sobre el pie oscuro el acento puro queda por debajo de 4.5:1 de
+     contraste (el --azul da ~4:1 contra #131316), así que ahí se usa
+     aclarado. */
+  --br-brand-accent-lite: color-mix(in srgb, var(--br-brand-accent) 55%, #fff);
 
   min-height: 100dvh;
   background: #fff;
@@ -31,17 +40,49 @@
 .br-brandbar {
   position: sticky;
   top: 0;
-  z-index: 40;
-  padding: 10px 16px;
+  /* Por encima del overlay (899) y de la barra de filtros (900) de
+     br-catalog.css, que el catálogo del vendedor reusa: con el panel de
+     filtros abierto en escritorio, el botón de contacto tiene que seguir
+     siendo clickeable. Por debajo del bottom sheet de mobile (1050), que sí
+     tapa todo a propósito. */
+  z-index: 950;
+  padding: 12px 16px;
+  /* Translúcida y no blanca opaca: abajo casi siempre hay una foto a
+     sangre (el hero de la ficha), y verla pasar por detrás es lo que hace
+     que la barra se lea como una capa y no como un recorte. El fondo
+     sólido queda de fallback donde no haya backdrop-filter. */
   background: #fff;
-  border-bottom: 1px solid var(--br-brand-borde);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.07);
+  box-shadow: 0 10px 24px -22px rgba(17, 17, 17, 0.55);
+}
+
+/* Filete del acento del vendedor al tope de la barra. Es lo único que pone
+   color de marca en una página que por decisión del negocio no lleva
+   logo: dos píxeles alcanzan para que se vea intencional. */
+.br-brandbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--br-brand-accent);
+  background: linear-gradient(
+    90deg,
+    var(--br-brand-accent) 0%,
+    color-mix(in srgb, var(--br-brand-accent) 55%, #fff) 55%,
+    transparent 100%
+  );
 }
 
 .br-brandbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -49,7 +90,7 @@
 .br-brandbar-who {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -57,15 +98,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border-radius: 50%;
   overflow: hidden;
-  background: #f4f4f6;
-  border: 1px solid var(--br-brand-borde);
+  background: var(--br-brand-accent-soft, #f4f4f6);
+  /* Anillo en vez de borde: el halo del acento no le come un píxel a la
+     foto ni la achica. */
+  box-shadow: 0 0 0 1px var(--br-brand-accent-line, #e4e4e7),
+    0 4px 12px -6px rgba(17, 17, 17, 0.45);
   font-weight: 700;
-  color: var(--br-brand-mute);
+  font-size: 15px;
+  color: var(--br-brand-accent);
 }
 .br-brandbar-avatar img {
   width: 100%;
@@ -77,16 +122,19 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 .br-brandbar-ident strong {
-  font-size: 15px;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--negro, #111);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .br-brandbar-ident span {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--br-brand-mute);
   white-space: nowrap;
   overflow: hidden;
@@ -99,12 +147,12 @@
 .br-brandbar-cta {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   flex: 0 0 auto;
   /* 44px de alto mínimo: mínimo de target táctil de las WCAG, igual que en
      el panel. Este es EL botón de la página. */
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 18px;
   border-radius: 999px;
   background: var(--verde, #25d366);
   color: #fff;
@@ -112,17 +160,34 @@
   font-size: 14px;
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: 0 10px 20px -12px rgba(37, 211, 102, 0.95);
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
-.br-brandbar-cta:hover {
+.br-brandbar-cta:hover,
+.br-brandbar-cta:focus-visible {
   background: var(--verde-h, #1ebe5b);
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px -12px rgba(37, 211, 102, 0.95);
+}
+.br-brandbar-cta:active {
+  transform: translateY(0);
 }
 
 .br-brandbar-bio {
   max-width: 900px;
-  margin: 8px auto 0;
+  margin: 10px auto 0;
   font-size: 13px;
+  line-height: 1.5;
   color: var(--br-brand-mute);
+  /* La barra es sticky: sin tope, una presentación larga se queda fija
+     comiéndose media pantalla del celular. El texto completo está en la
+     ficha del pie. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 @media (max-width: 480px) {
@@ -144,53 +209,91 @@
 .br-brandbar-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: 5px;
   overflow: visible;
   white-space: normal;
 }
 .br-brandbar-links a {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--gris, #f4f4f6);
+  font-size: 11.5px;
+  font-weight: 600;
   color: var(--br-brand-mute);
   text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease;
 }
-.br-brandbar-links a:hover {
+.br-brandbar-links a:hover,
+.br-brandbar-links a:focus-visible {
+  background: var(--br-brand-accent-soft, #f4f4f6);
   color: var(--br-brand-accent);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* ── Ficha del vendedor al pie ───────────────────────── */
 
+/* Oscura y a sangre, como el pie del sitio de BairesRental que esta página
+   no lleva: es lo que cierra la lectura y la separa del cuerpo blanco de la
+   ficha. La marca acá es el color, no el logo. */
 .br-seller-card {
-  max-width: 900px;
-  margin: 8px auto 0;
-  padding: 20px 16px 40px;
-  border-top: 1px solid var(--br-brand-borde);
+  position: relative;
+  margin-top: 48px;
+  padding: 44px 16px 48px;
+  background: #131316;
+  background: radial-gradient(90% 130% at 12% 0%, #23232c 0%, #151518 55%, #111113 100%);
+  color: #fff;
   font-family: 'DM Sans', sans-serif;
+}
+.br-seller-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--br-brand-accent);
+  background: linear-gradient(
+    90deg,
+    var(--br-brand-accent) 0%,
+    color-mix(in srgb, var(--br-brand-accent) 30%, #111113) 100%
+  );
+}
+
+/* Dos columnas: quién es a la izquierda, cómo escribirle a la derecha. El
+   botón queda a la altura del nombre y no colgando abajo de todo. */
+.br-seller-card-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px 44px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .br-seller-card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .br-seller-card-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  flex: 0 0 64px;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
   overflow: hidden;
   border-radius: 50%;
   background: var(--br-brand-accent);
   color: #fff;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 24px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 16px 32px -16px rgba(0, 0, 0, 0.9);
 }
 .br-seller-card-avatar img {
   width: 100%;
@@ -204,68 +307,213 @@
   min-width: 0;
   line-height: 1.3;
 }
-.br-seller-card-ident strong {
-  font-size: 18px;
+/* Etiqueta chica arriba del nombre: sin ella, el pie es una foto y un
+   nombre sueltos al final de la página y no se entiende qué son. */
+.br-seller-card-eyebrow {
+  margin-bottom: 4px;
+  font-size: 10.5px;
   font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--br-brand-accent-lite, #8fb6f2);
+}
+.br-seller-card-ident strong {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #fff;
 }
 .br-seller-card-title {
+  margin-top: 2px;
   font-size: 14px;
-  color: var(--br-brand-mute);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .br-seller-card-bio {
-  margin: 12px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--br-brand-mute);
+  margin: 16px 0 0;
+  max-width: 52ch;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.br-seller-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 232px;
 }
 
 .br-seller-card-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 9px;
   /* 44px de alto mínimo: mínimo de target táctil de las WCAG, igual que el
      botón de la barra de arriba. */
-  min-height: 44px;
-  margin-top: 16px;
-  padding: 10px 18px;
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 10px 22px;
+  border-radius: 999px;
   background: var(--verde, #25d366);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 15px;
   text-decoration: none;
+  box-shadow: 0 16px 30px -16px rgba(37, 211, 102, 1);
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
-.br-seller-card-cta:hover {
+.br-seller-card-cta:hover,
+.br-seller-card-cta:focus-visible {
   background: var(--verde-h, #1ebe5b);
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 20px 34px -16px rgba(37, 211, 102, 1);
+}
+.br-seller-card-cta:active {
+  transform: translateY(0);
 }
 
 .br-seller-card-data {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
-  margin: 14px 0 0;
+  gap: 8px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 .br-seller-card-data li {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--br-brand-mute);
+  gap: 7px;
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.82);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.br-seller-card-data li:hover {
+  border-color: var(--br-brand-accent-lite, #8fb6f2);
+  background: rgba(255, 255, 255, 0.08);
 }
 .br-seller-card-data a {
   color: inherit;
   text-decoration: none;
 }
 .br-seller-card-data a:hover {
-  color: var(--br-brand-accent);
-  text-decoration: underline;
+  color: #fff;
+  text-decoration: none;
+}
+.br-seller-card-data i {
+  color: var(--br-brand-accent-lite, #8fb6f2);
+}
+
+@media (max-width: 680px) {
+  .br-seller-card {
+    padding: 36px 16px 40px;
+  }
+  .br-seller-card-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .br-seller-card-avatar {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 60px;
+    font-size: 21px;
+  }
+  .br-seller-card-ident strong {
+    font-size: 19px;
+  }
+}
+
+/* Los desplazamientos de los botones son decorativos: si el sistema pide
+   menos movimiento, el color y la sombra alcanzan como feedback. */
+@media (prefers-reduced-motion: reduce) {
+  .br-brandbar-cta,
+  .br-seller-card-cta {
+    transition: background 0.18s ease;
+  }
+  .br-brandbar-cta:hover,
+  .br-brandbar-cta:focus-visible,
+  .br-seller-card-cta:hover,
+  .br-seller-card-cta:focus-visible {
+    transform: none;
+  }
 }
 
 /* ── Catálogo del vendedor ───────────────────────────── */
+
+/* La barra de filtros, la grilla y el mapa son los del catálogo público:
+   SellerCatalog.vue reusa las clases `br-filtros-*`, `br-catalogo-*` y
+   `br-map-*` de br-catalog.css, que se carga sitewide. Acá va sólo lo que
+   cambia en esta página. */
+
+/* La barra de filtros se pega DEBAJO de la barra del vendedor, no en top:0
+   como en /departamentos (donde arriba no hay nada sticky).
+   `--br-brandbar-h` la publica SellerBrandHeader midiéndose con un
+   ResizeObserver; el fallback cubre el HTML del servidor y el caso sin JS,
+   donde una barra de una línea mide ~68px.
+
+   VA DENTRO DEL MEDIA QUERY: de 768px para abajo br-catalog.css pasa la
+   barra a `position: relative` (no es sticky en mobile, igual que en el
+   catálogo público). Un `top` sobre un elemento relative no reserva
+   espacio — lo corre y listo: quedaba un hueco arriba y la barra tapando
+   el título de la grilla. */
+@media (min-width: 769px) {
+  .br-brand-filtros {
+    top: var(--br-brandbar-h, 68px);
+    /* Debajo de la barra del vendedor (950) para que nunca la pise al scrollear. */
+    z-index: 900;
+  }
+}
+/* El catálogo público llega a 1280px; esta página vive en 900 (la barra del
+   vendedor, el pie y la grilla). Sin esto, los filtros quedaban 380px más
+   anchos que la grilla que filtran. */
+.br-brand-filtros .br-filtros-bar,
+.br-brand-filtros .br-filtros-inner {
+  max-width: 900px;
+}
+
+/* El panel del mapa se pega bajo las DOS barras y descuenta las dos del alto,
+   si no la última fila de pines queda debajo del pliegue. */
+.br-brand-map-panel {
+  top: calc(var(--br-brandbar-h, 68px) + 56px);
+  height: calc(100dvh - var(--br-brandbar-h, 68px) - 96px);
+}
+@media (max-width: 991px) {
+  .br-brand-map-panel {
+    height: calc(100dvh - var(--br-brandbar-h, 68px) - 130px);
+  }
+}
+
+/* El catálogo público estiliza el valor del slider por id (`#label-precio` en
+   br-catalog.css). Acá pueden convivir tres sliders en el mismo panel
+   —alquiler, venta y superficie—, así que un id no alcanza: misma pinta, con
+   clase. Sin esto el segundo valor sale al tamaño del cuerpo y se choca con
+   su etiqueta. */
+.br-brand-precio-valor {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--br-brand-accent);
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .br-filtros-wrapper.open .br-brand-precio-valor {
+    font-size: 14px;
+  }
+}
+
+.br-brand-map-note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--br-brand-mute);
+  text-align: center;
+}
 
 .br-brand-catalog {
   max-width: 900px;
@@ -303,6 +551,7 @@
 }
 
 .br-brand-card-img {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -315,6 +564,34 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Etiquetas sobre la portada. En esta grilla conviven alquiler y venta (es
+   el catálogo entero del vendedor, no el de una operación), así que la card
+   tiene que decir cuál es sin obligar a abrirla. Lo mismo con "reservado":
+   la lista lo incluye salvo que el visitante filtre por disponibles. */
+.br-brand-card-tags {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.br-brand-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.br-brand-tag-venta {
+  background: color-mix(in srgb, var(--br-brand-accent) 88%, transparent);
+}
+.br-brand-tag-reservado {
+  background: rgba(217, 119, 6, 0.9);
 }
 
 .br-brand-card-body {

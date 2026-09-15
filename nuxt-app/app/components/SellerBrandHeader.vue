@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { SellerProfile } from '~/types/link'
 
 // Cabecera de la página que el vendedor comparte: su foto, su nombre y su
@@ -37,10 +37,38 @@ const accent = computed(() => props.seller?.accentColor || null)
 // sin haber llegado nunca al final de esta página.
 const phoneDisplay = computed(() => formatWhatsappDisplay(props.seller?.whatsapp))
 const instagram = computed(() => instagramHandle(props.seller?.instagram))
+
+// La barra es sticky en top:0, y el catálogo del vendedor tiene SU barra de
+// filtros que también es sticky (ver SellerCatalog.vue). Para que la segunda
+// se pegue justo abajo y no tapada por esta, acá se publica la altura real en
+// `--br-brandbar-h`.
+//
+// Se mide en vez de escribirse a mano porque cambia sola: con o sin bio, con
+// o sin cargo, y en un celular angosto el botón se apila debajo del nombre.
+// El CSS trae un fallback para el HTML del servidor, donde esto no corre.
+const headerEl = ref<HTMLElement | null>(null)
+let resizeObs: ResizeObserver | null = null
+
+onMounted(() => {
+  if (!headerEl.value) return
+  const publish = () => {
+    const h = headerEl.value?.offsetHeight
+    if (h) document.documentElement.style.setProperty('--br-brandbar-h', `${h}px`)
+  }
+  publish()
+  resizeObs = new ResizeObserver(publish)
+  resizeObs.observe(headerEl.value)
+})
+
+onBeforeUnmount(() => {
+  resizeObs?.disconnect()
+  resizeObs = null
+  document.documentElement.style.removeProperty('--br-brandbar-h')
+})
 </script>
 
 <template>
-  <header class="br-brandbar" :style="accent ? { '--br-brand-accent': accent } : undefined">
+  <header ref="headerEl" class="br-brandbar" :style="accent ? { '--br-brand-accent': accent } : undefined">
     <div class="br-brandbar-inner">
       <div class="br-brandbar-who">
         <div class="br-brandbar-avatar">

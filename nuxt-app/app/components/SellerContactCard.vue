@@ -41,38 +41,48 @@ const accent = computed(() => props.seller?.accentColor || null)
 
 <template>
   <section v-if="seller" class="br-seller-card" :style="accent ? { '--br-brand-accent': accent } : undefined">
-    <div class="br-seller-card-head">
-      <div class="br-seller-card-avatar">
-        <img v-if="seller.photoUrl" :src="seller.photoUrl" :alt="seller.displayName || ''" loading="lazy" />
-        <span v-else>{{ initials || '·' }}</span>
+    <!-- El fondo va a sangre y el contenido queda dentro de este wrapper: es
+         lo que separa esta sección del cuerpo blanco de la ficha sin que la
+         página termine en un borde de 900px flotando en el medio. -->
+    <div class="br-seller-card-inner">
+      <div class="br-seller-card-main">
+        <div class="br-seller-card-head">
+          <div class="br-seller-card-avatar">
+            <img v-if="seller.photoUrl" :src="seller.photoUrl" :alt="seller.displayName || ''" loading="lazy" />
+            <span v-else>{{ initials || '·' }}</span>
+          </div>
+          <div class="br-seller-card-ident">
+            <span class="br-seller-card-eyebrow">Tu contacto</span>
+            <strong>{{ seller.displayName }}</strong>
+            <span v-if="seller.title" class="br-seller-card-title">{{ seller.title }}</span>
+          </div>
+        </div>
+
+        <p v-if="seller.bio" class="br-seller-card-bio">{{ seller.bio }}</p>
       </div>
-      <div class="br-seller-card-ident">
-        <strong>{{ seller.displayName }}</strong>
-        <span v-if="seller.title" class="br-seller-card-title">{{ seller.title }}</span>
+
+      <div class="br-seller-card-actions">
+        <a :href="contactHref" target="_blank" rel="noopener" class="br-seller-card-cta" data-br-contact>
+          <i class="bi bi-whatsapp" aria-hidden="true"></i>
+          {{ contactLabel }}
+        </a>
+
+        <!-- `.stop` en todo lo que NO es el botón de contacto: la página engancha
+             el click a nivel raíz de este componente para contar la conversión
+             (ver pingContact en pages/l/[code]/index.vue), así que sin esto tocar
+             el Instagram sumaría un "contacto por WhatsApp" que nunca pasó. -->
+        <ul v-if="phoneDisplay || instagram" class="br-seller-card-data">
+          <li v-if="phoneDisplay">
+            <i class="bi bi-telephone" aria-hidden="true"></i>
+            <a v-if="phoneHref" :href="phoneHref" @click.stop>{{ phoneDisplay }}</a>
+            <span v-else>{{ phoneDisplay }}</span>
+          </li>
+          <li v-if="instagram">
+            <i class="bi bi-instagram" aria-hidden="true"></i>
+            <a :href="`https://instagram.com/${instagram}`" target="_blank" rel="noopener" @click.stop>@{{ instagram }}</a>
+          </li>
+        </ul>
       </div>
     </div>
-
-    <p v-if="seller.bio" class="br-seller-card-bio">{{ seller.bio }}</p>
-
-    <a :href="contactHref" target="_blank" rel="noopener" class="br-seller-card-cta" data-br-contact>
-      <i class="bi bi-whatsapp" aria-hidden="true"></i>
-      {{ contactLabel }}
-    </a>
-
-    <!-- `.stop` en todo lo que NO es el botón de contacto: la página engancha
-         el click a nivel raíz de este componente para contar la conversión
-         (ver pingContact en pages/l/[code]/index.vue), así que sin esto tocar
-         el Instagram sumaría un "contacto por WhatsApp" que nunca pasó. -->
-    <ul class="br-seller-card-data">
-      <li v-if="phoneDisplay">
-        <i class="bi bi-telephone" aria-hidden="true"></i>
-        <a v-if="phoneHref" :href="phoneHref" @click.stop>{{ phoneDisplay }}</a>
-        <span v-else>{{ phoneDisplay }}</span>
-      </li>
-      <li v-if="instagram">
-        <i class="bi bi-instagram" aria-hidden="true"></i>
-        <a :href="`https://instagram.com/${instagram}`" target="_blank" rel="noopener" @click.stop>@{{ instagram }}</a>
-      </li>
-    </ul>
   </section>
 </template>

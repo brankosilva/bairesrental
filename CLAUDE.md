@@ -118,6 +118,25 @@ cd nuxt-app/functions && npm install && npx tsc --noEmit
 - No introducir dependencias nuevas sin necesidad.
 - Para probar: `cd nuxt-app && npm run dev`. Para compilar: `npm run build`.
 
+## Ritmo de trabajo: fallar rápido
+
+Preferencia explícita de Victor: **menos verificación local, más vueltas cortas mirando lo deployado.**
+
+- No correr `npm run build` ni typecheck para "confirmar" un cambio: hacerlo, commitear y ver el resultado en el deploy.
+- No re-leer archivos recién editados ni re-grepear para chequear que la edición quedó.
+- Un intento por vuelta. Si algo sale mal se ve en el deploy o en la consola y se corrige en la siguiente — no encadenar rondas de chequeos preventivos antes de entregar.
+- Nada de tests, validaciones defensivas ni manejo de errores extra que no se hayan pedido.
+- Reportar corto: qué se cambió y dónde. Sin resúmenes largos ni checklists.
+- Para cambios de UI el loop rápido sigue siendo `npm run dev`, que es más barato que un deploy.
+
+**Cómo se mira lo deployado.** El deploy sale con un tag (`git tag v1.0.6 && git push origin v1.0.6`) o a mano desde Actions → *Deploy nuxt-app a Firebase*, eligiendo el target (`hosting` solo es bastante más rápido que `todo`). Ese workflow ya corre el build, el smoke test de la home y el chequeo de los `og:*`: **el CI es la verificación**, no hace falta duplicarla en local. Ojo que publica en el dominio real, no en un preview channel.
+
+**Dónde sigue valiendo verificar antes** — esto no es fallar rápido, es perder datos:
+
+- Escrituras masivas a Firestore desde `scripts/`, y cualquier borrado de documentos o de fotos en Storage.
+- `git reset`, rebase, force push, borrar archivos o directorios.
+- Secrets, `firestore.rules` / `storage.rules`, y el propio workflow de deploy.
+
 ## Contacto / Redes sociales (datos reales del sitio)
 
 - WhatsApp: +54 9 11 7373-5757

@@ -97,21 +97,23 @@ function propertyLabel(link: LinkDoc) {
 
     <form class="card card-body mb-4" @submit.prevent="createLink">
       <label class="form-label small">¿A qué querés que apunte?</label>
+      <!-- N9: eran col-5/col-5/col-2 fijos dentro de un contenedor de 640px, o
+           sea ~58px para "Generar" en un celular. Ahora apila en xs. -->
       <div class="row g-2">
-        <div class="col-5">
+        <div class="col-12 col-sm-5">
           <select v-model="selectedType" class="form-select">
             <option value="">Catálogo general</option>
             <option value="rental">Un alquiler mío</option>
             <option value="sale">Una venta mía</option>
           </select>
         </div>
-        <div v-if="selectedType" class="col-5">
+        <div v-if="selectedType" class="col-12 col-sm-5">
           <select v-model="selectedPropertyId" class="form-select" required>
             <option value="" disabled>Elegir propiedad…</option>
             <option v-for="p in selectedType === 'rental' ? rentals : sales" :key="p.id" :value="p.id">{{ p.titulo }}</option>
           </select>
         </div>
-        <div class="col-2">
+        <div class="col-12" :class="selectedType ? 'col-sm-2' : 'col-sm-7'">
           <button type="submit" class="btn btn-primary w-100" :disabled="creating || (!!selectedType && !selectedPropertyId)">
             {{ creating ? '…' : 'Generar' }}
           </button>
@@ -121,23 +123,35 @@ function propertyLabel(link: LinkDoc) {
 
     <p v-if="loading">Cargando…</p>
     <div v-else-if="!links.length" class="text-muted small">Todavía no generaste ningún link.</div>
+    <!-- N9: la URL completa no entra en la fila de un celular y empujaba la
+         tabla a scroll horizontal. Ahora la columna "Link" se trunca y la de
+         clicks se esconde en mobile (el dato sigue en la fila, debajo del
+         nombre). -->
     <div v-else class="table-responsive">
-      <table class="table table-sm align-middle">
+      <table class="table table-sm align-middle br-app-table-compact">
         <thead>
           <tr>
             <th>Apunta a</th>
             <th>Link</th>
-            <th>Clicks</th>
+            <th class="br-app-col-optional">Clicks</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="l in links" :key="l.id">
-            <td>{{ propertyLabel(l) }}</td>
-            <td class="small text-muted">{{ linkUrl(l.id) }}</td>
-            <td>{{ l.clicks }}</td>
             <td>
-              <button class="btn btn-sm btn-outline-secondary" :title="copiedCode === l.id ? 'Copiado' : 'Copiar link'" @click="copyLink(l.id)">
+              <span class="br-app-truncate">{{ propertyLabel(l) }}</span>
+              <span class="small text-muted d-md-none">{{ l.clicks }} clicks</span>
+            </td>
+            <td class="small text-muted"><span class="br-app-truncate">{{ linkUrl(l.id) }}</span></td>
+            <td class="br-app-col-optional">{{ l.clicks }}</td>
+            <td>
+              <button
+                class="btn btn-sm btn-outline-secondary br-app-icon-btn"
+                :title="copiedCode === l.id ? 'Copiado' : 'Copiar link'"
+                :aria-label="copiedCode === l.id ? 'Copiado' : 'Copiar link'"
+                @click="copyLink(l.id)"
+              >
                 <i :class="copiedCode === l.id ? 'bi bi-clipboard-check' : 'bi bi-clipboard'"></i>
               </button>
             </td>

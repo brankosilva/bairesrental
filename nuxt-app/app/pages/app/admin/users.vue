@@ -224,20 +224,32 @@ async function onDelete(u: UserDoc) {
         Creá el acceso de un vendedor, propietario u otro admin acá mismo — no hace falta pasar por la consola de
         Firebase. Se genera un link para que la persona defina su contraseña; copialo y enviáselo por WhatsApp.
       </p>
+      <!-- N9: los anchos eran col-8/col-4/col-2 fijos, o sea que en un celular
+           el botón "Invitar" quedaba en ~58px y el texto se desbordaba. Ahora
+           apila entero en xs, va de a dos en sm y recién en lg arma la fila. -->
       <form class="row g-2 align-items-end" @submit.prevent="sendInvite">
-        <div class="col-12 col-sm-6 col-lg-3">
+        <div class="col-12 col-lg-3">
           <label class="form-label small">Email</label>
-          <input v-model="inviteEmail" type="email" required class="form-control" placeholder="nombre@ejemplo.com" />
+          <input
+            v-model="inviteEmail"
+            type="email"
+            required
+            class="form-control"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder="nombre@ejemplo.com"
+          />
         </div>
         <div class="col-12 col-sm-6 col-lg-3">
           <label class="form-label small">Nombre <span class="text-muted">(opcional)</span></label>
           <input v-model="inviteName" type="text" class="form-control" placeholder="Nombre y apellido" />
         </div>
-        <div class="col-8 col-sm-6 col-lg-2">
+        <div class="col-12 col-sm-6 col-lg-2">
           <label class="form-label small">Teléfono <span class="text-muted">(opcional)</span></label>
           <input v-model="invitePhone" type="tel" class="form-control" placeholder="11 5555-5555" />
         </div>
-        <div class="col-4 col-sm-4 col-lg-2">
+        <div class="col-12 col-sm-6 col-lg-2">
           <label class="form-label small">Rol</label>
           <select v-model="inviteRole" class="form-select">
             <option value="seller">seller</option>
@@ -245,7 +257,7 @@ async function onDelete(u: UserDoc) {
             <option value="owner">owner</option>
           </select>
         </div>
-        <div class="col-12 col-sm-2">
+        <div class="col-12 col-sm-6 col-lg-2">
           <button type="submit" class="btn btn-primary w-100" :disabled="inviting || !inviteEmail.trim()">
             {{ inviting ? '…' : 'Invitar' }}
           </button>
@@ -273,24 +285,31 @@ async function onDelete(u: UserDoc) {
       />
 
       <p v-if="loading">Cargando…</p>
+      <!-- Esta pantalla conserva la tabla (su pasaje a cards es otro
+           milestone): lo que hace N9 es que degrade sin romperse — tipografía
+           y padding compactos en mobile, y las columnas accesorias ocultas
+           (.br-app-col-optional). El UID largo y "Estado" se esconden porque el
+           estado ya se lee en el ícono del botón de suspender y en la fila
+           atenuada. En un celular angosto la tabla todavía puede scrollear en
+           horizontal: es la única pantalla del panel donde sigue pasando. -->
       <div v-else class="table-responsive">
-        <table class="table table-sm align-middle">
+        <table class="table table-sm align-middle br-app-table-compact">
           <thead>
             <tr>
               <th>Email</th>
               <th>Nombre</th>
               <th>Teléfono</th>
               <th>Rol</th>
-              <th>Estado</th>
+              <th class="br-app-col-optional">Estado</th>
               <th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="u in filtered" :key="u.id" :class="{ 'table-light text-muted': u.disabled }">
               <td>
-                {{ u.email || '—' }}
-                <span v-if="u.id === me?.uid" class="badge text-bg-info ms-1">vos</span>
-                <div class="small text-muted">{{ u.id }}</div>
+                <span class="br-app-truncate">{{ u.email || '—' }}</span>
+                <span v-if="u.id === me?.uid" class="badge text-bg-info">vos</span>
+                <div class="small text-muted br-app-col-optional">{{ u.id }}</div>
               </td>
 
               <template v-if="editingUid === u.id">
@@ -304,7 +323,7 @@ async function onDelete(u: UserDoc) {
                     <option value="owner">owner</option>
                   </select>
                 </td>
-                <td>—</td>
+                <td class="br-app-col-optional">—</td>
                 <td class="text-end">
                   <div class="d-inline-flex gap-1">
                     <button class="btn btn-sm btn-primary" :disabled="busyUid === u.id" @click="saveEdit(u)">
@@ -324,14 +343,14 @@ async function onDelete(u: UserDoc) {
                   <span v-if="u.role" class="badge text-bg-secondary">{{ u.role }}</span>
                   <span v-else class="badge text-bg-light text-muted">sin asignar</span>
                 </td>
-                <td>
+                <td class="br-app-col-optional">
                   <span v-if="u.disabled" class="badge text-bg-warning">suspendido</span>
                   <span v-else class="badge text-bg-success">activo</span>
                 </td>
                 <td class="text-end">
                   <div class="d-inline-flex gap-1">
                     <button
-                      class="btn btn-sm btn-outline-secondary"
+                      class="btn btn-sm btn-outline-secondary br-app-icon-btn"
                       title="Editar"
                       :disabled="busyUid === u.id"
                       @click="startEdit(u)"
@@ -339,7 +358,7 @@ async function onDelete(u: UserDoc) {
                       <i class="bi bi-pencil"></i>
                     </button>
                     <button
-                      class="btn btn-sm"
+                      class="btn btn-sm br-app-icon-btn"
                       :class="u.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
                       :title="u.disabled ? 'Reactivar' : 'Suspender'"
                       :disabled="busyUid === u.id || u.id === me?.uid"
@@ -348,7 +367,7 @@ async function onDelete(u: UserDoc) {
                       <i :class="u.disabled ? 'bi bi-person-check' : 'bi bi-person-slash'"></i>
                     </button>
                     <button
-                      class="btn btn-sm btn-outline-danger"
+                      class="btn btn-sm btn-outline-danger br-app-icon-btn"
                       title="Eliminar"
                       :disabled="busyUid === u.id || u.id === me?.uid"
                       @click="onDelete(u)"

@@ -1,5 +1,148 @@
 # Migration log — Nuxt SSR rewrite
 
+## N9 — El panel `/app/*` se puede usar desde el celular
+
+El panel autenticado estaba construido con tablas Bootstrap de 5-6 columnas
+dentro de `.table-responsive` (o sea, scroll horizontal), un nav sin toggler, y
+formularios con anchos de columna fijos — `sales/[id].vue` metía cuatro `col-3`
+en una fila, ~80px por campo en una pantalla de 375px. Y para marcar una
+propiedad como reservada había que abrir el formulario entero y guardarlo.
+
+### Restricción que define casi todas las decisiones de abajo
+
+**El JS de Bootstrap no está cargado en ningún lado de esta app** — no es
+dependencia y hay 0 apariciones de `data-bs` en todo el repo; `nuxt.config.ts`
+sólo trae el CSS. Así que `collapse`, `dropdown`, `offcanvas` y `modal` no
+hacen nada. Todo lo que se abre y cierra va a mano en Vue, como el drawer que
+`app/layouts/default.vue` ya tenía en el sitio público.
+
+### `public/css/br-app.css` (nuevo) — tercera hoja propia
+
+No se carga sitewide: la piden con `useHead({ link })` sólo `app-shell.vue` y
+`app/pages/app/login.vue` (que es `layout: false` y si no quedaba afuera — y es
+la primera pantalla que se abre desde un celular).
+
+**Todas** las reglas van prefijadas con `.br-app`. No es prolijidad: `.br-app
+.btn` es (0,2,0) y le gana a `.btn` (0,1,0) **por especificidad, sin depender
+del orden de cascada** — que es justo lo que `nuxt.config.ts:75-79` dice que no
+hay que dar por sentado. Una sola regla sin el prefijo (un `.btn { min-height:
+44px }` suelto) sería una regresión en todo el sitio público. Hay un chequeo
+simple para esto: parsear la hoja y listar selectores sin `.br-app`.
+
+Dos pisos, los dos funcionales y no estéticos:
+- **44px** de alto en todo lo que se toca (WCAG). El panel venía de `.btn-sm`,
+  que da ~31px.
+- **16px** de tipografía en todo input/select/textarea en mobile: iOS Safari
+  hace auto-zoom al enfocar un campo más chico y deja la página zoomeada.
+
+`viewport-fit=cover` se declara en esas mismas dos pantallas. El default de
+Nuxt es `width=device-width, initial-scale=1` (verificado en
+`@unhead/bundler/dist/index.mjs:9`) y **sin `viewport-fit=cover`,
+`env(safe-area-inset-*)` devuelve 0** — la barra de guardado pegajosa habría
+quedado debajo de la barra de gestos del iPhone. No se tocó `nuxt.config.ts`:
+global cambiaría el encuadre del sitio público.
+
+### El nav dejó de salir vacío del servidor
+
+`app-shell.vue` resolvía el rol en un `onMounted` propio, así que el servidor
+mandaba el nav **sin ningún link** y aparecían un round-trip después. Ahora lo
+publica `app/middleware/auth.ts` en `useState('app-user-role')`: ese middleware
+ya leía el ID token, corre antes de que el layout renderice (servidor y
+cliente) y `useState` viaja en el payload. `dashboard.vue` dejó de hacer su
+propio `useAsyncData` + `getIdTokenResult()` y lee el mismo state, así que el
+total de lecturas de token no sube.
+
+### `PropertyAdminCard.vue` (nuevo) — una lista, un markup
+
+Reemplaza las tablas de `admin/rentals`, `admin/sales`, `seller/listings` y
+`owner/index`. **Un solo árbol de markup** para todos los anchos: grid con
+columnas reales arriba de 768px (se conserva la alineación que sirve para
+escanear ~85 filas) y dos filas compactas abajo. No hay markup duplicado
+desktop/mobile.
+
+Props como view-model angosto y no `RentalProperty | SaleProperty`: `fotos` es
+un `string` (URL del álbum) en alquileres y un `string[]` en ventas, así que la
+portada la resuelve la página y entra ya resuelta como `thumb`.
+
+**Sin botón de eliminar.** Con targets de 44px y una miniatura al lado,
+"Eliminar" pegado a "Editar" es el mis-tap garantizado; el borrado sigue
+existiendo dentro de cada formulario.
+
+### Cambio rápido de disponibilidad (`useAvailability.ts`)
+
+Un `<select>` nativo estilado como chip, desde la lista, para admin y para el
+vendedor sobre sus propias propiedades. `firestore.rules` ya lo permitía
+(`resource.data.sellerUid == request.auth.uid`): **no se tocaron las reglas.**
+
+`<select>` nativo y no un dropdown propio porque (a) no hay JS de Bootstrap y
+(b) en iOS abre el picker de rueda a pantalla completa, que es el mejor target
+táctil que hay. Chips **tintados claros** y no sólidos: se setea
+`background-color` y nunca el shorthand `background`, porque el shorthand
+borraría el caret (Bootstrap lo pinta con `background-image`), y el caret que
+trae es `#343a40` — sobre un chip sólido de color sería invisible.
+
+**Escritura pesimista, no optimista**, y con dos modos de falla distintos:
+
+1. La promesa **rechaza** (permission-denied, ~200ms): falla real, no se toca
+   el objeto local y se avisa.
+2. La promesa **no se resuelve nunca**: es el caso sin señal, que en un celular
+   es el caso frecuente. `setDoc()` sólo resuelve con ack del servidor, pero el
+   SDK encola la escritura local y la manda al reconectar — o sea que **sí** se
+   va a aplicar. Se corre contra un timer de 7s y, al vencerse, se aplica el
+   valor igual y se avisa que quedó pendiente. Revertir acá sería lo incorrecto:
+   la escritura encolada aterrizaría después y contradiría la pantalla.
+
+**Bug de `<select>` que ya estaba vivo y se arregló de paso.** Con
+`:value="x"` + `@change`, si la escritura falla `x` no cambia — y como el valor
+del vnode tampoco cambió, Vue no repinta el `<select>`, que se queda mostrando
+la opción que el usuario eligió y que nunca se guardó. `seller/leads.vue` tenía
+exactamente ese patrón. La card se engancha a la transición `saving` true→false
+para reponer el valor del DOM; `leads.vue` lo hace con el elemento del evento.
+
+### `saveOne()` ahora sella `updatedAt`
+
+En `app/utils/adminCrud.ts`, no en cada pantalla: son cuatro call sites (los dos
+formularios × guardado principal + escritura de fotos) más la escritura nueva.
+Hasta acá **nada** escribía ese campo, así que la columna "Actualizado" de
+`owner/index.vue` siempre mostró "—". **No hay backfill**: cada propiedad lo
+gana recién la primera vez que se vuelve a guardar.
+
+`serverTimestamp()` devuelve un *sentinel* (`FieldValue`), no un `Timestamp`.
+Nunca asignarlo al objeto local de una lista: `owner/index.vue` hace
+`ts.seconds * 1000` y daría `Invalid Date`.
+
+### Formularios
+
+Grillas que apilan (`col-6 col-sm-4`, `col-6 col-md-3`), amenities como chips de
+44px en vez de checkboxes nativos de ~16px, barra de guardado pegajosa abajo con
+`env(safe-area-inset-bottom)`, y `autocapitalize="none" autocorrect="off"` en el
+input de ID — iOS capitalizaba y "corregía" el ID del documento de Firestore.
+
+**Progreso de subida** en `sales/[id].vue`: subía hasta 20 fotos en serie detrás
+de un solo booleano y el texto fijo "Guardando…". En datos móviles eran minutos
+de un botón que parecía colgado. Ahora dice `Subiendo foto N de M`.
+
+### Lo que NO se convirtió
+
+`admin/users.vue` conserva su tabla (370 líneas, dos modos por fila, uso
+mensual): se le arregló la grilla del form de invitación — `col-2` le daba ~58px
+al botón — y degrada con columnas accesorias ocultas, pero **en un celular
+angosto todavía puede scrollear en horizontal**. Es la única pantalla del panel
+donde sigue pasando. `seller/links.vue` y `seller/leads.vue` recibieron el mismo
+tratamiento de degradación, no cards.
+
+### Verificación
+
+`npm run build` + Playwright con `launchPersistentContext` a 390×844, con dos
+asserts por ruta: `scrollWidth <= innerWidth` (que *es* la definición de roto en
+un celular) y todo control táctil con alto >= 44px. El segundo assert encontró
+un problema real que a ojo pasaba: los botones de borrar foto medían 30px.
+
+**Lo que Playwright no puede verificar** (usa WebKit, no iOS Safari): el
+auto-zoom al enfocar un input, el picker nativo del `<select>`,
+`env(safe-area-inset-*)`, y el lock de scroll del body. Los cuatro sostienen
+decisiones de arriba y necesitan una pasada desde un iPhone real.
+
 ## N8 — Admin `Usuarios` becomes a real CRUD
 
 `/app/admin/users` was the only admin screen that wasn't one: it could

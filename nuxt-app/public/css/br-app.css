@@ -1,0 +1,737 @@
+/* =====================================================================
+   PANEL /app/* — hoja propia del panel autenticado (admin / vendedor / dueño)
+   =====================================================================
+   N9. Tercera hoja propia de la app, al lado de br-base.css (tokens + reset
+   globales) y br-catalog.css (el catálogo público). A diferencia de esas dos,
+   esta NO se carga sitewide desde nuxt.config.ts: la piden con useHead({ link })
+   sólo app/layouts/app-shell.vue y app/pages/app/login.vue (que es
+   `layout: false` y si no quedaría afuera — y es justo la pantalla donde más
+   importa el piso de 16px en los inputs).
+
+   REGLA DE ORO DE ESTE ARCHIVO
+   ---------------------------
+   Toda regla que toque un selector de Bootstrap o de elemento (.btn,
+   .form-control, .form-select, .table, input, select, textarea, ...) va
+   OBLIGATORIAMENTE prefijada con `.br-app`. Dos motivos, y el segundo es el
+   importante:
+
+     1. Contención: `.br-app` sólo existe en el panel, así que nada se filtra
+        al sitio público. Un `.btn { min-height: 44px }` suelto acá sería una
+        regresión sitewide.
+     2. Especificidad, no orden. `.br-app .btn` es (0,2,0) y le gana a `.btn`
+        (0,1,0) sin depender de qué hoja se cargó primero — y el orden de
+        cascada es precisamente lo que nuxt.config.ts:75-79 dice que no hay que
+        dar por sentado ("la inyección de Vite... puede diferir entre dev y
+        prod"). Ojo con los empates: `.br-app-status` a secas empataría (0,1,0)
+        con `.form-select`, así que esos van igual con el prefijo.
+
+   Las clases propias `.br-app-*` que no compiten con nada de Bootstrap se
+   pueden usar sin prefijo: el namespace ya las hace únicas.
+
+   Nada de `:root` ni `body` a secas — ver el encabezado de br-base.css, donde
+   está documentado el bug de los tokens que nunca matcheaban.
+
+   POR QUÉ LOS TAMAÑOS SON LOS QUE SON
+   -----------------------------------
+   - 44px de alto mínimo en todo lo que se toca (botones, inputs, selects,
+     chips): es el mínimo de target táctil de las WCAG. El panel venía de
+     `.btn-sm`, que da ~31px.
+   - 16px de font-size en todo input/select/textarea en mobile: iOS Safari hace
+     auto-zoom al enfocar cualquier campo con tipografía menor a 16px, y
+     después deja la página zoomeada. No es estético, es funcional.
+   ===================================================================== */
+
+/* =====================================================================
+   1. Raíz del panel
+   ===================================================================== */
+
+.br-app {
+  --br-app-nav-h: 56px;
+  --br-app-borde: #e4e4e7;
+  --br-app-mute: #6b7280;
+  --br-app-fondo: #f7f7f8;
+  --br-app-azul: var(--azul, #1a6fe8);
+
+  min-height: 100dvh;
+  background: var(--br-app-fondo);
+}
+
+/* La pantalla de login centra su card con flex y no quiere el fondo gris del
+   resto del panel: sólo toma de acá los pisos táctiles y el anti-zoom. */
+.br-app-login {
+  background: var(--br-app-fondo);
+  min-height: 100dvh;
+}
+
+/* =====================================================================
+   2. Navegación
+   =====================================================================
+   El nav viejo era `navbar navbar-expand-md` SIN toggler ni collapse: abajo de
+   768px los links simplemente se amontonaban en un flex-wrap. Y no se podía
+   arreglar con `data-bs-toggle` porque el JS de Bootstrap no está cargado en
+   ningún lado de esta app (no es ni dependencia). El drawer va a mano en Vue,
+   calcado del que ya usa el layout público (app/layouts/default.vue).
+   ===================================================================== */
+
+.br-app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: var(--negro, #111);
+}
+
+.br-app-nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--br-app-nav-h);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 8px 16px;
+}
+
+.br-app-brand {
+  display: inline-flex;
+  align-items: center;
+  margin-right: auto;
+  padding: 4px;
+}
+.br-app-brand img {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.br-app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.br-app-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.br-app-nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.br-app-nav-link.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.br-app-nav-email {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  margin: 0 4px;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.br-app-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (max-width: 767.98px) {
+  .br-app-nav-links,
+  .br-app-nav-email,
+  .br-app-nav-logout {
+    display: none !important;
+  }
+  .br-app-nav-toggle {
+    display: inline-flex;
+  }
+}
+
+/* --- Drawer --- */
+
+.br-app-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+}
+.br-app-drawer-overlay.open {
+  display: block;
+}
+
+.br-app-drawer {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  max-width: 85vw;
+  height: 100%;
+  background: #fff;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+  transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.br-app-drawer.open {
+  right: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .br-app-drawer {
+    transition: none;
+  }
+}
+
+.br-app-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 12px 16px;
+  border-bottom: 1px solid var(--br-app-borde);
+}
+.br-app-drawer-email {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--br-app-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.br-app-drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #111;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.br-app-drawer-links {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px;
+  margin: 0;
+  list-style: none;
+}
+.br-app-drawer-link {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #111;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.br-app-drawer-link.is-active {
+  background: #eaf2fe;
+  color: var(--br-app-azul);
+}
+.br-app-drawer-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--br-app-borde);
+}
+
+/* =====================================================================
+   3. Barra de herramientas (búsqueda pegajosa)
+   =====================================================================
+   Con ~80 alquileres el buscador se iba de pantalla al primer scroll y había
+   que volver arriba para filtrar de nuevo.
+   ===================================================================== */
+
+.br-app-toolbar {
+  position: sticky;
+  top: var(--br-app-nav-h);
+  z-index: 20;
+  padding: 10px 0;
+  margin-bottom: 2px;
+  background: var(--br-app-fondo);
+}
+
+.br-app-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+/* =====================================================================
+   4. Lista de propiedades
+   =====================================================================
+   Reemplaza las tablas de 5-6 columnas dentro de .table-responsive, que en un
+   celular eran scroll horizontal. Es UN solo árbol de markup: grid con columnas
+   reales arriba de 768px (mantiene la alineación que sirve para escanear la
+   lista larga) y dos filas compactas abajo. No hay markup duplicado
+   desktop/mobile que mantener en paralelo.
+   ===================================================================== */
+
+.br-app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 24px;
+}
+
+.br-app-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 130px 168px 44px;
+  grid-template-areas: 'thumb info price status actions';
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 12px;
+  background: #fff;
+}
+.br-app-card.is-saving {
+  opacity: 0.6;
+}
+
+.br-app-card-thumb {
+  grid-area: thumb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--gris, #f4f4f6);
+  color: #b9b9c0;
+  font-size: 22px;
+}
+.br-app-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.br-app-card-info {
+  grid-area: info;
+  min-width: 0;
+}
+.br-app-card-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #111;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.br-app-card-meta {
+  font-size: 13px;
+  color: var(--br-app-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.br-app-card-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  color: #9a9aa3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.br-app-card-price {
+  grid-area: price;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.br-app-card-status {
+  grid-area: status;
+  min-width: 0;
+}
+
+.br-app-card-actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+@media (max-width: 767.98px) {
+  /* El precio NO puede compartir columna con la miniatura: la columna vale
+     56px y "Consultar precio" quedaba recortado. Acá la miniatura y el botón
+     de editar ocupan dos filas a los costados, el precio cae debajo del título
+     (que es donde se lee naturalmente en una ficha), y el selector de estado se
+     lleva el ancho completo — que es justo lo que más se toca. */
+  .br-app-card {
+    grid-template-columns: 56px minmax(0, 1fr) 44px;
+    grid-template-areas:
+      'thumb info actions'
+      'thumb price actions'
+      'status status status';
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 6px;
+  }
+  .br-app-card-actions {
+    align-self: start;
+  }
+  .br-app-card-status {
+    margin-top: 4px;
+  }
+  .br-app-card-thumb {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+  }
+  .br-app-card-titulo {
+    white-space: normal;
+    /* Dos líneas y corta: en mobile el título es lo único que identifica la
+       propiedad, pero tampoco puede empujar el resto de la card. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .br-app-card-price {
+    font-size: 16px;
+  }
+}
+
+/* Variante sólo-lectura (portal del dueño): sin select ni botones. */
+.br-app-card.is-readonly {
+  grid-template-columns: 72px minmax(0, 1fr) 130px 168px;
+  grid-template-areas: 'thumb info price status';
+}
+@media (max-width: 767.98px) {
+  .br-app-card.is-readonly {
+    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-areas:
+      'thumb info'
+      'thumb price'
+      'status status';
+  }
+}
+
+/* =====================================================================
+   5. Chip de disponibilidad
+   =====================================================================
+   Es un <select> nativo, no un dropdown propio: sin JS de Bootstrap no hay
+   dropdown, y en iOS el <select> abre el picker de rueda a pantalla completa,
+   que es el mejor target táctil disponible.
+
+   Chips TINTADOS CLAROS y no sólidos, por dos razones concretas:
+     - se setea `background-color`, nunca el shorthand `background`, porque el
+       shorthand borraría el caret (Bootstrap lo pinta con background-image);
+     - el caret que trae Bootstrap es #343a40, o sea oscuro: sobre un chip
+       sólido verde/ámbar/rojo sería invisible, sobre uno tintado claro se lee.
+   ===================================================================== */
+
+.br-app .br-app-status {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.br-app .br-app-status:disabled {
+  opacity: 0.65;
+}
+.br-app .br-app-status-disponible {
+  background-color: #e7f6ec;
+  border-color: #a6dfb8;
+  color: #14652f;
+}
+.br-app .br-app-status-reservado {
+  background-color: #fdf1dd;
+  border-color: #f0cf95;
+  color: #8a5200;
+}
+.br-app .br-app-status-baja {
+  background-color: #fdeaea;
+  border-color: #f2b6b6;
+  color: #8f1d1d;
+}
+
+/* Versión estática, para el portal del dueño (sólo lectura). */
+.br-app-status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =====================================================================
+   6. Estados vacíos y avisos
+   ===================================================================== */
+
+.br-app-empty {
+  padding: 32px 16px;
+  border: 1px dashed var(--br-app-borde);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--br-app-mute);
+  text-align: center;
+}
+
+.br-app-notice {
+  position: sticky;
+  top: calc(var(--br-app-nav-h) + 8px);
+  z-index: 25;
+}
+
+/* =====================================================================
+   7. Formularios
+   ===================================================================== */
+
+/* Piso táctil. Incluye .btn-sm a propósito: el panel estaba lleno de botones
+   de icono de ~31px, imposibles de acertar con el pulgar. */
+.br-app .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+/* Botón de icono cuadrado (editar, copiar, notas...). */
+.br-app .br-app-icon-btn {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.br-app .form-control,
+.br-app .form-select,
+.br-app input,
+.br-app select,
+.br-app textarea {
+  min-height: 44px;
+}
+.br-app textarea.form-control {
+  min-height: 96px;
+}
+/* Los checkbox/radio nativos no quieren 44px de alto: los envuelve su propio
+   label, que sí lo tiene. */
+.br-app input[type='checkbox'],
+.br-app input[type='radio'] {
+  min-height: 0;
+}
+
+@media (max-width: 767.98px) {
+  .br-app .form-control,
+  .br-app .form-select,
+  .br-app .form-control-sm,
+  .br-app .form-select-sm,
+  .br-app input,
+  .br-app select,
+  .br-app textarea {
+    font-size: 16px;
+  }
+}
+
+/* --- Chips de amenities --- */
+
+.br-app-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.br-app-chip-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.br-app-chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.br-app-chip-input:checked + .br-app-chip-label {
+  background: #eaf2fe;
+  border-color: var(--br-app-azul);
+  color: var(--br-app-azul);
+  font-weight: 600;
+}
+.br-app-chip-input:focus-visible + .br-app-chip-label {
+  outline: 2px solid var(--br-app-azul);
+  outline-offset: 2px;
+}
+
+/* --- Grilla de fotos (formulario de venta) --- */
+
+.br-app-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+.br-app-photo {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--gris, #f4f4f6);
+}
+.br-app-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.br-app-photo-pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  color: var(--br-app-mute);
+  font-size: 11px;
+  text-align: center;
+  word-break: break-all;
+}
+/* Círculo oscuro translúcido en vez de un .btn-danger rojo macizo: con 44px de
+   lado, el rojo se comía la miniatura. */
+.br-app .br-app-photo-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(17, 17, 17, 0.6);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+}
+.br-app .br-app-photo-del:hover {
+  background: rgba(190, 30, 30, 0.85);
+  color: #fff;
+}
+
+/* En mobile este botón sube al piso de 44px como todo lo demás: borra una foto,
+   o sea que un mis-tap cuesta caro. Las miniaturas crecen a 104px para que el
+   botón no se coma la tarjeta — entran 3 por fila en un celular. */
+@media (max-width: 767.98px) {
+  .br-app-photos {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  }
+  .br-app .br-app-photo-del {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+}
+
+/* --- Barra de guardado pegajosa --- */
+
+.br-app-form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 767.98px) {
+  .br-app-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--br-app-borde);
+    background: rgba(255, 255, 255, 0.97);
+  }
+  .br-app-form-actions .btn {
+    flex: 1 1 auto;
+  }
+  /* El botón de eliminar no compite por ancho con Guardar: si están del mismo
+     tamaño uno al lado del otro, el mis-tap es cuestión de tiempo. */
+  .br-app-form-actions .br-app-btn-del {
+    flex: 0 0 auto;
+    width: 52px;
+  }
+}
+
+/* =====================================================================
+   8. Tablas que siguen siendo tablas
+   =====================================================================
+   admin/users.vue y seller/links.vue conservan su tabla (su reescritura a
+   cards es otro milestone); lo que se hace acá es que degraden sin romper:
+   sin scroll horizontal y con las columnas accesorias ocultas en mobile.
+   ===================================================================== */
+
+@media (max-width: 767.98px) {
+  .br-app .br-app-table-compact th,
+  .br-app .br-app-table-compact td {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 14px;
+  }
+  .br-app .br-app-col-optional {
+    display: none !important;
+  }
+}
+
+/* Celda que contiene un texto largo sin espacios (una URL, un UID). */
+.br-app-truncate {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

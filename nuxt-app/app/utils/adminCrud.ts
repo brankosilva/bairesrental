@@ -11,7 +11,7 @@
 // node_modules/vuefire/dist/shared/vuefire.*.mjs), so it's safe to call
 // from anywhere, anytime, including deep inside an onMounted callback
 // after an `await` — no different from the old singleton-based approach.
-import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore'
 import { useFirestore } from 'vuefire'
 
 export async function listAll<T>(collectionName: string): Promise<(T & { id: string })[]> {
@@ -34,8 +34,20 @@ export async function getOne<T>(collectionName: string, id: string): Promise<(T 
   return snap.exists() ? { id: snap.id, ...(snap.data() as T) } : null
 }
 
+// `updatedAt` se sella acá y no en cada pantalla a propósito. Son cuatro call
+// sites (los dos formularios × su guardado principal + su escritura de fotos
+// posterior) más el cambio rápido de disponibilidad desde las listas; ponerlo
+// en un solo lugar evita que la próxima pantalla que escriba se olvide.
+//
+// Hasta N9 NADA escribía este campo, así que la columna "Actualizado" de
+// owner/index.vue siempre mostraba "—". Los documentos ya existentes lo ganan
+// recién la primera vez que se vuelven a guardar; no hay backfill.
+//
+// serverTimestamp() devuelve un *sentinel* (FieldValue), no un Timestamp: se
+// resuelve en el servidor. Nunca asignarlo al objeto local de una lista —
+// owner/index.vue hace `ts.seconds * 1000` y daría Invalid Date.
 export async function saveOne(collectionName: string, id: string, data: Record<string, unknown>): Promise<void> {
-  await setDoc(doc(useFirestore(), collectionName, id), data, { merge: true })
+  await setDoc(doc(useFirestore(), collectionName, id), { ...data, updatedAt: serverTimestamp() }, { merge: true })
 }
 
 export async function removeOne(collectionName: string, id: string): Promise<void> {

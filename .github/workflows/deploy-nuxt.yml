@@ -71,17 +71,18 @@ jobs:
       NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
       NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
       NUXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_APP_ID }}
-      # Dominio con el que se construyen canonical, hreflang y og:url
-      # (nuxt.config.ts's SITE_URL). Tiene que ser el dominio donde vive ESTE
-      # deploy, no el dominio final: WhatsApp y Facebook releen el og:url y
-      # arman el preview con lo que encuentren ahí, así que apuntarlo al
-      # dominio propio —que hoy sirve el sitio estático viejo y devuelve 404
-      # en /departamentos/<id>— dejaba todas las fichas sin preview.
+      # Dominio con el que se construyen canonical, hreflang, og:url y los
+      # links que comparten los vendedores (/l/:code) — el SITE_URL de
+      # nuxt.config.ts. Tiene que ser el dominio donde vive ESTE deploy:
+      # WhatsApp y Facebook releen el og:url y arman el preview con lo que
+      # encuentren ahí.
       #
-      # EN EL CUTOVER DE DNS: borrar esta línea (vuelve solo al dominio propio,
-      # que es el default en nuxt.config.ts) o cargar la variable de repo
-      # NUXT_PUBLIC_SITE_URL con https://www.bairesrental.com.ar.
-      NUXT_PUBLIC_SITE_URL: ${{ vars.NUXT_PUBLIC_SITE_URL || 'https://bairesrental.web.app' }}
+      # Con el cutover de DNS hecho, ese dominio ES el propio. Mientras estuvo
+      # pendiente, acá se forzaba https://bairesrental.web.app (el dominio
+      # propio devolvía el 404 de GitHub Pages y las fichas salían sin
+      # preview), y eso se filtraba también a los links de los vendedores, que
+      # salían con el host de Firebase.
+      NUXT_PUBLIC_SITE_URL: ${{ vars.NUXT_PUBLIC_SITE_URL || 'https://www.bairesrental.com.ar' }}
 
     steps:
       - name: Checkout

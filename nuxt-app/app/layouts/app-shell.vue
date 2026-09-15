@@ -47,7 +47,17 @@ const LINKS_BY_ROLE: Record<string, NavLink[]> = {
   seller: [
     { to: '/app/seller/listings', label: 'Propiedades' },
     { to: '/app/seller/links', label: 'Links' },
-    { to: '/app/seller/leads', label: 'Leads' },
+    // "Leads" está ESCONDIDO a propósito, no borrado: la pantalla confundía
+    // más de lo que ayudaba porque hoy la única forma de que entre un lead es
+    // el formulario de lead-capture, que las fichas públicas todavía no
+    // portaron (ver el encabezado de pages/departamentos/[id].vue). O sea que
+    // el vendedor abría una tabla vacía sin manera de llenarla. El seguimiento
+    // real lo lleva "Links", que sí mide aperturas y contactos.
+    //
+    // La ruta /app/seller/leads sigue existiendo y andando: los leads que ya
+    // están en Firestore no se pierden y volver a mostrarla es descomentar
+    // esta línea.
+    // { to: '/app/seller/leads', label: 'Leads' },
     { to: '/app/seller/profile', label: 'Mi ficha' },
   ],
   owner: [{ to: '/app/owner', label: 'Mis propiedades' }],

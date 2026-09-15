@@ -166,9 +166,25 @@ jobs:
       # Gotcha N0 #2: el preset `firebase` de Nitro poda node_modules de
       # .output/server de una forma que rompe el análisis estático que hace
       # firebase-tools al desplegar (le falta firebase-functions/lib/v2).
+      # Tiene que correr DESDE ADENTRO de .output/server: hacerlo con
+      # `npm --prefix .output/server` desde nuxt-app/ deja justo el archivo
+      # que firebase-tools resuelve (lib/v2/index.js) sin instalar, y el
+      # deploy muere con un "An unexpected error has occurred." pelado.
       - name: Rehidratar node_modules de .output/server
         working-directory: nuxt-app/.output/server
         run: npm install --omit=dev
+
+      # El chequeo barato que confirma que la rehidratación sirvió: un build
+      # fresco trae lib/v2/ sin index.js; recién después de rehidratar bien
+      # aparece.
+      - name: Verificar que firebase-tools vaya a encontrar el binario
+        run: |
+          archivo=.output/server/node_modules/firebase-functions/lib/v2/index.js
+          if [ ! -f "$archivo" ]; then
+            echo "::error::Falta ${archivo} — la rehidratación no sirvió y el deploy del SSR va a fallar con un error opaco."
+            exit 1
+          fi
+          echo "${archivo} presente — OK"
 
       - name: Estado de las functions antes del deploy
         run: firebase functions:list --project "$FIREBASE_PROJECT"

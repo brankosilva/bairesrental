@@ -637,9 +637,9 @@ input[type="range"].br-range::-webkit-slider-thumb {
    escondía la lista y dejaba el mapa solo en su columna del 40%, con medio
    catálogo en blanco al costado. */
 .br-mapa-oculto { display: none !important; }
-@media (max-width: 991px) {
-  .br-lista-oculta { display: none !important; }
-}
+/* La vista "Mapa" esconde la lista en TODOS los anchos: el mapa pasa a ocupar
+   el ancho completo en vez de quedar en una columna angosta al costado. */
+.br-lista-oculta { display: none !important; }
 
 .br-catalogo-split {
   display: flex;
@@ -649,8 +649,9 @@ input[type="range"].br-range::-webkit-slider-thumb {
 .br-catalogo-list { flex: 1 1 auto; min-width: 0; }
 .br-catalogo-map-panel {
   display: none;
-  flex: 0 0 40%;
-  max-width: 460px;
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: none;
   position: sticky;
   top: 130px;
   height: calc(100vh - 160px);
@@ -662,11 +663,6 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 @media (min-width: 992px) {
   .br-catalogo-map-panel { display: block; }
-  /* Cuando el mapa está abierto la lista sí pasa a 2 columnas, pero solo
-     entonces — en la vista de lista (el default) quedan las 3 del estático. */
-  .br-catalogo-split:has(.br-catalogo-map-panel:not(.br-mapa-oculto)) #catalogo-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 .br-map-canvas { width: 100%; height: 100%; background: var(--br-gris-bg); }
@@ -676,10 +672,8 @@ input[type="range"].br-range::-webkit-slider-thumb {
   .br-catalogo-map-panel {
     display: block;
     position: static;
-    flex: 1 1 100%;
-    width: 100%;
-    max-width: none;
-    height: min(70vh, 560px);
+    height: calc(100vh - 210px);
+    min-height: 380px;
   }
 }
 

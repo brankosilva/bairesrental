@@ -36,6 +36,7 @@ const props = defineProps<{
 const mapEl = ref<HTMLElement | null>(null)
 let map: MapLibreMap | null = null
 let markers: Marker[] = []
+let resizeObs: ResizeObserver | null = null
 
 // `coords` viene [lat, lng] (orden Leaflet, que es el que usan las páginas y
 // utils/geo). MapLibre trabaja en [lng, lat], así que se da vuelta acá y el
@@ -89,8 +90,11 @@ function renderMarkers(M: typeof import('maplibre-gl')) {
         .addTo(map),
     )
   }
-  if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 48, maxZoom: 15, animate: false })
-  else map.jumpTo({ center: BA_CENTER, zoom: 11 })
+  // Padding generoso y maxZoom bajo a proposito: conviene abrir mostrando de
+  // mas y que el usuario acerque, antes que abrir pegado a un grupo de pins
+  // con el resto de la ciudad fuera de cuadro.
+  if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 64, maxZoom: 13, animate: false })
+  else map.jumpTo({ center: BA_CENTER, zoom: 10.5 })
 }
 
 let maplibreMod: typeof import('maplibre-gl') | null = null
@@ -114,18 +118,21 @@ async function initMap() {
   map.addControl(new M.NavigationControl({ showCompass: false }), 'top-left')
   renderMarkers(M)
 
-  // MapLibre mide el contenedor al crear el mapa. Si en ese momento todavía no
-  // tiene su tamaño final (el panel se acaba de mostrar, o el layout no
-  // terminó de acomodarse), el canvas queda con el tamaño viejo hasta que algo
-  // dispare un resize. Un resize en el frame siguiente lo obliga a remedirse.
-  requestAnimationFrame(() => {
-    map?.resize()
-    if (props.points.length) renderMarkers(M)
-  })
+  // MapLibre mide el contenedor al crear el mapa y no se entera solo si cambia
+  // despues. El panel se muestra recien al tocar "Mapa", asi que al construirlo
+  // el alto todavia puede ser el viejo: el canvas quedaba mas chico que el
+  // panel y sobraba una banda gris que no se llenaba hasta el primer resize de
+  // la ventana. Un rAF suelto no alcanza porque el layout puede seguir
+  // acomodandose (fuentes, scrollbar, el sticky). El observer lo remide cada
+  // vez que el contenedor cambia de tamano, que es lo unico que importa aca.
+  resizeObs = new ResizeObserver(() => map?.resize())
+  resizeObs.observe(mapEl.value)
 }
 
 onMounted(initMap)
 onBeforeUnmount(() => {
+  resizeObs?.disconnect()
+  resizeObs = null
   map?.remove()
   map = null
   markers = []

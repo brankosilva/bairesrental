@@ -239,24 +239,6 @@ jobs:
       - name: Estado de las functions antes del deploy
         run: firebase functions:list --project "$FIREBASE_PROJECT"
 
-      # Sin este paso la extensión NUNCA se instaló, aunque estuviera
-      # declarada en firebase.json y configurada en extensions/*.env desde
-      # que se escribió la feature de previews. Resultado: og:image apunta
-      # al derivado _1200x630 que la extensión tendría que generar, ese
-      # objeto no existe, y las 88 fichas publican un og:image que devuelve
-      # 404 — o sea, todos los links compartidos salen sin foto.
-      #
-      # Verificado antes de agregar esto: se reescribió una portada para
-      # disparar el trigger y el derivado no apareció (6 chequeos en ~1
-      # minuto, los 6 en 404).
-      #
-      # Va PRIMERO porque es lo único de lo que depende el backfill, y el
-      # backfill a su vez tiene que correr antes de que las fichas sirvan
-      # esas URLs.
-      - name: Deploy de extensiones (storage-resize-images)
-        if: env.TARGET == 'todo' || env.TARGET == 'extensiones'
-        run: firebase deploy --only extensions --project "$FIREBASE_PROJECT" --non-interactive
-
       - name: Deploy de reglas (Firestore + Storage)
         if: env.TARGET == 'todo' || env.TARGET == 'reglas'
         run: firebase deploy --only firestore,storage --project "$FIREBASE_PROJECT"
@@ -344,3 +326,26 @@ jobs:
           if [ "$bytes" -gt 300000 ]; then
             echo "::warning::og:image pesa ${bytes} bytes (>300 KB): WhatsApp probablemente no muestre la foto."
           fi
+
+      # Va ÚLTIMO y no bloquea nada, a propósito.
+      #
+      # La primera versión de este paso iba antes que las reglas, y cuando
+      # falló se llevó puesto el deploy entero: reglas, functions, SSR y
+      # hosting quedaron en `skipped` por un problema que no tiene nada que
+      # ver con el código del sitio. La extensión es independiente del
+      # deploy de la app —lo único que depende de ella es el backfill de
+      # og:image, que es un paso manual—, así que un problema acá nunca
+      # puede impedir publicar.
+      #
+      # `continue-on-error` deja el paso en rojo y visible en el run sin
+      # marcar el job como fallido.
+      #
+      # Hoy esto falla con:
+      #   Permissions denied enabling compute.googleapis.com
+      # El service account de CI no puede habilitar esa API; la tiene que
+      # habilitar un owner del proyecto desde la consola, una sola vez:
+      #   https://console.cloud.google.com/apis/library/compute.googleapis.com?project=bairesrental
+      - name: Deploy de extensiones (storage-resize-images)
+        if: env.TARGET == 'todo' || env.TARGET == 'extensiones'
+        continue-on-error: true
+        run: firebase deploy --only extensions --project "$FIREBASE_PROJECT" --non-interactive

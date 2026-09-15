@@ -33,7 +33,18 @@ function extraer(html, campo, prevCampo) {
 
 async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function revisarFicha(url) {
+// Tokko no usa un booleano simple: el campo "status" puede venir como
+// "Disponible", "No disponible", "Tasación", "Alquilada", etc. Cualquier
+// valor que no sea exactamente "disponible" cuenta como NO disponible.
+// OJO: no uses /disponible/i.test(status) para esto — "No disponible"
+// también matchea esa regex por contener la palabra "disponible", lo que
+// hace que el chequeo nunca detecte una ficha caída. Ya pasó antes.
+function esDisponibleSegunTokko(status) {
+  if (!status) return null;
+  return /^disponible$/i.test(status.trim());
+}
+
+async function revisarFicha(url, disponibilidadLocal) {
   try {
     const resp = await fetch(url, { redirect: 'follow' });
     if (!resp.ok) {
@@ -50,7 +61,17 @@ async function revisarFicha(url) {
     }
 
     const problemas = [];
-    if (status && !/disponible/i.test(status)) problemas.push(`Tokko dice "${status}"`);
+    const tokkoDisponible = esDisponibleSegunTokko(status);
+    const localDisponible = disponibilidadLocal === 'disponible';
+
+    if (tokkoDisponible !== null && tokkoDisponible !== localDisponible) {
+      problemas.push(`estado desactualizado: local="${disponibilidadLocal}" pero Tokko dice "${status}"`);
+    } else if (tokkoDisponible === false && status && !/^no disponible$/i.test(status.trim())) {
+      // Ej: "Tasación" — ya coincide con el estado local (no disponible),
+      // pero vale la pena avisar porque puede indicar que salió del rubro alquiler.
+      problemas.push(`Tokko muestra un estado distinto a disponible/no disponible: "${status}" (coincide con local, revisar igual)`);
+    }
+
     if (active === 'false') problemas.push('ficha marcada inactiva en Tokko');
     if (MI_INMOBILIARIA_TOKKO && company && !company.toLowerCase().includes(MI_INMOBILIARIA_TOKKO.toLowerCase())) {
       problemas.push(`aparece otra inmobiliaria: "${company}"${branch ? ' / ' + branch : ''}`);
@@ -81,7 +102,7 @@ async function main() {
 
   for (const p of conFicha) {
     const url = (p.fichaUrl && /ficha\.info/i.test(p.fichaUrl)) ? p.fichaUrl : p.fotos;
-    const r = await revisarFicha(url);
+    const r = await revisarFicha(url, p.disponibilidad);
 
     const item = { id: p.id, titulo: p.titulo, barrio: p.barrio, url, ...r };
     resultados.push(item);

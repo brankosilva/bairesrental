@@ -1,0 +1,457 @@
+{
+  "generadoEn": "2026-09-14T17:10:32.931Z",
+  "resultados": [
+    {
+      "id": "alq-07",
+      "titulo": "4+ ambientes en Monserrat",
+      "barrio": "Monserrat",
+      "url": "https://ficha.info/p/03eec4cb7e7649bd8d76a0e1f076f1ec?v=1787596624637",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-05",
+      "titulo": "2 ambientes en Palermo",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/7207e23edff942c880e3946f04d69fd3?v=1787593995843",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-02",
+      "titulo": "2 ambientes en Villa Ortuzar",
+      "barrio": "Villa Ortuzar",
+      "url": "https://ficha.info/p/39327c7c841a421cbb1471dcdb4e49fc?v=1787593603744",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-01",
+      "titulo": "2 ambientes en Belgrano",
+      "barrio": "Belgrano",
+      "url": "https://ficha.info/p/1c22ecfe3e74473682495bec735affdf?v=1787593493266",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-12",
+      "titulo": "4 ambientes en Villa Crespo",
+      "barrio": "Villa Crespo",
+      "url": "https://ficha.info/p/1f46e57a705a4b85ab9e1c7946065ba0?v=1786380696521",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-10",
+      "titulo": "2 ambientes en Recoleta",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/5f1003fe04254454bbaf59ef04660d80?v=1786379989351",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-09",
+      "titulo": "2 ambientes en Balvanera",
+      "barrio": "Balvanera",
+      "url": "https://ficha.info/p/d88f3f5da1b241bca95fa500c17a0d0b?v=1786379272018",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"no disponible\" pero Tokko dice \"Disponible\""
+      ]
+    },
+    {
+      "id": "alq-08",
+      "titulo": "Loft en San Telmo",
+      "barrio": "San Telmo",
+      "url": "https://ficha.info/p/5e902ddaaefd458785954eae03bb0837?v=1786379133113",
+      "ok": true,
+      "status": "No disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-8315-",
+      "titulo": "Departamento de primer nivel en Concepción Live Premium",
+      "barrio": "Colegiales",
+      "url": "https://ficha.info/p/74bb7f919e0349a98a6761b9ab9e45f0?v=1782245109100",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-04",
+      "titulo": "2 ambientes en Microcentro",
+      "barrio": "Microcentro",
+      "url": "https://ficha.info/p/043993c7a6a540f4b5659e9c6b6a8469?v=1785502311902",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"reservado\" pero Tokko dice \"Disponible\""
+      ]
+    },
+    {
+      "id": "alq-2840-2",
+      "titulo": "Monoambiente en Recoleta",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/b9b8ce81cc4d476e8f95675db1fcfe77?v=1776692561347",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-3710",
+      "titulo": "2 ambientes en Caballito",
+      "barrio": "Caballito",
+      "url": "https://ficha.info/p/8db434bd5bb049e7983f135d0cee12c3?v=1774899478331",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-0011",
+      "titulo": "2 ambientes en Villa Urquiza",
+      "barrio": "Villa Urquiza",
+      "url": "https://ficha.info/p/98be7b9f7a424e1daecb11c6f881c3a7?v=1773684810734",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-ya1100-2",
+      "titulo": "2 ambientes con amenities en Palermo",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/a77d8005b4c6408796a0a7db441b317f?v=1772634904349",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-6644",
+      "titulo": "3 ambientes piso entero en Palermo",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/6ed2fc270ff0437ea156560a398a2239?v=1776699667658",
+      "ok": true,
+      "status": "No disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-4218",
+      "titulo": "3 ambientes impecable en Recoleta",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/4f166a501151453ebf44f1f27eb16611?v=1776101873688",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-9011-2",
+      "titulo": "PH impecable con superficie aproximada de 100 m²",
+      "barrio": "Colegiales",
+      "url": "https://ficha.info/p/f1e987c73ef148b2826e724a447ea7da?v=1777390757047",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-marie-4",
+      "titulo": "Excelente departamento muy luminoso y espacioso",
+      "barrio": "Las Cañitas",
+      "url": "https://ficha.info/p/4c7664fec5c44635bc7c275b92a96e65?v=1778163457007",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-marie-11",
+      "titulo": "Lujo en torre con vistas abiertas al dique y al río",
+      "barrio": "Puerto Madero",
+      "url": "https://ficha.info/p/3c97f912e2f248f9baa83526796eddab?v=1778167612881",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-3866",
+      "titulo": "Monoambiente premium en Palermo Hollywood",
+      "barrio": "Palermo Hollywood",
+      "url": "https://ficha.info/p/e0ec9bb9addc4fa7a533d766d4e1b2b7?v=1779138534534",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-marie-22",
+      "titulo": "amplio balcón terraza de aproximadamente 15 m²",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/57e399ac10a64076b7f4ab021a428375?v=1779198103430",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "marie-01",
+      "titulo": "Moderno, luminoso y totalmente equipado",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/eaa8226b9d0640ee8314815884635758?v=1780342509119",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-marie-15",
+      "titulo": "Excelente monoambiente totalmente amoblado",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/61ae4a83c45f4130b078a36879142cef?v=1782230034437",
+      "ok": true,
+      "status": "No disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"disponible\" pero Tokko dice \"No disponible\""
+      ]
+    },
+    {
+      "id": "alq-PEDRO6767",
+      "titulo": "Moderno monoambiente a estrenar",
+      "barrio": "Belgrano",
+      "url": "https://ficha.info/p/4b45e1487e5c4b5cb2775d43a0df1213?v=1783341359913",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-marie26",
+      "titulo": "JARDINES DEL LIBERTADOR",
+      "barrio": "Núñez",
+      "url": "https://ficha.info/p/1c3f072ad6b64b98adaf800068cd1f84?v=1783348925542",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-marie27",
+      "titulo": "Excelente combinación de confort, luminosidad y ubicación privilegiada.",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/7ad42c82d8824062a569ae4c22e9de94?v=1783351019777",
+      "ok": true,
+      "status": "No disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"disponible\" pero Tokko dice \"No disponible\""
+      ]
+    },
+    {
+      "id": "marie-22",
+      "titulo": "Increíble dúplex amoblado en el exclusivo complejo Los Silos de Dorrego",
+      "barrio": "Colegiales",
+      "url": "https://ficha.info/p/06a82a03c75149aca311fe59ac8084bd?v=1784645640636",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "alq-Patricia 8065",
+      "titulo": "2 ambientes de categoría con amenities",
+      "barrio": "Colegiales",
+      "url": "https://ficha.info/p/dc1d857cc0184fbba3f9d3fff76eeca5?v=1784648475206",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "marie-25",
+      "titulo": "Torre Palmera Caballito",
+      "barrio": "Caballito",
+      "url": "https://ficha.info/p/ec2978425203487ca7d293915082bd33?v=1784649019892",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    },
+    {
+      "id": "marie-33",
+      "titulo": "Monoambiente amoblado en complejo con amenities premium",
+      "barrio": "San Telmo",
+      "url": "https://ficha.info/p/7b80797146c84a55a3f22885ce320ffe?v=1784651636917",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": []
+    }
+  ],
+  "aRevisar": [
+    {
+      "id": "alq-10",
+      "titulo": "2 ambientes en Recoleta",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/5f1003fe04254454bbaf59ef04660d80?v=1786379989351",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-09",
+      "titulo": "2 ambientes en Balvanera",
+      "barrio": "Balvanera",
+      "url": "https://ficha.info/p/d88f3f5da1b241bca95fa500c17a0d0b?v=1786379272018",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"no disponible\" pero Tokko dice \"Disponible\""
+      ]
+    },
+    {
+      "id": "alq-04",
+      "titulo": "2 ambientes en Microcentro",
+      "barrio": "Microcentro",
+      "url": "https://ficha.info/p/043993c7a6a540f4b5659e9c6b6a8469?v=1785502311902",
+      "ok": true,
+      "status": "Disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"reservado\" pero Tokko dice \"Disponible\""
+      ]
+    },
+    {
+      "id": "alq-2840-2",
+      "titulo": "Monoambiente en Recoleta",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/b9b8ce81cc4d476e8f95675db1fcfe77?v=1776692561347",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-4218",
+      "titulo": "3 ambientes impecable en Recoleta",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/4f166a501151453ebf44f1f27eb16611?v=1776101873688",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-9011-2",
+      "titulo": "PH impecable con superficie aproximada de 100 m²",
+      "barrio": "Colegiales",
+      "url": "https://ficha.info/p/f1e987c73ef148b2826e724a447ea7da?v=1777390757047",
+      "ok": true,
+      "status": "Tasación",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "Tokko muestra un estado distinto a disponible/no disponible: \"Tasación\" (coincide con local, revisar igual)"
+      ]
+    },
+    {
+      "id": "alq-marie-15",
+      "titulo": "Excelente monoambiente totalmente amoblado",
+      "barrio": "Palermo",
+      "url": "https://ficha.info/p/61ae4a83c45f4130b078a36879142cef?v=1782230034437",
+      "ok": true,
+      "status": "No disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"disponible\" pero Tokko dice \"No disponible\""
+      ]
+    },
+    {
+      "id": "alq-marie27",
+      "titulo": "Excelente combinación de confort, luminosidad y ubicación privilegiada.",
+      "barrio": "Recoleta",
+      "url": "https://ficha.info/p/7ad42c82d8824062a569ae4c22e9de94?v=1783351019777",
+      "ok": true,
+      "status": "No disponible",
+      "company": "GO NEGOCIOS INMOBILIARIOS",
+      "branch": null,
+      "problemas": [
+        "estado desactualizado: local=\"disponible\" pero Tokko dice \"No disponible\""
+      ]
+    }
+  ]
+}

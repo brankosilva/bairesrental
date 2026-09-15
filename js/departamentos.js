@@ -319,7 +319,8 @@ function crearCardHTML(p, idx) {
   const serviciosLabel = p.serviciosIncluidos
     ? `<span class="br-tag-servicios">${t('c-svc-incl')}</span>`
     : `<span class="br-tag-servicios-aparte">${t('c-svc-extra')}</span>`;
-  const minimoLabel = p.minimoMeses > 1 ? `<span class="br-tag-minimo">${t('c-min')} ${p.minimoMeses} ${p.minimoMeses === 1 ? t('c-mes') : t('c-meses')}</span>` : "";
+  const minimoMeses = p.minimoMeses || 1;
+  const minimoLabel = `<span class="br-tag-minimo">${t('c-min')} ${minimoMeses} ${minimoMeses === 1 ? t('c-mes') : t('c-meses')}</span>`;
 
   const monedaLabel = p.moneda || 'USD';
   const precioHTML = p.precio > 0

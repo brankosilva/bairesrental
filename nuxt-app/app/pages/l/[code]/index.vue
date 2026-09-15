@@ -23,6 +23,7 @@ interface LinkPayload {
   target: 'property' | 'catalog'
   recipientName: string | null
   seller: SellerProfile | null
+  sellerFallback: boolean
   property: (RentalProperty & SaleProperty & { id: string }) | null
   propertyKind: 'rental' | 'sale' | null
   catalog: { rentals: (RentalProperty & { id: string })[]; sales: (SaleProperty & { id: string })[] } | null
@@ -56,12 +57,11 @@ const contactMessage = computed(() => {
 
 const contactHref = computed(() => whatsappUrl(contactMessage.value, seller.value?.whatsapp))
 
-// La página es privada y de un solo destinatario: nunca indexable, y el
-// título no debe filtrar el nombre de esa persona.
-useHead({
-  title: () => (data.value?.property?.titulo ? `${data.value.property.titulo}` : 'Propiedades'),
-  meta: [{ name: 'robots', content: 'noindex, nofollow' }],
-})
+// Título, descripción y preview del link (og:*/twitter:*), con la identidad
+// del vendedor adentro. La página es privada y de un solo destinatario, así
+// que sigue siendo noindex y ningún meta lleva el nombre de esa persona — el
+// detalle está en el composable.
+useSharedLinkSeo(() => data.value ?? null)
 
 // Un clic en contacto es la única señal de conversión que tiene el sistema.
 // sendBeacon sobrevive a que el navegador se vaya a WhatsApp; el fetch con
@@ -105,6 +105,7 @@ const catalogCount = computed(() => rentals.value.length + sales.value.length)
         :rental="data.property"
         :whatsapp-phone="seller?.whatsapp"
         :contact-label="contactLabel"
+        :contact-message="contactMessage"
         hide-brand-badge
         @click="onContact"
       />
@@ -113,6 +114,7 @@ const catalogCount = computed(() => rentals.value.length + sales.value.length)
         :sale="data.property"
         :whatsapp-phone="seller?.whatsapp"
         :contact-label="contactLabel"
+        :contact-message="contactMessage"
         hide-brand-badge
         @click="onContact"
       />
@@ -165,5 +167,15 @@ const catalogCount = computed(() => rentals.value.length + sales.value.length)
         </NuxtLink>
       </div>
     </main>
+
+    <!-- El cierre de la página: el cliente terminó de mirar y acá tiene todos
+         los datos del vendedor juntos, no sólo el botón de la barra de
+         arriba. Va después tanto de una ficha como del grid del catálogo. -->
+    <SellerContactCard
+      :seller="seller"
+      :contact-href="contactHref"
+      :contact-label="contactLabel"
+      @click="onContact"
+    />
   </template>
 </template>

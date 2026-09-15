@@ -6,6 +6,8 @@ import type { Availability } from '~/utils/availability'
 // Ported from app/src/pages/app/admin/SalesList.vue — see rentals.vue's
 // sibling comment for why client-fetch-on-mount is fine here, y para el
 // cambio de N9 (cards + disponibilidad desde la lista, sin botón de eliminar).
+// Los filtros son los mismos que allá — usePropertyFilters() +
+// <AdminPropertyFilters>.
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['admin'] })
 useHead({ title: 'BairesRental — Admin · Ventas', meta: [{ name: 'robots', content: 'noindex' }] })
 
@@ -13,34 +15,51 @@ type Row = SaleProperty & { id: string; sellerUid?: string | null }
 
 const sales = ref<Row[]>([])
 const loading = ref(true)
-const search = ref('')
 
 const { savingId, notice, setAvailability } = useAvailability('sales')
+const { search, tipos, disponibilidad, propio, tipoOptions, availabilityOptions, matches, activeCount, clear } =
+  usePropertyFilters<Row>('sale', sales)
 
 onMounted(async () => {
   sales.value = await listAll('sales')
   loading.value = false
 })
 
-const filtered = computed(() =>
-  sales.value.filter((s) => `${s.titulo} ${s.barrio} ${s.id}`.toLowerCase().includes(search.value.toLowerCase())),
-)
+const filtered = computed(() => sales.value.filter(matches))
 
 function sellerLabel(s: Row): string {
   return s.sellerUid ? `vendedor ${s.sellerUid.slice(0, 8)}…` : 'gestiona BairesRental'
+}
+
+// A dónde manda el botón de ficha. Acá NO se usa `fotos` como en alquileres:
+// en ventas es un string[] de URLs de Storage (la galería nativa de la ficha),
+// así que apuntarle abriría una imagen suelta. La ficha con las fotos es la
+// pública del sitio; `fichaUrl` (Zonaprop, Argenprop) tiene prioridad cuando
+// está, igual que en la ficha pública.
+function fichaHref(s: Row): string {
+  return s.fichaUrl || `/ventas/${s.id}`
 }
 </script>
 
 <template>
   <main class="container py-4">
     <div class="br-app-head">
-      <h1 class="h4 mb-0">Ventas ({{ sales.length }})</h1>
+      <h1 class="h4 mb-0">
+        Ventas ({{ filtered.length }}<template v-if="filtered.length !== sales.length"> de {{ sales.length }}</template>)
+      </h1>
       <NuxtLink to="/app/sales/new" class="btn btn-primary">+ Nueva</NuxtLink>
     </div>
 
-    <div class="br-app-toolbar">
-      <input v-model="search" type="search" class="form-control" placeholder="Buscar por título, barrio o ID…" />
-    </div>
+    <AdminPropertyFilters
+      v-model:search="search"
+      v-model:tipos="tipos"
+      v-model:disponibilidad="disponibilidad"
+      v-model:propio="propio"
+      :tipo-options="tipoOptions"
+      :availability-options="availabilityOptions"
+      :active-count="activeCount"
+      @clear="clear"
+    />
 
     <div
       v-if="notice"
@@ -69,13 +88,14 @@ function sellerLabel(s: Row): string {
           :disponibilidad="s.disponibilidad"
           :thumb="s.fotos?.[0] || ''"
           :edit-to="`/app/sales/${s.id}`"
+          :ficha-to="fichaHref(s)"
           :extra="sellerLabel(s)"
           :saving="savingId === s.id"
           @change="(v: Availability) => setAvailability(s, v)"
         />
       </div>
 
-      <p v-else-if="search" class="br-app-empty">Ninguna venta coincide con “{{ search }}”.</p>
+      <p v-else-if="activeCount" class="br-app-empty">Ninguna venta coincide con los filtros.</p>
       <p v-else class="br-app-empty">Todavía no hay ventas cargadas.</p>
     </template>
   </main>

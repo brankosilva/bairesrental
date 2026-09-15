@@ -453,10 +453,22 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
     if (!propertySnap.exists) {
       throw new HttpsError('not-found', 'Esa publicación no existe.')
     }
-    // Un admin puede generar un link para cualquier publicación; un
-    // vendedor, sólo para las suyas.
-    if (callerRole !== 'admin' && propertySnap.data()?.sellerUid !== sellerUid) {
-      throw new HttpsError('permission-denied', 'Esa publicación no te pertenece.')
+    // Un admin puede generar un link para cualquier publicación. Un vendedor,
+    // para el catálogo de BairesRental (los documentos sin `sellerUid`, que hoy
+    // son todos) y para lo que cargó él.
+    //
+    // Antes exigía que fuera SUYA, y como ningún documento del catálogo tiene
+    // `sellerUid`, un vendedor no podía generar un link de nada. Lo que sigue
+    // prohibido es la exclusiva de OTRO vendedor: publicarla sería mostrar la
+    // propiedad de un colega con el nombre y el WhatsApp propios encima.
+    //
+    // Es la misma regla que `isShareableBySeller()` en
+    // nuxt-app/app/utils/sellerScope.ts. Se repite acá porque functions/ es un
+    // paquete TypeScript aparte y no comparte módulos con la app: si cambia
+    // una, cambiar la otra.
+    const propertyOwner = (propertySnap.data()?.sellerUid as string | null | undefined) || null
+    if (callerRole !== 'admin' && propertyOwner && propertyOwner !== sellerUid) {
+      throw new HttpsError('permission-denied', 'Esa publicación es de otro vendedor.')
     }
     propertyTitulo = propertySnap.data()?.titulo ?? null
   }

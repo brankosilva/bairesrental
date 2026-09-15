@@ -33,13 +33,28 @@ const props = withDefaults(
     thumb?: string
     /** Ruta del formulario de edición. Vacía = sin acción de editar. */
     editTo?: string
+    /** Link a la ficha con las fotos (externa o pública). Vacío = sin botón.
+        Lo resuelve la página: qué es "la ficha" depende de la colección. */
+    fichaTo?: string
+    /** Ruta interna para generar un link con la marca del vendedor. Vacía = sin
+        botón.
+
+        LA COLUMNA DE ACCIONES ENTRA DOS BOTONES (94px, ver br-app.css §4), así
+        que una misma lista usa `fichaTo` o `shareTo`, no los dos: el tercero se
+        sale de la grilla en desktop. */
+    shareTo?: string
     /** Línea accesoria: vendedor asignado (admin) o fecha de actualización (dueño). */
     extra?: string
     /** Portal del dueño: chip estático en vez de <select>, y sin acciones. */
     readonly?: boolean
+    /** Sólo congela la disponibilidad, pero deja las acciones. Es el caso del
+        vendedor mirando una propiedad de BairesRental: la puede compartir, y
+        `firestore.rules` le rechazaría el update igual — mejor no ofrecer un
+        <select> que va a fallar. */
+    statusReadonly?: boolean
     saving?: boolean
   }>(),
-  { thumb: '', editTo: '', extra: '', readonly: false, saving: false },
+  { thumb: '', editTo: '', fichaTo: '', shareTo: '', extra: '', readonly: false, statusReadonly: false, saving: false },
 )
 
 const emit = defineEmits<{ change: [value: Availability] }>()
@@ -105,7 +120,7 @@ function onChange(e: Event) {
     <div class="br-app-card-price">{{ formatPrice(precio, moneda) }}</div>
 
     <div class="br-app-card-status">
-      <span v-if="readonly" class="br-app-status-tag" :class="statusClass">{{ disponibilidad }}</span>
+      <span v-if="readonly || statusReadonly" class="br-app-status-tag" :class="statusClass">{{ disponibilidad }}</span>
       <select
         v-else
         ref="selectEl"
@@ -121,6 +136,29 @@ function onChange(e: Event) {
     </div>
 
     <div v-if="!readonly" class="br-app-card-actions">
+      <!-- <a> y no <NuxtLink>: la mayoría de las veces apunta afuera del sitio
+           (ficha.info, Airbnb, Booking) y siempre abre en otra pestaña, para no
+           sacar a nadie del panel en medio de una tanda de ediciones. -->
+      <a
+        v-if="fichaTo"
+        :href="fichaTo"
+        target="_blank"
+        rel="noopener"
+        class="btn btn-outline-secondary br-app-icon-btn"
+        :aria-label="`Ver la ficha de ${titulo}`"
+        title="Ver ficha"
+      >
+        <i class="bi bi-box-arrow-up-right"></i>
+      </a>
+      <NuxtLink
+        v-if="shareTo"
+        :to="shareTo"
+        class="btn btn-outline-secondary br-app-icon-btn"
+        :aria-label="`Generar un link de ${titulo}`"
+        title="Compartir con mi marca"
+      >
+        <i class="bi bi-link-45deg"></i>
+      </NuxtLink>
       <NuxtLink
         v-if="editTo"
         :to="editTo"

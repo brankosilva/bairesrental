@@ -40,15 +40,25 @@ import {
 // La query de `links` sigue siendo inline filtrada por sellerUid (lo exige
 // firestore.rules) y el orden se hace del lado del cliente, misma convención
 // que leads.vue — no agregar orderBy, haría falta un índice compuesto.
+//
+// El SELECTOR DE PUBLICACIÓN ya no es sólo lo que cargó el vendedor. Como
+// ningún documento del catálogo tiene `sellerUid`, ese recorte dejaba el
+// desplegable vacío y la pantalla entera inservible. Ahora ofrece todo lo que
+// alcanza `isShareableBySeller()` (app/utils/sellerScope.ts) — el catálogo de
+// BairesRental más lo propio—, agrupado para que se note cuál es cuál. El
+// callable `createTrackableLink` valida la misma regla del lado del servidor.
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['seller'] })
 useHead({ title: 'BairesRental — Mis links', meta: [{ name: 'robots', content: 'noindex' }] })
 
 const user = useCurrentUser()
 const { linkUrl } = useLinkUrl()
 
+type RentalRow = RentalProperty & { id: string; sellerUid?: string | null }
+type SaleRow = SaleProperty & { id: string; sellerUid?: string | null }
+
 const links = ref<LinkRow[]>([])
-const rentals = ref<(RentalProperty & { id: string })[]>([])
-const sales = ref<(SaleProperty & { id: string })[]>([])
+const rentals = ref<RentalRow[]>([])
+const sales = ref<SaleRow[]>([])
 const profile = ref<SellerProfile | null>(null)
 const loading = ref(true)
 const creating = ref(false)
@@ -69,7 +79,21 @@ const recipientName = ref('')
 const channel = ref<LinkChannel>('whatsapp')
 const note = ref('')
 
-const propertyChoices = computed(() => (targetKind.value === 'sale' ? sales.value : rentals.value))
+const propertyChoices = computed<(RentalRow | SaleRow)[]>(() =>
+  targetKind.value === 'sale' ? sales.value : rentals.value,
+)
+const ownChoices = computed(() => propertyChoices.value.filter((p) => isOwnListing(p, user.value?.uid)))
+const brChoices = computed(() => propertyChoices.value.filter((p) => !isOwnListing(p, user.value?.uid)))
+
+// El botón "compartir" de /app/seller/listings llega acá con la publicación ya
+// elegida: desde la lista no se puede generar el link de una porque falta el
+// dato que hace que la métrica sirva —para quién es—, así que trae hasta acá
+// lo único que sí sabe y deja el foco en ese campo.
+const route = useRoute()
+if (route.query.kind === 'rental' || route.query.kind === 'sale') {
+  targetKind.value = route.query.kind
+  selectedPropertyId.value = (route.query.prop as string) || ''
+}
 
 const sortedLinks = computed(() =>
   [...links.value].sort((a, b) => (toMillis(b.createdAt) ?? 0) - (toMillis(a.createdAt) ?? 0)),
@@ -86,12 +110,12 @@ onMounted(async () => {
   const uid = user.value?.uid
   if (uid) {
     const [r, s, p] = await Promise.all([
-      listBySeller<RentalProperty>('rentals', uid),
-      listBySeller<SaleProperty>('sales', uid),
+      listAll<RentalRow>('rentals'),
+      listAll<SaleRow>('sales'),
       getDoc(doc(useFirestore(), 'sellerProfiles', uid)),
     ])
-    rentals.value = r
-    sales.value = s
+    rentals.value = r.filter((x) => isShareableBySeller(x, uid)).sort(ownFirst(uid))
+    sales.value = s.filter((x) => isShareableBySeller(x, uid)).sort(ownFirst(uid))
     profile.value = p.exists() ? (p.data() as SellerProfile) : null
     await loadLinks()
   }
@@ -200,7 +224,7 @@ function refererHost(referer: string | null) {
 }
 
 function propertyLabel(link: LinkRow) {
-  if (link.target === 'catalog' || !link.propertyId) return 'Todo mi catálogo'
+  if (link.target === 'catalog' || !link.propertyId) return 'Todo el catálogo'
   if (link.propertyTitulo) return link.propertyTitulo
   const list = link.propertyType === 'rental' ? rentals.value : sales.value
   return list.find((p) => p.id === link.propertyId)?.titulo || link.propertyId
@@ -219,7 +243,8 @@ const canSubmit = computed(
     </div>
 
     <p class="text-muted small">
-      Generá un link por cliente. Vas a ver cuándo lo abrió, cuántas veces y si tocó el botón de contacto.
+      Generá un link por cliente sobre cualquier publicación del catálogo. La página se abre con tu nombre y tu
+      WhatsApp, sin la marca de BairesRental, y vas a ver cuándo la abrió, cuántas veces y si tocó contacto.
     </p>
 
     <!-- Sin número cargado, el botón de contacto de sus propios links abre el
@@ -239,16 +264,21 @@ const canSubmit = computed(
         <div class="col-12 col-sm-4">
           <label class="form-label small" for="lk-kind">¿Qué le mandás?</label>
           <select id="lk-kind" v-model="targetKind" class="form-select">
-            <option value="rental">Un alquiler mío</option>
-            <option value="sale">Una venta mía</option>
-            <option value="catalog">Todo mi catálogo</option>
+            <option value="rental">Un alquiler</option>
+            <option value="sale">Una venta</option>
+            <option value="catalog">Todo el catálogo</option>
           </select>
         </div>
         <div v-if="targetKind !== 'catalog'" class="col-12 col-sm-8">
           <label class="form-label small" for="lk-prop">Publicación</label>
           <select id="lk-prop" v-model="selectedPropertyId" class="form-select" required>
             <option value="" disabled>Elegir publicación…</option>
-            <option v-for="p in propertyChoices" :key="p.id" :value="p.id">{{ p.titulo }}</option>
+            <optgroup v-if="ownChoices.length" label="Mis publicaciones">
+              <option v-for="p in ownChoices" :key="p.id" :value="p.id">{{ p.titulo }}</option>
+            </optgroup>
+            <optgroup v-if="brChoices.length" label="Catálogo BairesRental">
+              <option v-for="p in brChoices" :key="p.id" :value="p.id">{{ p.titulo }}</option>
+            </optgroup>
           </select>
         </div>
         <div class="col-12 col-sm-5">

@@ -8,6 +8,7 @@
 import { FieldValue } from 'firebase-admin/firestore'
 import type { H3Event } from 'h3'
 import type { LinkEventType, TrackableLink } from '~/types/link'
+import { isShareableBySeller } from '~/utils/sellerScope'
 import { classifyRequest } from './botDetect'
 
 export interface ResolvedLink extends TrackableLink {
@@ -15,19 +16,24 @@ export interface ResolvedLink extends TrackableLink {
 }
 
 /**
- * ¿Esta publicación es de este vendedor?
+ * ¿Este vendedor puede mostrar esta publicación bajo su marca?
  *
  * Hace falta ANTES de contar la apertura de /l/:code/:propertyId. Sin
  * esto, pedir /l/<code>/<id-cualquiera> sumaba una apertura y dejaba un
  * evento con el id de una publicación ajena — aunque la página devolviera
  * 404. O sea: cualquiera podía inflarle los números a un vendedor, y el
  * detalle de actividad mostraba propiedades que no son suyas.
+ *
+ * Antes exigía que la publicación FUERA del vendedor. Ahora el criterio es
+ * `isShareableBySeller()` —el catálogo de BairesRental más lo propio, nunca
+ * la exclusiva de otro vendedor—, el mismo que aplican el panel y el
+ * callable que genera los links. Ver app/utils/sellerScope.ts.
  */
-export async function propertyBelongsToSeller(propertyId: string, sellerUid: string): Promise<boolean> {
+export async function propertyShareableBySeller(propertyId: string, sellerUid: string): Promise<boolean> {
   const db = getAdminFirestore()
   for (const col of ['rentals', 'sales']) {
     const snap = await db.collection(col).doc(propertyId).get()
-    if (snap.exists) return snap.data()?.sellerUid === sellerUid
+    if (snap.exists) return isShareableBySeller(snap.data() ?? {}, sellerUid)
   }
   return false
 }

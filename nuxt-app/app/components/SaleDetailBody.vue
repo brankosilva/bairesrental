@@ -13,6 +13,8 @@ const props = withDefaults(
     hideWhatsapp?: boolean
     whatsappPhone?: string | null
     contactLabel?: string
+    /** Mensaje de WhatsApp ya armado — ver RentalDetailBody. */
+    contactMessage?: string
     /**
      * Esconde el badge "★ BairesRental" de las propiedades propias.
      * Lo usa la página con la marca del vendedor: ahí la marca de
@@ -21,7 +23,7 @@ const props = withDefaults(
      */
     hideBrandBadge?: boolean
   }>(),
-  { backTo: '', backLabel: '', hideWhatsapp: false, whatsappPhone: null, contactLabel: '', hideBrandBadge: false },
+  { backTo: '', backLabel: '', hideWhatsapp: false, whatsappPhone: null, contactLabel: '', contactMessage: '', hideBrandBadge: false },
 )
 
 const { t, locale } = useI18n()
@@ -74,13 +76,17 @@ function isOddLastThumb(i: number) {
 
 const mapSrc = computed(() => mapEmbedSrc(props.sale.direccion, props.sale.direccionUrl))
 
-const waHref = computed(() =>
-  whatsappUrl(
-    props.sale.whatsappMsg ||
+// El `whatsappMsg` guardado no se usa en la página del vendedor — mismo
+// motivo, y mismo comentario largo, que en RentalDetailBody.
+const waHref = computed(() => {
+  const guardado = props.hideBrandBadge ? '' : props.sale.whatsappMsg
+  return whatsappUrl(
+    props.contactMessage ||
+      guardado ||
       `Hola! Me interesa la propiedad "${props.sale.titulo}" en ${props.sale.barrio}. ¿Podés darme más información?`,
     props.whatsappPhone,
-  ),
-)
+  )
+})
 
 const { copied: shareCopied, share } = useShare()
 function onShare() {

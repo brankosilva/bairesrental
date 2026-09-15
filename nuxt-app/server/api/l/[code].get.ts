@@ -1,4 +1,5 @@
 import type { SellerProfile, TrackableLink } from '~/types/link'
+import { isShareableBySeller, ownFirst } from '~/utils/sellerScope'
 
 // Payload de la página con la marca del vendedor (/l/:code).
 //
@@ -45,40 +46,66 @@ export default defineEventHandler(async (event) => {
   // La ficha pública del vendedor. Si todavía no la cargó, se cae al nombre
   // del usuario para que la página nunca salga sin identidad — que es
   // justamente lo único que la hace "su" página.
+  //
+  // `sellerFallback` marca el caso en que ni siquiera eso alcanzó y quedó el
+  // genérico "Tu asesor" (hay links en producción cuyo sellerUid ya no existe
+  // en `users`). La página lo muestra igual —mejor un contacto genérico que
+  // ninguno—, pero los <meta> del preview tienen que saberlo: "Propiedades de
+  // Tu asesor" pegado en un WhatsApp se lee directamente como un error.
   let profile: SellerProfile | null = null
+  let sellerFallback = false
   if (link.sellerUid) {
     const p = await db.collection('sellerProfiles').doc(link.sellerUid).get()
     if (p.exists) profile = plain(p.data() as Record<string, unknown>) as unknown as SellerProfile
     if (!profile || !profile.displayName) {
       const u = await db.collection('users').doc(link.sellerUid).get()
-      const name = (u.data()?.displayName as string) || (u.data()?.email as string) || 'Tu asesor'
-      profile = { ...(profile ?? ({} as SellerProfile)), uid: link.sellerUid, displayName: name } as SellerProfile
+      const name = (u.data()?.displayName as string) || (u.data()?.email as string) || null
+      sellerFallback = !name
+      profile = {
+        ...(profile ?? ({} as SellerProfile)),
+        uid: link.sellerUid,
+        displayName: name || 'Tu asesor',
+      } as SellerProfile
     }
   }
 
   const targetId = requestedProperty || link.propertyId
   const isCatalog = link.target === 'catalog' && !requestedProperty
 
-  let property: Record<string, unknown> | null = null
+  // Los dos campos que este endpoint mira por nombre salen del índice de
+  // strings: con `Record<string, unknown>` a secas, `sellerUid` es `unknown` y
+  // no entra en SellerScoped.
+  type Row = Record<string, unknown> & { sellerUid?: string | null; titulo?: string }
+
+  let property: Row | null = null
   let propertyKind: 'rental' | 'sale' | null = null
-  let catalog: { rentals: Record<string, unknown>[]; sales: Record<string, unknown>[] } | null = null
+  let catalog: { rentals: Row[]; sales: Row[] } | null = null
 
   if (isCatalog) {
-    // El catálogo del vendedor: SUS publicaciones, no las de BairesRental.
-    const [r, s] = await Promise.all([
-      db.collection('rentals').where('sellerUid', '==', link.sellerUid).get(),
-      db.collection('sales').where('sellerUid', '==', link.sellerUid).get(),
-    ])
+    // El catálogo que el vendedor presenta como propio: el de BairesRental
+    // más lo que cargó él.
+    //
+    // Antes eran dos queries `where('sellerUid', '==', ...)`, o sea sólo lo
+    // suyo — y como ningún documento del catálogo tiene `sellerUid`, esta
+    // página salía siempre con "No hay propiedades disponibles". Ahora se
+    // leen las dos colecciones enteras y el recorte lo hace
+    // isShareableBySeller(), que también deja afuera la exclusiva de otro
+    // vendedor. Son ~88 lecturas por apertura: exactamente lo mismo que ya
+    // hace /departamentos en cada request de SSR.
+    const [r, s] = await Promise.all([db.collection('rentals').get(), db.collection('sales').get()])
+    const rows = (snap: typeof r) =>
+      snap.docs.map((d) => ({ id: d.id, ...plain(d.data()) }) as Row).filter((p) => isShareableBySeller(p, link.sellerUid))
     // Se esconde lo no disponible/vendido, igual que en el catálogo público:
     // mandarle a un cliente una lista con cosas que ya no están es peor que
-    // mandarle una lista más corta.
+    // mandarle una lista más corta. Las del vendedor van primero: son las
+    // únicas de la lista que son suyas de verdad.
     catalog = {
-      rentals: r.docs
-        .map((d) => ({ id: d.id, ...plain(d.data()) }) as Record<string, unknown>)
-        .filter((p) => p.disponibilidad !== 'no disponible'),
-      sales: s.docs
-        .map((d) => ({ id: d.id, ...plain(d.data()) }) as Record<string, unknown>)
-        .filter((p) => p.disponibilidad !== 'vendido'),
+      rentals: rows(r)
+        .filter((p) => p.disponibilidad !== 'no disponible')
+        .sort(ownFirst(link.sellerUid)),
+      sales: rows(s)
+        .filter((p) => p.disponibilidad !== 'vendido')
+        .sort(ownFirst(link.sellerUid)),
     }
   } else if (targetId) {
     // Cuando viene ?p= (ficha dentro de un link de catálogo) no se sabe de
@@ -89,17 +116,18 @@ export default defineEventHandler(async (event) => {
     for (const kind of kinds) {
       const d = await db.collection(kind === 'rental' ? 'rentals' : 'sales').doc(targetId).get()
       if (d.exists) {
-        property = { id: d.id, ...plain(d.data() as Record<string, unknown>) }
+        property = { id: d.id, ...plain(d.data() as Record<string, unknown>) } as Row
         propertyKind = kind
         break
       }
     }
     if (!property) throw createError({ statusCode: 404, statusMessage: 'Publicación no encontrada' })
 
-    // Un link de catálogo sólo puede abrir fichas DE ESE vendedor: sin este
-    // chequeo, /l/<mi-code>?p=<cualquier-id> renderizaría la publicación de
-    // otro con mi nombre y mi WhatsApp encima.
-    if (requestedProperty && property.sellerUid !== link.sellerUid) {
+    // Un link de catálogo sólo abre fichas que ese vendedor puede mostrar:
+    // sin este chequeo, /l/<mi-code>?p=<cualquier-id> renderizaría la
+    // publicación de OTRO VENDEDOR con mi nombre y mi WhatsApp encima. Las de
+    // BairesRental sí entran — son las que se acaban de listar arriba.
+    if (requestedProperty && !isShareableBySeller(property, link.sellerUid)) {
       throw createError({ statusCode: 404, statusMessage: 'Publicación no encontrada' })
     }
   }
@@ -109,6 +137,7 @@ export default defineEventHandler(async (event) => {
     target: link.target ?? (link.propertyId ? 'property' : 'catalog'),
     recipientName: link.recipientName ?? null,
     seller: profile,
+    sellerFallback,
     property,
     propertyKind,
     catalog,

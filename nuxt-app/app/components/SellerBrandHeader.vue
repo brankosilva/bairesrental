@@ -29,6 +29,14 @@ const initials = computed(() =>
 )
 
 const accent = computed(() => props.seller?.accentColor || null)
+
+// Los dos datos que la ficha del vendedor ya guardaba y esta barra nunca
+// mostraba: el número a la vista (no sólo detrás del botón) y su Instagram.
+// El pie los repite en grande — ver SellerContactCard — pero arriba también
+// tienen que estar: en un link de catálogo el cliente puede irse a una ficha
+// sin haber llegado nunca al final de esta página.
+const phoneDisplay = computed(() => formatWhatsappDisplay(props.seller?.whatsapp))
+const instagram = computed(() => instagramHandle(props.seller?.instagram))
 </script>
 
 <template>
@@ -42,6 +50,18 @@ const accent = computed(() => props.seller?.accentColor || null)
         <div class="br-brandbar-ident">
           <strong>{{ seller?.displayName }}</strong>
           <span v-if="seller?.title">{{ seller.title }}</span>
+          <!-- `.stop` porque la página engancha el click a nivel raíz de este
+               componente para contar la conversión (ver pingContact): sin
+               esto, tocar el Instagram o el teléfono sumaría un "contacto por
+               WhatsApp" que nunca pasó. -->
+          <span v-if="phoneDisplay || instagram" class="br-brandbar-links">
+            <a v-if="instagram" :href="`https://instagram.com/${instagram}`" target="_blank" rel="noopener" @click.stop>
+              <i class="bi bi-instagram" aria-hidden="true"></i>@{{ instagram }}
+            </a>
+            <a v-if="phoneDisplay" :href="`tel:+${normalizeWhatsapp(seller?.whatsapp)}`" @click.stop>
+              <i class="bi bi-telephone" aria-hidden="true"></i>{{ phoneDisplay }}
+            </a>
+          </span>
         </div>
       </div>
 

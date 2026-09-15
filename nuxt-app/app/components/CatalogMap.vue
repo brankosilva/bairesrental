@@ -86,7 +86,7 @@ function renderMarkers(M: typeof import('maplibre-gl')) {
     markers.push(
       new M.Marker({ element: el, anchor: 'bottom' })
         .setLngLat(lngLat)
-        .setPopup(new M.Popup({ offset: 34, maxWidth: '220px' }).setHTML(popupHtml(p)))
+        .setPopup(new M.Popup({ offset: 34, maxWidth: '240px' }).setHTML(popupHtml(p)))
         .addTo(map),
     )
   }

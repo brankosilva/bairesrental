@@ -289,6 +289,71 @@
   margin-bottom: 4px;
 }
 
+/* --- Filtros de la lista (tipo / gestión / disponibilidad) --- */
+
+.br-app-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Los dos <select> van al ancho de su contenido, no al 100% que les da
+   Bootstrap: comparten la tira con los chips de tipo. Prefijado con .br-app
+   porque `.br-app-filter-select` a secas empataría en especificidad con
+   `.form-select` — ver la regla de oro del encabezado. */
+.br-app .br-app-filter-select {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 8px 32px 8px 12px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Chip de tipo. Es un <button> sin `.btn`, así que no hereda nada de Bootstrap
+   y se pinta entero acá; el estado se refleja además en aria-pressed. Mismo
+   lenguaje visual que los chips de amenities del formulario (§7). */
+.br-app-pill {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-size: 15px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.br-app-pill.active {
+  background: #eaf2fe;
+  border-color: var(--br-app-azul);
+  color: var(--br-app-azul);
+  font-weight: 600;
+}
+.br-app-pill-clear {
+  color: var(--br-app-mute);
+}
+
+@media (max-width: 767.98px) {
+  /* Una sola tira que scrollea en horizontal en vez de envolver: la toolbar es
+     pegajosa, y con los filtros en tres renglones se comía media pantalla. El
+     padding vertical es para que el outline del foco no quede recortado por el
+     overflow. */
+  .br-app-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 3px 0;
+    scrollbar-width: none;
+  }
+  .br-app-filters::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* =====================================================================
    4. Lista de propiedades
    =====================================================================
@@ -308,7 +373,10 @@
 
 .br-app-card {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) 130px 168px 44px;
+  /* La columna de acciones es fija y no `auto`: cada card es su propio grid,
+     así que con `auto` las filas con un solo botón desalinearían la columna
+     respecto de las que tienen dos. */
+  grid-template-columns: 72px minmax(0, 1fr) 130px 168px 94px;
   grid-template-areas: 'thumb info price status actions';
   gap: 12px;
   align-items: center;
@@ -408,6 +476,9 @@
   }
   .br-app-card-actions {
     align-self: start;
+    /* La columna sigue valiendo 44px: los botones se apilan, no compiten por
+       el ancho que necesita el título. */
+    flex-direction: column;
   }
   .br-app-card-status {
     margin-top: 4px;

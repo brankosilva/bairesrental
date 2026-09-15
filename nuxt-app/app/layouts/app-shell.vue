@@ -45,7 +45,7 @@ const LINKS_BY_ROLE: Record<string, NavLink[]> = {
     { to: '/app/admin/links', label: 'Links' },
   ],
   seller: [
-    { to: '/app/seller/listings', label: 'Mis propiedades' },
+    { to: '/app/seller/listings', label: 'Propiedades' },
     { to: '/app/seller/links', label: 'Links' },
     { to: '/app/seller/leads', label: 'Leads' },
     { to: '/app/seller/profile', label: 'Mi ficha' },

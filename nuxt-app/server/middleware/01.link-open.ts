@@ -47,11 +47,11 @@ export default defineEventHandler(async (event) => {
   if (!link || link.active === false) return
 
   // Una ficha abierta dentro de un link (/l/:code/:propertyId) sólo cuenta
-  // si esa publicación es de ese vendedor. La página ya devuelve 404 si no
-  // lo es, pero el conteo pasa por acá ANTES que la página, así que sin
+  // si ese vendedor puede mostrar esa publicación. La página ya devuelve 404
+  // si no, pero el conteo pasa por acá ANTES que la página, así que sin
   // este chequeo /l/<code>/<id-cualquiera> le sumaba aperturas igual.
   // Sólo paga la lectura extra la ruta anidada, que es la menos frecuente.
-  if (propertyId && !(await propertyBelongsToSeller(propertyId, link.sellerUid))) return
+  if (propertyId && !(await propertyShareableBySeller(propertyId, link.sellerUid))) return
 
   await recordLinkEvent(event, link, { propertyId })
 })

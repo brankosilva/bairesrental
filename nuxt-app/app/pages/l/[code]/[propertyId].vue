@@ -24,6 +24,7 @@ interface LinkPayload {
   code: string
   recipientName: string | null
   seller: SellerProfile | null
+  sellerFallback: boolean
   property: (RentalProperty & SaleProperty & { id: string }) | null
   propertyKind: 'rental' | 'sale' | null
 }
@@ -54,10 +55,11 @@ const contactMessage = computed(() => {
 
 const contactHref = computed(() => whatsappUrl(contactMessage.value, seller.value?.whatsapp))
 
-useHead({
-  title: () => data.value?.property?.titulo || 'Propiedad',
-  meta: [{ name: 'robots', content: 'noindex, nofollow' }],
-})
+// Mismos metas que /l/:code — título con el nombre del vendedor, descripción y
+// og:image con la portada. Esta ruta es la que más se reenvía (el cliente
+// comparte LA propiedad que le gustó, no el catálogo entero), así que la
+// preview acá importa todavía más.
+useSharedLinkSeo(() => data.value ?? null)
 
 function onContact() {
   if (!import.meta.client) return
@@ -91,6 +93,7 @@ function onContact() {
       back-label="← Ver todas"
       :whatsapp-phone="seller?.whatsapp"
       :contact-label="contactLabel"
+      :contact-message="contactMessage"
       hide-brand-badge
       @click="onContact"
     />
@@ -101,7 +104,15 @@ function onContact() {
       back-label="← Ver todas"
       :whatsapp-phone="seller?.whatsapp"
       :contact-label="contactLabel"
+      :contact-message="contactMessage"
       hide-brand-badge
+      @click="onContact"
+    />
+
+    <SellerContactCard
+      :seller="seller"
+      :contact-href="contactHref"
+      :contact-label="contactLabel"
       @click="onContact"
     />
   </template>

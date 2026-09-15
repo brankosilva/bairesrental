@@ -39,6 +39,42 @@ export function whatsappUrl(message: string, phone?: string | null): string {
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
 }
 
+// Handle de Instagram listo para armar instagram.com/<handle>, o null.
+//
+// Valida en serio en vez de sólo sacar la arroba: el campo `instagram` de
+// sellerProfiles es texto libre y HOY, en producción, hay una ficha que tiene
+// ahí cargado un mail. Sin este filtro eso sale publicado como
+// instagram.com/alguien@gmail.com — un link roto y, peor, el mail de una
+// persona expuesto en una página que ve el cliente.
+//
+// Reglas reales de Instagram: 1-30 caracteres, letras, números, punto y guión
+// bajo. Se acepta que venga pegada la URL entera, que es lo que copia
+// cualquiera desde el navegador.
+export function instagramHandle(raw?: string | null): string | null {
+  if (!raw) return null
+  const handle = raw
+    .trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+    .replace(/[/?#].*$/, '')
+    .replace(/^@/, '')
+  return /^[A-Za-z0-9._]{1,30}$/.test(handle) ? handle : null
+}
+
+// El número que se MUESTRA (la tarjeta del vendedor en /l/:code), distinto
+// del que se usa para armar el wa.me. Sólo formatea el caso inequívoco —
+// 549 + 11 + 8 dígitos, o sea CABA/GBA, que es todo lo que hay hoy—; para
+// cualquier otro largo de característica devuelve los dígitos con un '+'
+// adelante en vez de partirlos donde no corresponde. Misma política
+// conservadora que normalizeWhatsapp(): un número mal presentado es un
+// cliente que marca mal.
+export function formatWhatsappDisplay(raw?: string | null): string | null {
+  const digits = normalizeWhatsapp(raw)
+  if (!digits) return null
+  const ar = /^549(11)(\d{4})(\d{4})$/.exec(digits)
+  if (ar) return `+54 9 ${ar[1]} ${ar[2]}-${ar[3]}`
+  return `+${digits}`
+}
+
 export function truncate(text: string, max: number): string {
   if (!text) return ''
   return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text

@@ -29,6 +29,12 @@ const props = withDefaults(
     /** Texto del botón de contacto. Ej: "Contactar a Juan". */
     contactLabel?: string
     /**
+     * Mensaje de WhatsApp ya armado. Lo pasa la página con la marca del
+     * vendedor, que lo arma con el nombre del destinatario, así el botón del
+     * cuerpo manda lo mismo que el de la cabecera.
+     */
+    contactMessage?: string
+    /**
      * Esconde el badge "★ BairesRental" de las propiedades propias.
      * Lo usa la página con la marca del vendedor: ahí la marca de
      * BairesRental no va en ningún lado, y este badge es el único pedazo
@@ -36,7 +42,7 @@ const props = withDefaults(
      */
     hideBrandBadge?: boolean
   }>(),
-  { backTo: '', backLabel: '', hideWhatsapp: false, whatsappPhone: null, contactLabel: '', hideBrandBadge: false },
+  { backTo: '', backLabel: '', hideWhatsapp: false, whatsappPhone: null, contactLabel: '', contactMessage: '', hideBrandBadge: false },
 )
 
 const { t, locale } = useI18n()
@@ -59,13 +65,21 @@ const mapSrc = computed(() => mapEmbedSrc(props.rental.direccion, props.rental.d
 const fotosLink = computed(() => props.rental.fotos || props.rental.fichaUrl || '')
 const fotosLabel = computed(() => (props.rental.fotos ? t('detail.seeAllPhotos') : t('detail.viewFullListing')))
 
-const waHref = computed(() =>
-  whatsappUrl(
-    props.rental.whatsappMsg ||
+// EL `whatsappMsg` GUARDADO NO SE USA EN LA PÁGINA DEL VENDEDOR. Es texto
+// cargado para el sitio público y hay propiedades donde nombra a la empresa
+// ("...que vi en la web de BairesRental"), o sea que el cliente le mandaría al
+// vendedor un mensaje citando a BairesRental desde una página que justamente
+// no la nombra en ningún lado. `hideBrandBadge` ya es la señal de white-label
+// para el badge y para el título de la hoja de compartir; acá hace lo mismo.
+const waHref = computed(() => {
+  const guardado = props.hideBrandBadge ? '' : props.rental.whatsappMsg
+  return whatsappUrl(
+    props.contactMessage ||
+      guardado ||
       `Hola! Me interesa el departamento "${props.rental.titulo}" en ${props.rental.barrio}. ¿Podés darme más información?`,
     props.whatsappPhone,
-  ),
-)
+  )
+})
 
 const { copied: shareCopied, share } = useShare()
 function onShare() {

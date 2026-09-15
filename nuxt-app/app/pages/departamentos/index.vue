@@ -828,11 +828,17 @@ function formatFecha(fecha?: string) {
   transform: translateY(-2px);
   text-decoration: none;
 }
+/* `pointer-events: none` no es cosmético: la caja del indicador es absoluta y
+   va de borde a borde, con el mismo z-index que el contenido del hero. En
+   viewports de poca altura (1280x720, 1440x800) el contenido se comprime hasta
+   quedar dentro de esa franja y el indicador —decorativo, `aria-hidden`— se
+   comía los clicks de los botones "Requisitos de alquiler" y "Comunidad". */
 .br-dept-scroll-hint {
   position: absolute;
   bottom: 2.5rem;
   left: 0;
   right: 0;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -858,6 +864,15 @@ function formatFecha(fecha?: string) {
 @media (max-width: 1060px) {
   .br-dept-scroll-hint {
     display: none;
+  }
+}
+/* Arriba de 1060px el indicador se muestra y ocupa los ~87px de abajo del hero
+   (2,5rem de `bottom` + su alto). Con los 64px de padding de base los botones
+   caían encima en pantallas bajas; acá se les reserva el espacio. Abajo de
+   1060px el indicador no existe, así que el padding sigue siendo 64px. */
+@media (min-width: 1061px) {
+  .br-dept-hero-content {
+    padding-bottom: 112px;
   }
 }
 

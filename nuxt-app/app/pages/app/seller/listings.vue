@@ -1,23 +1,39 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { RentalProperty, SaleProperty } from '~/types/property'
-import type { Availability } from '~/utils/availability'
+import type { Availability, PropertyKind } from '~/utils/availability'
 
-// Ported from app/src/pages/app/seller/Listings.vue — a seller's own
-// listings, sellerUid-filtered via listBySeller() (app/utils/adminCrud.ts).
+// Las propiedades que puede trabajar un vendedor.
 //
-// N9: mismas cards que las pantallas de admin, y el vendedor puede marcar
-// reservado/no disponible/vendido desde acá sobre SUS propiedades — las
-// firestore.rules ya lo permitían (`resource.data.sellerUid == request.auth.uid`),
-// no hizo falta tocarlas. Dos instancias de useAvailability porque son dos
-// colecciones distintas; los avisos de las dos se muestran en un solo lugar.
+// ANTES: `listBySeller()` sobre las dos colecciones, o sea sólo lo que había
+// cargado él. Como el catálogo lo carga el admin y ningún documento de
+// `rentals`/`sales` tiene `sellerUid`, esta pantalla le mostraba CERO
+// propiedades a todo el mundo. Ahora lista todo el catálogo de BairesRental
+// más lo propio — ver `isShareableBySeller()` en app/utils/sellerScope.ts, que
+// es también la regla que aplican el callable de links y /l/:code.
+//
+// Lo de BairesRental entra en SÓLO LECTURA: se comparte pero no se edita ni se
+// le cambia la disponibilidad (`firestore.rules` rechazaría el update igual, y
+// ofrecer un <select> que falla es peor que no ofrecerlo).
+//
+// Son dos colecciones con opciones de disponibilidad distintas ("no
+// disponible" vs "vendido"), así que hay dos instancias de todo — de
+// useAvailability y de usePropertyFilters — y una tira de pestañas para elegir
+// cuál se está mirando. Con 85 alquileres, las dos listas juntas y sin filtros
+// (que es lo que había) no se pueden recorrer.
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['seller'] })
-useHead({ title: 'BairesRental — Mis propiedades', meta: [{ name: 'robots', content: 'noindex' }] })
+useHead({ title: 'BairesRental — Propiedades', meta: [{ name: 'robots', content: 'noindex' }] })
+
+type RentalRow = RentalProperty & { id: string; sellerUid?: string | null }
+type SaleRow = SaleProperty & { id: string; sellerUid?: string | null }
 
 const user = useCurrentUser()
-const rentals = ref<(RentalProperty & { id: string })[]>([])
-const sales = ref<(SaleProperty & { id: string })[]>([])
+const uid = computed(() => user.value?.uid ?? null)
+
+const rentals = ref<RentalRow[]>([])
+const sales = ref<SaleRow[]>([])
 const loading = ref(true)
+const kind = ref<PropertyKind>('rental')
 
 const {
   savingId: savingRentalId,
@@ -38,31 +54,130 @@ function clearNotice() {
   saleNotice.value = null
 }
 
+// Dos juegos de filtros con nombres distintos y no un `computed` que devuelva
+// el que corresponde: los refs que salen de un computed NO se desenvuelven en
+// el template, así que `v-model:search="filtros.search"` bindearía el Ref.
+const {
+  search: rSearch,
+  tipos: rTipos,
+  disponibilidad: rDisponibilidad,
+  propio: rPropio,
+  tipoOptions: rTipoOptions,
+  availabilityOptions: rAvailabilityOptions,
+  matches: rMatches,
+  activeCount: rActiveCount,
+  clear: rClear,
+} = usePropertyFilters<RentalRow>('rental', rentals)
+
+const {
+  search: sSearch,
+  tipos: sTipos,
+  disponibilidad: sDisponibilidad,
+  propio: sPropio,
+  tipoOptions: sTipoOptions,
+  availabilityOptions: sAvailabilityOptions,
+  matches: sMatches,
+  activeCount: sActiveCount,
+  clear: sClear,
+} = usePropertyFilters<SaleRow>('sale', sales)
+
 onMounted(async () => {
-  const uid = user.value?.uid
-  if (uid) {
-    ;[rentals.value, sales.value] = await Promise.all([
-      listBySeller<RentalProperty>('rentals', uid),
-      listBySeller<SaleProperty>('sales', uid),
-    ])
-  }
+  // listAll() y no listBySeller(): las reglas ya dan lectura pública sobre
+  // `rentals`/`sales`, así que el recorte lo hace isShareableBySeller().
+  const [r, s] = await Promise.all([listAll<RentalRow>('rentals'), listAll<SaleRow>('sales')])
+  rentals.value = r.filter((p) => isShareableBySeller(p, uid.value)).sort(ownFirst(uid.value))
+  sales.value = s.filter((p) => isShareableBySeller(p, uid.value)).sort(ownFirst(uid.value))
   loading.value = false
 })
+
+const filteredRentals = computed(() => rentals.value.filter(rMatches))
+const filteredSales = computed(() => sales.value.filter(sMatches))
+
+function mine(p: { sellerUid?: string | null }) {
+  return isOwnListing(p, uid.value)
+}
+
+// A propósito NO dice "gestiona BairesRental" como en las listas de admin: el
+// filtro "Gestión" de la toolbar es `esPropio` —si la administra BairesRental o
+// un colega— y son dos cosas distintas. Acá lo que el vendedor necesita saber
+// es otra: cuál puede tocar.
+function originLabel(p: { sellerUid?: string | null }) {
+  return mine(p) ? '★ mía' : 'sólo lectura'
+}
+
+// Prellenado del formulario de /app/seller/links. La generación del link pide
+// para quién es —es el dato que hace que la métrica sirva— así que desde acá
+// no se puede crear de una: se llega al formulario con la publicación elegida.
+function shareTo(id: string, k: PropertyKind) {
+  return `/app/seller/links?kind=${k}&prop=${encodeURIComponent(id)}`
+}
 </script>
 
 <template>
   <main class="container py-4">
     <div class="br-app-head">
-      <h1 class="h4 mb-0">Mis propiedades</h1>
+      <h1 class="h4 mb-0">Propiedades</h1>
       <div class="d-flex gap-2">
         <NuxtLink to="/app/rentals/new" class="btn btn-primary">+ Alquiler</NuxtLink>
         <NuxtLink to="/app/sales/new" class="btn btn-primary">+ Venta</NuxtLink>
       </div>
     </div>
 
+    <p class="text-muted small mb-2">
+      Todo el catálogo de BairesRental más tus propias publicaciones. Con
+      <i class="bi bi-link-45deg"></i> generás un link con tu nombre y tu WhatsApp; las de BairesRental las compartís pero
+      las edita el admin.
+    </p>
+
+    <div class="br-app-filters" role="tablist" aria-label="Tipo de operación">
+      <button
+        type="button"
+        role="tab"
+        class="br-app-pill"
+        :class="{ active: kind === 'rental' }"
+        :aria-selected="kind === 'rental'"
+        @click="kind = 'rental'"
+      >
+        Alquileres ({{ rentals.length }})
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="br-app-pill"
+        :class="{ active: kind === 'sale' }"
+        :aria-selected="kind === 'sale'"
+        @click="kind = 'sale'"
+      >
+        Ventas ({{ sales.length }})
+      </button>
+    </div>
+
+    <AdminPropertyFilters
+      v-if="kind === 'rental'"
+      v-model:search="rSearch"
+      v-model:tipos="rTipos"
+      v-model:disponibilidad="rDisponibilidad"
+      v-model:propio="rPropio"
+      :tipo-options="rTipoOptions"
+      :availability-options="rAvailabilityOptions"
+      :active-count="rActiveCount"
+      @clear="rClear"
+    />
+    <AdminPropertyFilters
+      v-else
+      v-model:search="sSearch"
+      v-model:tipos="sTipos"
+      v-model:disponibilidad="sDisponibilidad"
+      v-model:propio="sPropio"
+      :tipo-options="sTipoOptions"
+      :availability-options="sAvailabilityOptions"
+      :active-count="sActiveCount"
+      @clear="sClear"
+    />
+
     <div
       v-if="notice"
-      class="alert br-app-notice d-flex align-items-start gap-2 mt-3"
+      class="alert br-app-notice d-flex align-items-start gap-2"
       :class="notice.tone === 'danger' ? 'alert-warning' : 'alert-info'"
       role="alert"
     >
@@ -70,13 +185,12 @@ onMounted(async () => {
       <button type="button" class="btn-close flex-shrink-0" aria-label="Cerrar" @click="clearNotice"></button>
     </div>
 
-    <p v-if="loading" class="mt-3">Cargando…</p>
+    <p v-if="loading">Cargando…</p>
 
-    <template v-else>
-      <h2 class="h6 text-muted mt-4">Alquileres ({{ rentals.length }})</h2>
-      <div v-if="rentals.length" class="br-app-list">
+    <template v-else-if="kind === 'rental'">
+      <div v-if="filteredRentals.length" class="br-app-list">
         <PropertyAdminCard
-          v-for="r in rentals"
+          v-for="r in filteredRentals"
           :id="r.id"
           :key="r.id"
           kind="rental"
@@ -87,17 +201,22 @@ onMounted(async () => {
           :moneda="r.moneda"
           :disponibilidad="r.disponibilidad"
           :thumb="r.imagen"
-          :edit-to="`/app/rentals/${r.id}`"
+          :edit-to="mine(r) ? `/app/rentals/${r.id}` : ''"
+          :share-to="shareTo(r.id, 'rental')"
+          :extra="originLabel(r)"
+          :status-readonly="!mine(r)"
           :saving="savingRentalId === r.id"
           @change="(v: Availability) => setRentalAvailability(r, v)"
         />
       </div>
-      <p v-else class="br-app-empty">Todavía no cargaste ningún alquiler.</p>
+      <p v-else-if="rActiveCount" class="br-app-empty">Ningún alquiler coincide con los filtros.</p>
+      <p v-else class="br-app-empty">Todavía no hay alquileres en el catálogo.</p>
+    </template>
 
-      <h2 class="h6 text-muted mt-4">Ventas ({{ sales.length }})</h2>
-      <div v-if="sales.length" class="br-app-list">
+    <template v-else>
+      <div v-if="filteredSales.length" class="br-app-list">
         <PropertyAdminCard
-          v-for="s in sales"
+          v-for="s in filteredSales"
           :id="s.id"
           :key="s.id"
           kind="sale"
@@ -108,12 +227,16 @@ onMounted(async () => {
           :moneda="s.moneda"
           :disponibilidad="s.disponibilidad"
           :thumb="s.fotos?.[0] || ''"
-          :edit-to="`/app/sales/${s.id}`"
+          :edit-to="mine(s) ? `/app/sales/${s.id}` : ''"
+          :share-to="shareTo(s.id, 'sale')"
+          :extra="originLabel(s)"
+          :status-readonly="!mine(s)"
           :saving="savingSaleId === s.id"
           @change="(v: Availability) => setSaleAvailability(s, v)"
         />
       </div>
-      <p v-else class="br-app-empty">Todavía no cargaste ninguna venta.</p>
+      <p v-else-if="sActiveCount" class="br-app-empty">Ninguna venta coincide con los filtros.</p>
+      <p v-else class="br-app-empty">Todavía no hay ventas en el catálogo.</p>
     </template>
   </main>
 </template>

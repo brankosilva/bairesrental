@@ -678,16 +678,23 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 
 /* MapLibre marker popup content (rendered outside Vue's scoped styles, so
-   these live in the shared sheet like the rest of the map/filter rules) */
-.br-map-popup { display: flex; flex-direction: column; width: 190px; font-family: 'DM Sans', sans-serif; }
-.br-map-popup img { display: block; width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+   these live in the shared sheet like the rest of the map/filter rules)
+
+   OJO CON EL TAMANO DE LA LETRA: el mapa es codigo nuevo de Nuxt (el sitio
+   estatico no tenia ninguno), asi que estos rem se escribieron contra el root
+   de 16px, no contra el de 10px de Bootstrap 3 que asume el resto del archivo.
+   La conversion masiva rem -> px del encabezado multiplico todo x10 y la ficha
+   quedo al 55% (.88rem -> 8.8px en vez de 14px): ilegible. Los valores de acá
+   son los x16 correctos. No re-convertir. */
+.br-map-popup { display: flex; flex-direction: column; width: 212px; font-family: 'DM Sans', sans-serif; }
+.br-map-popup img { display: block; width: 100%; height: 118px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
 .br-map-popup-body { display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px; }
-.br-map-popup-body strong { font-size: 8.8px; color: #111; line-height: 1.25; }
-.br-map-popup-body span { font-size: 7.8px; color: var(--br-gris-txt); }
+.br-map-popup-body strong { font-size: 14px; color: #111; line-height: 1.25; }
+.br-map-popup-body span { font-size: 12.5px; color: var(--br-gris-txt); }
 .br-map-popup-precio { font-weight: 700 !important; color: var(--br-azul) !important; }
 .br-map-popup-body a {
   margin-top: 4px;
-  font-size: 8px; font-weight: 600;
+  font-size: 13px; font-weight: 600;
   color: var(--br-azul); text-decoration: none;
 }
 .br-map-popup-body a:hover { text-decoration: underline; }

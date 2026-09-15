@@ -104,19 +104,42 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isAdmin();
 
-      allow create, update: if
-        (isAdmin()
-         || (role() == 'seller' && request.auth.uid == uid
-             // `active` (despublicar) y `slug` (necesita un chequeo de
-             // unicidad que una regla no puede hacer) son sólo del admin.
-             && !request.resource.data.keys().hasAny(['active', 'slug'])))
-        && request.resource.data.keys().hasOnly(
-             ['uid', 'displayName', 'title', 'photoUrl', 'whatsapp', 'bio', 'instagram',
-              'logoUrl', 'accentColor', 'slug', 'active', 'updatedAt'])
-        && request.resource.data.displayName is string
-        && request.resource.data.displayName.size() <= 80
-        && (!('bio' in request.resource.data) || request.resource.data.bio == null
-            || request.resource.data.bio.size() <= 280);
+      // Forma del documento, mire quien lo escriba.
+      function fichaValida() {
+        return request.resource.data.keys().hasOnly(
+                 ['uid', 'displayName', 'title', 'photoUrl', 'whatsapp', 'bio', 'instagram',
+                  'logoUrl', 'accentColor', 'slug', 'active', 'updatedAt'])
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 80
+          && (!('bio' in request.resource.data) || request.resource.data.bio == null
+              || request.resource.data.bio.size() <= 280);
+      }
+
+      // Lo que el vendedor puede tocar de su propia ficha. `active`
+      // (despublicar) y `slug` (necesita un chequeo de unicidad que una
+      // regla no puede hacer) son sólo del admin.
+      function camposDelVendedor() {
+        return ['uid', 'displayName', 'title', 'photoUrl', 'whatsapp', 'bio',
+                'instagram', 'logoUrl', 'accentColor', 'updatedAt'];
+      }
+
+      allow create: if fichaValida()
+        && (isAdmin()
+            || (role() == 'seller' && request.auth.uid == uid
+                && !request.resource.data.keys().hasAny(['active', 'slug'])));
+
+      // OJO con la diferencia entre create y update: en un update
+      // `request.resource.data` es el documento RESULTANTE (lo que había
+      // más el parche), no lo que mandó el cliente. Como inviteUser siembra
+      // la ficha con `active: true` y `slug: null` (ensureSellerProfile),
+      // pedirle acá lo mismo que al create —que no aparezcan esas claves—
+      // le rechazaba TODOS los guardados al vendedor, aunque no las
+      // mandara. Lo que hay que mirar es qué cambió: affectedKeys().
+      allow update: if fichaValida()
+        && (isAdmin()
+            || (role() == 'seller' && request.auth.uid == uid
+                && request.resource.data.diff(resource.data)
+                     .affectedKeys().hasOnly(camposDelVendedor())));
 
       allow delete: if isAdmin();
     }

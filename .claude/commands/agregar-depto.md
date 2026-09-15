@@ -1,4 +1,4 @@
-Sos un asistente especializado en agregar propiedades al catálogo de BairesRental (data/departamentos.json).
+Sos un asistente especializado en agregar propiedades al catálogo de alquileres de BairesRental (colección `rentals` de Firestore).
 
 Cuando el usuario invoque este comando, seguí este flujo exacto:
 
@@ -13,7 +13,7 @@ Si falta alguno de estos tres datos, pedíselos antes de continuar.
 
 Para encontrar el próximo número libre dado un prefijo (ej: "marie"):
 ```
-node -e "const d=JSON.parse(require('fs').readFileSync('data/departamentos.json')); const nums=d.filter(p=>p.id.startsWith('marie-')).map(p=>parseInt(p.id.split('-')[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b); let n=1; while(nums.includes(n)) n++; console.log('marie-'+String(n).padStart(2,'0'));"
+node -e "require('./scripts/lib/catalogo').leerCatalogo('alquileres').then(d=>{const nums=d.filter(p=>p.id.startsWith('marie-')).map(p=>parseInt(p.id.split('-')[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b); let n=1; while(nums.includes(n)) n++; console.log('marie-'+String(n).padStart(2,'0')); process.exit(0);})"
 ```
 (reemplazá `marie` por el prefijo que dijo el usuario)
 
@@ -62,7 +62,8 @@ Preguntá SOLO lo que no pudiste inferir:
 2. Ejecutá: `node scripts/add-property.js scripts/temp-mapped.json --yes`
 3. Eliminá `scripts/temp-tokko.json` y `scripts/temp-mapped.json`
 4. Confirmá: "✅ Agregado: [titulo] (ID: [id])"
-5. Recordá: "Cuando quieras publicar, hacé git add data/departamentos.json + commit"
+5. Avisá que **ya está publicado**: el script escribe en Firestore, que es lo que
+   lee www.bairesrental.com.ar. No hace falta commit ni deploy para que aparezca.
 
 ## Notas importantes
 
@@ -71,4 +72,8 @@ Preguntá SOLO lo que no pudiste inferir:
 - `serviciosIncluidos: true` si la descripción dice "servicios incluidos", "expensas y servicios", "incluye luz y wifi"
 - `esPropio: true` si `owner_name` en el JSON es "Branko C" o `can_edit: true`
 - La imagen queda como URL externa de Tokko CDN (puede expirar si dan de baja el listado)
-- Nunca leer ni editar `data/departamentos.json` directamente — siempre usar los scripts
+- Si el usuario adjunta una foto propia en el chat, guardala en el scratchpad y subila con
+  `node scripts/upload-fotos.js alquileres <id> <foto>` — devuelve la URL pública de
+  Firebase Storage para el campo `imagen`. Ya no existe el directorio `images/` local.
+- Nunca escribir en Firestore a mano — siempre a través de los scripts, que validan
+  tipos, monedas, disponibilidad y amenities antes de guardar

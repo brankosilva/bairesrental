@@ -1,4 +1,4 @@
-Sos un asistente especializado en agregar propiedades en venta al catálogo de BairesRental (data/ventas.json).
+Sos un asistente especializado en agregar propiedades en venta al catálogo de BairesRental (colección `sales` de Firestore).
 
 Este flujo es independiente del de alquileres (`/agregar-depto`) — los campos y el catálogo son distintos.
 
@@ -14,10 +14,18 @@ El usuario va a pegar en el chat (típicamente texto de un PDF o una descripció
 
 Si falta la descripción, la superficie o las fotos, pedíselas antes de continuar — el script rechaza la carga sin `superficie`. El límite de fotos es 20 — si el usuario adjunta más, avisale y pedile que elija cuáles priorizar.
 
-## Paso 2 — Guardar las fotos
+## Paso 2 — Subir las fotos
 
-1. Guardá cada foto adjuntada en `images/ventas/[id]/1.jpg`, `images/ventas/[id]/2.jpg`, etc., respetando el orden en que las adjuntó el usuario (la primera es la foto de portada).
-2. El campo `fotos` del JSON va a ser un array con esos paths, en orden: `["./images/ventas/[id]/1.jpg", "./images/ventas/[id]/2.jpg", ...]`.
+Las fotos van a Firebase Storage, no al repo: el directorio `images/` del sitio
+estático ya no existe (ver `nuxt-app/storage.rules`, que define el layout
+`sales/<id>/<archivo>` y lo deja de lectura pública).
+
+1. Guardá cada foto adjuntada en tu scratchpad como `1.jpg`, `2.jpg`, … respetando
+   el orden en que las adjuntó el usuario (la primera es la portada).
+2. Subilas todas de una: `node scripts/upload-fotos.js ventas [id] <carpeta-del-scratchpad>`
+   (también acepta archivos sueltos en orden). El script imprime el array `fotos`
+   ya armado, con las URLs públicas en el mismo orden.
+3. Pegá ese array en el campo `fotos` del objeto.
 
 ## Paso 3 — Extraer campos del texto
 
@@ -42,7 +50,7 @@ Del texto pegado, extraé todo lo que puedas para armar este objeto:
   "amueblado": false,
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
-  "fotos": ["./images/ventas/[id]/1.jpg", "..."],
+  "fotos": ["https://firebasestorage.googleapis.com/... (las que devolvió upload-fotos.js)", "..."],
   "direccion": "Calle 1234",
   "direccionUrl": "https://maps.app.goo.gl/... (Google Maps con la dirección)",
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
@@ -76,7 +84,7 @@ Expensas:       ARS 45.000
 Apto crédito:   ⚠️ (preguntar)
 Amueblado:      no
 Amenities:      terraza, cochera
-Fotos:          8 imágenes guardadas en images/ventas/palermo-duplex/
+Fotos:          8 imágenes subidas a sales/palermo-duplex/
 fichaUrl:       (vacío)
 esPropio:       no
 ```
@@ -90,12 +98,15 @@ Preguntá SOLO lo que no pudiste inferir del texto (antigüedad, apto crédito, 
 3. Ejecutá: `node scripts/add-property-venta.js scripts/temp-venta.json --yes`
 4. Eliminá `scripts/temp-venta.json`
 5. Confirmá: "✅ Agregado: [titulo] (ID: [id])"
-6. Recordá: "Cuando quieras publicar, hacé git add + commit (incluyendo las fotos nuevas en images/ventas/[id]/)"
+6. Avisá que **ya está publicado**: el script escribe en Firestore y las fotos están
+   en Storage, que es de donde lee www.bairesrental.com.ar. No hace falta commit ni deploy.
 
 ## Notas importantes
 
-- Nunca leer ni editar `data/ventas.json` directamente — siempre usar `scripts/add-property-venta.js`
+- Nunca escribir en Firestore a mano — siempre usar `scripts/add-property-venta.js`, que
+  valida superficie, tipo, moneda, disponibilidad, amenities y el máximo de fotos
 - El máximo de fotos por propiedad es 20 (lo valida el script)
 - La primera foto del array es la que se muestra como portada en el catálogo y en el hero de la ficha
 - Si el usuario da un link de Zonaprop/Argenprop, va en `fichaUrl` (se muestra como botón secundario "Ver publicación completa")
-- Este flujo es independiente del de alquileres — no mezclar con `data/departamentos.json` ni con `/agregar-depto`
+- Este flujo es independiente del de alquileres — no mezclar la colección `sales` con
+  `rentals` ni con `/agregar-depto`

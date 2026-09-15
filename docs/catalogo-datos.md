@@ -1,8 +1,12 @@
 # Catálogo y datos
 
-Las propiedades viven en dos archivos JSON grandes. **Nunca leerlos ni editarlos directamente** — usar siempre los scripts de `scripts/` (o el panel admin local). Ver también el skill `agregar-depto` y `/agregar-depto-venta`, y las instrucciones de carga en `CLAUDE.md`.
+El catálogo vive en **Firestore**: colección `rentals` (alquiler temporario) y `sales` (venta). Escribir ahí publica en el sitio al instante — `www.bairesrental.com.ar` lee Firestore en cada request (SSR).
 
-## `data/departamentos.json` — alquileres
+Se edita de dos maneras: el panel interno (`/app/admin/rentals`, `/app/admin/sales`) o los scripts de `scripts/`. Ver también los comandos `/agregar-depto` y `/agregar-depto-venta`, y las instrucciones de carga en `CLAUDE.md`.
+
+> **Histórico.** Hasta septiembre de 2026 el catálogo eran dos archivos JSON en `data/`, que alimentaban el sitio estático de la raíz del repo. Ese sitio se dio de baja y los JSON se borraron: para entonces ya estaban desactualizados respecto de Firestore. Quedan en el historial de git.
+
+## `rentals` — alquileres
 
 Schema por propiedad:
 
@@ -22,21 +26,22 @@ Schema por propiedad:
   "minimoMeses": 1,
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
-  "imagen": "./images/[id]/main.jpg  (local) o URL externa",
+  "imagen": "URL de Firebase Storage (rentals/<id>/cover.jpg) o URL externa",
   "fotos": "URL de ficha.info o álbum Google Photos",
   "fichaUrl": "solo para links directos de Airbnb/Booking (vacío si hay ficha.info)",
   "direccion": "Calle 1234",
   "direccionUrl": "https://maps.app.goo.gl/... o google.com/maps/search",
+  "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "esPropio": false
 }
 ```
 
-Notas: `precio: 0` muestra "Consultar precio". `serviciosIncluidos: true` = incluye luz **y** wifi. Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en vez del modal/ficha interna.
+Notas: `precio: 0` muestra "Consultar precio". `serviciosIncluidos: true` = incluye luz **y** wifi. Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en vez de la ficha interna. `lat`/`lng` son el pin del mapa del catálogo; los completa `resolve-map-coords.js`.
 
-## `data/ventas.json` — ventas
+## `sales` — ventas
 
-Flujo **independiente** del de alquileres. Hasta 20 fotos por ficha, mostradas en galería nativa + lightbox en `detalle-venta.html` (en vez del link externo a álbum que usan los alquileres).
+Flujo **independiente** del de alquileres. Hasta 20 fotos por ficha, mostradas en galería nativa + lightbox en `/ventas/[id]` (en vez del link externo a álbum que usan los alquileres).
 
 ```json
 {
@@ -57,9 +62,10 @@ Flujo **independiente** del de alquileres. Hasta 20 fotos por ficha, mostradas e
   "amueblado": false,
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
-  "fotos": ["./images/ventas/[id]/1.jpg", "... hasta 20"],
+  "fotos": ["https://firebasestorage.googleapis.com/... (sales/<id>/1.jpg)", "... hasta 20"],
   "direccion": "Calle 1234",
   "direccionUrl": "https://maps.app.goo.gl/...",
+  "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "fichaUrl": "opcional — Zonaprop/Argenprop, botón secundario",
   "esPropio": false
@@ -70,29 +76,37 @@ Notas: `superficie` es **obligatoria** (el script rechaza la carga sin ella; se 
 
 ## Scripts de carga (`scripts/`)
 
-Todos requieren Node.js (`node --version`).
+Todos requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable de entorno `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`. El acceso al catálogo está centralizado en `scripts/lib/catalogo.js`.
 
 | Script | Uso |
 |---|---|
-| `add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega a `data/departamentos.json`. Ver mapeo completo en `CLAUDE.md`. |
+| `add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega a `rentals`. Ver mapeo completo en `CLAUDE.md`. |
 | `add-from-tencery.js` | Convierte un JSON exportado de **Tencery** (otra plataforma de gestión) al formato BairesRental. Mapea ambientes→tipo, extrae amenities/mascotas/mínimo de estadía de la descripción libre, detecta duplicados (mismo id/dirección/foto) y pide confirmación antes de escribir. Flags: `--yes`, `--dry-run`, `--out`, `--fotos`. |
-| `add-property.js` | Valida y agrega un objeto ya en formato BairesRental a `data/departamentos.json`. |
-| `add-property-venta.js` | Valida y agrega/actualiza una propiedad en `data/ventas.json` (usado por el skill `/agregar-depto-venta`). |
-| `check-ficha-links.js` | Solo lectura: recorre todas las URLs de `ficha.info` (Tokko) en `data/departamentos.json` y avisa cuáles Tokko ya muestra como inactivas o cedidas a otra inmobiliaria (detecta listados perdidos ante la competencia). No modifica el catálogo; puede exportar el reporte a JSON. |
+| `add-property.js` | Valida y agrega/actualiza un objeto ya en formato BairesRental en `rentals`. |
+| `add-property-venta.js` | Valida y agrega/actualiza una propiedad en `sales` (usado por el comando `/agregar-depto-venta`). |
+| `upload-fotos.js` | Sube fotos locales a Firebase Storage (`rentals/<id>/`, `sales/<id>/`) y devuelve las URLs públicas listas para pegar en `imagen` o `fotos`. |
+| `check-ficha-links.js` | Solo lectura: recorre todas las URLs de `ficha.info` (Tokko) del catálogo y avisa cuáles Tokko ya muestra como inactivas o cedidas a otra inmobiliaria (detecta listados perdidos ante la competencia). No modifica el catálogo; puede exportar el reporte a JSON con `--json`. Corre todos los lunes desde `.github/workflows/check-ficha-links.yml`. |
+| `resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa: saca las coordenadas del link de Google Maps (siguiendo los redirects de `maps.app.goo.gl`) y, si no hay, geocodifica la dirección con Nominatim. Por defecto solo escribe un reporte en `scripts/temp-coords.json`; con `--apply` guarda en Firestore. Los pines que ningún geocoder resuelve bien (esquinas, calles homónimas) se fijan a mano en `scripts/coords-manuales.json`, que tiene prioridad sobre todo lo demás. |
 | `fix-share-google-urls.js` | Reparación puntual: busca propiedades con `direccionUrl` roto (links cortos `share.google`) y los reemplaza por URLs `google.com/maps/search` construidas desde `direccion`. Flags `--dry-run`/`--yes`. |
 
-## Panel admin
+## Fotos
 
-Local, no público — es el CMS para editar los dos catálogos sin tocar JSON/git a mano.
+Viven en **Firebase Storage**, con el layout que declara `nuxt-app/storage.rules`:
 
-| Comando | Sirve | Puerto | Archivo de datos |
-|---|---|---|---|
-| `npm run dev` | `admin/index.html` (alquileres) | 3001 | `data/departamentos.json` |
-| `npm run dev:ventas` | `admin/ventas.html` (ventas) | 3002 | `data/ventas.json` |
+- `rentals/<id>/<archivo>` — portada de un alquiler
+- `sales/<id>/<archivo>` — hasta 20 fotos de una venta, en orden (`1.jpg`, `2.jpg`, …); la primera es la portada
 
-`admin/server.js` y `admin/server-ventas.js` son servidores Node `http` sin dependencias (CORS abierto, protección básica contra path traversal) que exponen:
-- `GET /api/departamentos` (o `/api/ventas`) — devuelve el array completo.
-- `PUT` al mismo path — sobreescribe el archivo completo (no hay diffing por registro).
-- `POST /api/upload` (header `X-Depto-Id`) / `POST /api/upload-venta` (header `X-Venta-Id`) — sube imágenes a `images/<id>/imagen.ext` (alquileres, una sola imagen, se sobreescribe) o `images/ventas/<id>/foto-<timestamp>-<rand>.ext` (ventas, hasta ~20 fotos acumuladas).
+Son de lectura pública (`allow read: if true`), así que la URL de descarga sirve directo en el catálogo. Escriben los admins (Admin SDK, o sea `scripts/upload-fotos.js`) y los vendedores a través de la Cloud Function `uploadListingImage`, que verifica la propiedad del listado del lado del servidor.
 
-La UI (sidebar con buscador/filtros por tipo y disponibilidad + formulario de edición a la derecha) permite crear/editar/eliminar propiedades y subir fotos sin tocar JSON, con botones "Exportar/Importar JSON". Después de usarlo, los cambios en `data/*.json` e `images/` se commitean a git como cualquier otro cambio — el admin no hace commits por sí solo.
+Reemplaza la vieja convención de guardar las fotos en `images/<id>/` dentro del repo, que murió con el sitio estático.
+
+## Panel interno
+
+El CMS del navegador es parte de la app Nuxt y requiere login con rol `admin`:
+
+| Ruta | Sirve |
+|---|---|
+| `/app/admin/rentals` | ABM del catálogo de alquileres |
+| `/app/admin/sales` | ABM del catálogo de ventas |
+
+Reemplaza al viejo panel local de `admin/` (dos servidores Node que editaban `data/*.json` y se levantaban con `npm run dev` / `npm run dev:ventas`), eliminado junto con el sitio estático. A diferencia de aquel, escribe directo en Firestore: no hay paso de commit para publicar.

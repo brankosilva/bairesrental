@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 // Revisa las fichas de Tokko (ficha.info) enlazadas en el catálogo y detecta
 // si Tokko las marca como no disponibles o si pasaron a otra inmobiliaria.
-// No modifica data/departamentos.json — solo genera un reporte para revisión manual.
+// Es de solo lectura: genera un reporte para revisión manual, no toca el catálogo.
+//
+// Leía data/departamentos.json, que alimentaba el sitio estático. Ese sitio se
+// dio de baja y el archivo se había quedado atrás (le faltaban propiedades que
+// solo existían en Firestore), así que la auditoría tenía un punto ciego.
+// Ahora lee la colección `rentals` de Firestore, que es el catálogo real.
 //
 // Uso:
 //   node scripts/check-ficha-links.js
 //   node scripts/check-ficha-links.js --json reporte.json   (además guarda resultado en JSON)
 
 const fs = require('fs');
-const path = require('path');
 
-const DATA_FILE = path.resolve(__dirname, '..', 'data', 'departamentos.json');
+const { leerCatalogo } = require('./lib/catalogo');
 const DELAY_MS = 400; // pausa entre requests para no saturar ficha.info
 
 // Nombre de la inmobiliaria/cuenta Tokko bajo la que se publican las fichas.
@@ -88,7 +92,7 @@ async function main() {
   const jsonIdx = args.indexOf('--json');
   const jsonOut = jsonIdx >= 0 ? args[jsonIdx + 1] : null;
 
-  const catalogo = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  const catalogo = await leerCatalogo('alquileres');
   const conFicha = catalogo.filter(p => /ficha\.info/i.test(p.fotos || '') || /ficha\.info/i.test(p.fichaUrl || ''));
 
   if (conFicha.length === 0) {

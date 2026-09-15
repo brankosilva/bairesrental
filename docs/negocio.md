@@ -78,7 +78,7 @@ Además hay una marquesina con 16 reseñas de huéspedes (nombre + país/ciudad 
 
 ## Negocio paralelo: Baires-Football Experience
 
-`tickets.html` es la landing de un negocio secundario de venta de entradas de fútbol en Buenos Aires (River, Boca, San Lorenzo, Independiente, etc.), con estética propia (verde oscuro/dorado) distinta del resto del sitio. No tiene catálogo propio: el único CTA redirige a un sitio externo, `https://baires-football.com/` (no forma parte de este repositorio). Está en el nav principal ("Tickets Fútbol") y en `sitemap.xml`.
+`/tickets` es la landing de un negocio secundario de venta de entradas de fútbol en Buenos Aires (River, Boca, San Lorenzo, Independiente, etc.), con estética propia (verde oscuro/dorado) distinta del resto del sitio. No tiene catálogo propio: el único CTA redirige a un sitio externo, `https://baires-football.com/` (no forma parte de este repositorio). Está en el nav principal ("Tickets Fútbol") y en el sitemap.
 
 ## Visión y expansión
 

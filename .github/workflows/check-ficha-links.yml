@@ -1,3 +1,13 @@
+# Audita las fichas de Tokko (ficha.info) enlazadas en el catálogo y abre/actualiza
+# un Issue con las que haya que revisar: las que Tokko marca como no disponibles y
+# las que pasaron a otra inmobiliaria.
+#
+# Lee el catálogo de Firestore (colección `rentals`), que es lo que sirve el sitio.
+# Antes leía data/departamentos.json, que se había quedado atrás respecto de
+# Firestore y dejaba propiedades sin auditar.
+#
+# Usa el secret FIREBASE_SERVICE_ACCOUNT, el mismo de deploy-nuxt.yml.
+
 name: Chequeo semanal de fichas Tokko
 
 on:
@@ -20,9 +30,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
 
       - name: Ejecutar chequeo de fichas
         id: check
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/check-ficha-links.js --json report.json
         continue-on-error: true
 

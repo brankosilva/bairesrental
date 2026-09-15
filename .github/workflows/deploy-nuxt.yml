@@ -196,9 +196,32 @@ jobs:
       # `npm --prefix .output/server` desde nuxt-app/ deja justo el archivo
       # que firebase-tools resuelve (lib/v2/index.js) sin instalar, y el
       # deploy muere con un "An unexpected error has occurred." pelado.
+      # El `rm -rf` de acá abajo NO es una limpieza de más: es el fix.
+      #
+      # Desde Nitro 2.13 la salida del preset trae un store estilo pnpm
+      # (node_modules/.nitro/<pkg>@<version>/) con symlinks apuntando ahí, y
+      # hasta dos versiones del mismo paquete conviviendo (gcp-metadata 8.1.2
+      # y 6.1.1, por ejemplo). Arborist, el resolutor de npm, no sabe leer ese
+      # layout: al recorrer un link cuyo destino no es un nodo de SU árbol,
+      # `node.target` le queda en null y revienta con
+      # `Cannot read properties of null (reading 'fsTop')`
+      # (@npmcli/arborist/lib/arborist/reify.js, en [build]).
+      #
+      # Eso es lo que voló los deploys de v1.0.3 y v1.0.4: los dos murieron
+      # acá, ANTES de desplegar nada. Reproducido en local con npm 11.6.2 y
+      # con el 11.19 del runner — no es flakiness del runner.
+      #
+      # Borrar node_modules primero deja que npm arme un árbol plano suyo
+      # desde el package.json que generó Nitro, que ya lista las 154
+      # dependencias con versión exacta. Verificado después de instalar así:
+      # aparece firebase-functions/lib/v2/index.js (lo que el paso siguiente
+      # chequea), los pines quedan en 6.6.0 / 13.10.0, y resuelven
+      # firebase-admin/firestore, firebase/firestore, vuefire, h3 y vue.
       - name: Rehidratar node_modules de .output/server
         working-directory: nuxt-app/.output/server
-        run: npm install --omit=dev
+        run: |
+          rm -rf node_modules
+          npm install --omit=dev --no-audit --no-fund
 
       # El chequeo barato que confirma que la rehidratación sirvió: un build
       # fresco trae lib/v2/ sin index.js; recién después de rehidratar bien

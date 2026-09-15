@@ -276,12 +276,31 @@ jobs:
       # og:url apuntando a otro dominio, o un og:image que devuelve 404 porque
       # la extensión de resize nunca generó el derivado. Las dos cosas se
       # chequean acá, sobre una ficha real y con el user-agent del crawler.
+      #
+      # Qué bloquea y qué no:
+      #  - og:url ausente, o apuntando a una página que no existe → ERROR. Eso
+      #    es una regresión del sitio: el crawler arma el preview con esa 404 y
+      #    sale vacío.
+      #  - og:image ausente → ERROR, misma razón.
+      #  - og:image que 404ea → WARNING, no error. El derivado no lo genera
+      #    este deploy: lo genera la extensión `storage-resize-images` ante
+      #    cada upload, y para las portadas viejas hay que correr a mano
+      #    nuxt-app/scripts/backfill-og-images.js. O sea que es estado del
+      #    proyecto, no del código que se acaba de publicar — igual que el paso
+      #    de extensiones de más abajo, no puede poner en rojo un deploy que
+      #    salió bien. Con la extensión sin instalar esto fallaba SIEMPRE, y se
+      #    llevaba puesto el run entero después de haber desplegado todo.
       - name: Smoke test del preview de link (og:*)
         if: env.TARGET == 'todo' || env.TARGET == 'hosting'
         run: |
           set -o pipefail
-          id=$(curl -sS --fail --retry 3 --retry-delay 5 https://bairesrental.web.app/departamentos \
-               | grep -o '/departamentos/[A-Za-z0-9_-]\+' | head -1 | cut -d/ -f3)
+
+          # OJO con `| head -1` acá adentro: con `pipefail` activo, head cierra
+          # el pipe apenas tiene su línea y grep se muere con SIGPIPE (141), lo
+          # que hace fallar toda la asignación bajo `bash -e`. Por eso el
+          # primer match se saca con sed, que lee todo el input.
+          catalogo=$(curl -sS --fail --retry 3 --retry-delay 5 https://bairesrental.web.app/departamentos)
+          id=$(grep -o '/departamentos/[A-Za-z0-9_-]\+' <<< "$catalogo" | sed -n '1s#.*/##p')
           if [ -z "$id" ]; then
             echo "::error::No se pudo sacar ninguna ficha del catálogo para el smoke test."
             exit 1
@@ -299,7 +318,7 @@ jobs:
           # DESPUÉS de haber desplegado todo bien.
           meta_content() {
             grep -o "<meta[^>]*property=\"$1\"[^>]*>" <<< "$html" \
-              | head -1 | grep -o 'content="[^"]*"' | head -1 | sed 's/^content="//;s/"$//'
+              | sed -n '1s/.*content="\([^"]*\)".*/\1/p'
           }
           og_url=$(meta_content 'og:url')
           og_img=$(meta_content 'og:image')
@@ -310,20 +329,29 @@ jobs:
           # crawler arma el preview con esa 404 y sale vacío.
           if [ -z "$og_url" ]; then echo "::error::La ficha salió sin og:url."; exit 1; fi
           code=$(curl -sS -o /dev/null -w '%{http_code}' -L "$og_url")
+          echo "og:url   → HTTP ${code}"
           if [ "$code" != "200" ]; then
             echo "::error::og:url ($og_url) devuelve HTTP ${code} — el preview va a salir vacío."
             exit 1
           fi
 
           if [ -z "$og_img" ]; then echo "::error::La ficha salió sin og:image."; exit 1; fi
-          read -r code bytes < <(curl -sS -o /dev/null -w '%{http_code} %{size_download}' -L "$og_img")
+
+          # NO usar `read a b < <(curl ...)`: el `-w` de curl no termina en
+          # newline, así que read llega a EOF sin delimitador y devuelve 1
+          # aunque haya leído todo bien. Con el `bash -e` que usa Actions eso
+          # mataba el paso ACÁ, antes de imprimir nada: el run quedaba en
+          # "Process completed with exit code 1" pelado, sin una sola línea que
+          # dijera qué había pasado. Partir la respuesta a mano no tiene ese
+          # problema.
+          respuesta=$(curl -sS -o /dev/null -w '%{http_code} %{size_download}' -L "$og_img")
+          code=${respuesta%% *}
+          bytes=${respuesta##* }
           echo "og:image → HTTP ${code}, ${bytes} bytes"
           if [ "$code" != "200" ]; then
-            echo "::error::og:image ($og_img) devuelve HTTP ${code} — falta correr nuxt-app/scripts/backfill-og-images.js."
-            exit 1
-          fi
+            echo "::warning::og:image ($og_img) devuelve HTTP ${code}. El sitio quedó publicado igual, pero los previews de link salen sin foto. Se arregla instalando la extensión storage-resize-images (target 'extensiones') y corriendo después nuxt-app/scripts/backfill-og-images.js --run."
           # WhatsApp descarta el thumbnail por encima de ~300 KB.
-          if [ "$bytes" -gt 300000 ]; then
+          elif [ "$bytes" -gt 300000 ]; then
             echo "::warning::og:image pesa ${bytes} bytes (>300 KB): WhatsApp probablemente no muestre la foto."
           fi
 

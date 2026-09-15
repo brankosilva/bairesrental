@@ -3610,7 +3610,8 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 .br-btn-ver-mapa:hover { background: #dbeafe; border-color: var(--br-azul); color: var(--br-azul); }
 .br-prop-titulo {
-  font-size: 17px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px !important; font-weight: 700;
   letter-spacing: -.01em;
   margin: 0 0 .55rem; color: #111; line-height: 1.3;
 }

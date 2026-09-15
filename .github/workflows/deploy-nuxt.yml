@@ -1,0 +1,223 @@
+# Despliegue de nuxt-app/ a Firebase (proyecto `bairesrental`).
+#
+# Se dispara al pushear un tag `v*` (ej: `git tag v1.0.0 && git push origin
+# v1.0.0`), y también a mano desde la pestaña Actions eligiendo qué parte
+# desplegar.
+#
+# Despliega TODO lo que vive en nuxt-app/:
+#   - functions:nuxtssr  → el handler SSR de Nitro (.output/server). Es una
+#     Cloud Function gen 2, o sea que por debajo ya corre sobre Cloud Run:
+#     no hay un servicio de Cloud Run aparte que desplegar.
+#   - functions:default  → los callables/triggers de nuxt-app/functions/
+#     (setUserRole, inviteUser, createTrackableLink, submitLead,
+#     uploadListingImage, onUserCreate + los 2 redirects legacy).
+#   - hosting            → la release viva de bairesrental.web.app.
+#   - firestore/storage  → firestore.rules, firestore.indexes.json,
+#     storage.rules (las únicas copias que quedan en el repo).
+#
+# OJO: esto NO toca www.bairesrental.com.ar, que sigue sirviendo el sitio
+# estático de la raíz del repo por GitHub Pages hasta que se haga el
+# cutover de DNS.
+#
+# Secrets/variables que hay que cargar una sola vez (ver README de nuxt-app):
+#   secret FIREBASE_SERVICE_ACCOUNT  → JSON de una service account con
+#     permisos de deploy (Firebase Admin, Cloud Functions Admin, Cloud Run
+#     Admin, Service Account User, Artifact Registry Writer, API Keys Viewer).
+#   vars   NUXT_PUBLIC_FIREBASE_*    → los 6 valores de config web (son
+#     públicos: viajan al browser en el bundle).
+
+name: Deploy nuxt-app a Firebase
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Qué desplegar'
+        type: choice
+        default: todo
+        options:
+          - todo
+          - hosting
+          - functions:nuxtssr
+          - functions:default
+          - reglas
+
+concurrency:
+  group: deploy-firebase-bairesrental
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    defaults:
+      run:
+        working-directory: nuxt-app
+
+    env:
+      FIREBASE_PROJECT: bairesrental
+      TARGET: ${{ inputs.target || 'todo' }}
+      NUXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NUXT_PUBLIC_FIREBASE_API_KEY }}
+      NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NUXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+      NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+      NUXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NUXT_PUBLIC_FIREBASE_APP_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Un tag se puede pushear apuntando a cualquier commit; esto confirma
+      # que el commit tagueado esté efectivamente en main antes de publicar.
+      - name: Verificar que el tag salga de main
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git fetch --quiet origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::El tag ${GITHUB_REF_NAME} apunta a un commit que no está en main."
+            exit 1
+          fi
+          echo "Tag ${GITHUB_REF_NAME} → commit $(git rev-parse --short "$GITHUB_SHA") (en main)."
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            nuxt-app/package-lock.json
+            nuxt-app/functions/package-lock.json
+
+      - name: Chequear que estén cargados los secrets y variables
+        env:
+          SERVICE_ACCOUNT_PRESENTE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: |
+          faltan=()
+          [ "$SERVICE_ACCOUNT_PRESENTE" = "true" ] || faltan+=("secret FIREBASE_SERVICE_ACCOUNT")
+          for v in API_KEY AUTH_DOMAIN PROJECT_ID STORAGE_BUCKET MESSAGING_SENDER_ID APP_ID; do
+            nombre="NUXT_PUBLIC_FIREBASE_${v}"
+            [ -n "${!nombre}" ] || faltan+=("variable ${nombre}")
+          done
+          if [ ${#faltan[@]} -gt 0 ]; then
+            printf '::error::Falta cargar: %s\n' "${faltan[*]}"
+            echo "Ver la cabecera de este workflow o nuxt-app/README.md para los comandos gh."
+            exit 1
+          fi
+
+      # nuxt-vuefire necesita una service account resoluble en tiempo de
+      # BUILD (no de runtime) para habilitar la ruta de session cookie; el
+      # mismo archivo le sirve a firebase-tools para autenticarse.
+      - name: Preparar credenciales
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "${RUNNER_TEMP}/service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/service-account.json" >> "$GITHUB_ENV"
+
+      # Sin pin de versión a propósito, pero la versión queda impresa en el
+      # log: si un deploy se rompe de un día para el otro sin que haya
+      # cambiado el código, lo primero a mirar es si acá saltó de major, y
+      # en ese caso pinear (`firebase-tools@<major>`).
+      - name: Instalar firebase-tools
+        run: |
+          npm install -g firebase-tools
+          firebase --version
+
+      - name: Instalar dependencias (nuxt-app)
+        run: npm ci
+
+      # Sin --omit=dev: el predeploy de functions:default corre `tsc`, que
+      # es devDependency.
+      - name: Instalar dependencias (functions)
+        working-directory: nuxt-app/functions
+        run: npm ci
+
+      # Gotcha N0 #1: firebase-functions 7.x rompe el deploy del SSR con un
+      # "unexpected error" críptico. El pin tiene que quedarse en 6.x.
+      - name: Verificar el pin de firebase-functions
+        run: |
+          version=$(node -p "require('./package.json').dependencies['firebase-functions']")
+          case "$version" in
+            ^6.*|6.*) echo "firebase-functions ${version} — OK" ;;
+            *) echo "::error::firebase-functions quedó en ${version}; tiene que ser 6.x (ver CHANGELOG, gotcha N0 #1)."; exit 1 ;;
+          esac
+
+      - name: Build de Nuxt
+        run: npm run build
+
+      - name: Verificar el pin en .output/server
+        run: |
+          version=$(node -p "require('./.output/server/package.json').dependencies['firebase-functions']")
+          case "$version" in
+            ^6.*|6.*) echo ".output/server firebase-functions ${version} — OK" ;;
+            *) echo "::error::.output/server quedó con firebase-functions ${version}; tiene que ser 6.x."; exit 1 ;;
+          esac
+
+      # Gotcha N0 #2: el preset `firebase` de Nitro poda node_modules de
+      # .output/server de una forma que rompe el análisis estático que hace
+      # firebase-tools al desplegar (le falta firebase-functions/lib/v2).
+      # Tiene que correr DESDE ADENTRO de .output/server: hacerlo con
+      # `npm --prefix .output/server` desde nuxt-app/ deja justo el archivo
+      # que firebase-tools resuelve (lib/v2/index.js) sin instalar, y el
+      # deploy muere con un "An unexpected error has occurred." pelado.
+      - name: Rehidratar node_modules de .output/server
+        working-directory: nuxt-app/.output/server
+        run: npm install --omit=dev
+
+      # El chequeo barato que confirma que la rehidratación sirvió: un build
+      # fresco trae lib/v2/ sin index.js; recién después de rehidratar bien
+      # aparece.
+      - name: Verificar que firebase-tools vaya a encontrar el binario
+        run: |
+          archivo=.output/server/node_modules/firebase-functions/lib/v2/index.js
+          if [ ! -f "$archivo" ]; then
+            echo "::error::Falta ${archivo} — la rehidratación no sirvió y el deploy del SSR va a fallar con un error opaco."
+            exit 1
+          fi
+          echo "${archivo} presente — OK"
+
+      - name: Estado de las functions antes del deploy
+        run: firebase functions:list --project "$FIREBASE_PROJECT"
+
+      - name: Deploy de reglas (Firestore + Storage)
+        if: env.TARGET == 'todo' || env.TARGET == 'reglas'
+        run: firebase deploy --only firestore,storage --project "$FIREBASE_PROJECT"
+
+      - name: Deploy de functions callables/triggers
+        if: env.TARGET == 'todo' || env.TARGET == 'functions:default'
+        run: firebase deploy --only functions:default --project "$FIREBASE_PROJECT"
+
+      - name: Deploy del SSR
+        if: env.TARGET == 'todo' || env.TARGET == 'functions:nuxtssr'
+        run: firebase deploy --only functions:nuxtssr --project "$FIREBASE_PROJECT"
+
+      # Va último: el rewrite `**` del hosting apunta a nuxtSsr, así que la
+      # función nueva ya tiene que estar arriba cuando se publica.
+      - name: Deploy de Hosting
+        if: env.TARGET == 'todo' || env.TARGET == 'hosting'
+        run: firebase deploy --only hosting --project "$FIREBASE_PROJECT"
+
+      - name: Estado de las functions después del deploy
+        run: firebase functions:list --project "$FIREBASE_PROJECT"
+
+      # Con curl y no con un browser: lo que importa es que el HTML venga
+      # ya renderizado del servidor, no que hidrate en el cliente.
+      - name: Smoke test contra el sitio publicado
+        if: env.TARGET == 'todo' || env.TARGET == 'hosting'
+        run: |
+          html=$(curl -sS --fail --retry 3 --retry-delay 5 https://bairesrental.web.app/)
+          if ! grep -q '<title>' <<< "$html"; then
+            echo "::error::La home respondió sin <title> — el SSR no está renderizando."
+            exit 1
+          fi
+          grep -o '<title>[^<]*</title>' <<< "$html"

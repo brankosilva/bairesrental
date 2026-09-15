@@ -1,0 +1,130 @@
+/* =====================================================================
+   BASE GLOBAL — tokens, reset y tipografía por defecto
+   =====================================================================
+   El equivalente Nuxt de lo que cada página estática llevaba inline en su
+   propio <head><style> (ver index.html:56-78). Es la única capa global de
+   la app junto con br-catalog.css.
+
+   POR QUÉ EXISTE ESTE ARCHIVO
+   ---------------------------
+   Los tokens (--azul, --negro, ...) se estaban definiendo tres veces, y
+   dos de esas veces estaban rotas:
+
+     1. index.vue los define sobre `.br-home`, que envuelve toda la
+        página. Funciona, pero solo para esa página.
+     2. departamentos/[id].vue y ventas/[id].vue los definían con
+        `:root { ... }` DENTRO de un `<style scoped>`. Vue compila eso a
+        `[data-v-hash]:root`, y <html> nunca lleva un atributo data-v-*,
+        así que el selector no matcheaba nunca. Verificado en el build:
+        .output/public/_nuxt/_id_.CVSRPioP.css arranca literalmente con
+        `[data-v-c2430cd2]:root{--negro:#111;...}`.
+
+        Consecuencia real: 29 referencias var() entre esas dos páginas
+        resolvían a nada, sin fallback. La peor era
+        `.btn-primary-depto { background: var(--azul); color: #fff }`
+        — el CTA principal de la ficha quedaba con fondo transparente y
+        texto blanco sobre fondo blanco, o sea un botón invisible.
+
+   Un solo :root real, en un archivo cargado globalmente, arregla las tres.
+
+   El reset y `img { max-width }` estaban viniendo de rebote de la
+   plantilla legacy (style.css:14-22), que ya no se carga — ver
+   legacy-template.css. Por eso se replican acá.
+   ===================================================================== */
+
+/* Tokens del sistema de diseño — verbatim de index.html:58-68.
+   Convive con el namespace --br-* de br-catalog.css, igual que en el
+   sitio estático: son dos paletas separadas y ninguna pisa a la otra. */
+:root {
+  --negro: #111111;
+  --azul: #1a6fe8;
+  --azul-dark: #1058c0;
+  --verde: #25d366;
+  --blanco: #ffffff;
+  --gris: #f4f4f6;
+  --gris2: #e8e8ec;
+  --texto-gris: #6b7280;
+  --radius: 16px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* DM Sans es la única fuente que la app carga (ver nuxt.config.ts).
+   Antes esto necesitaba `!important` en app.vue para ganarle al
+   `body { font-family: "Source Sans Pro" }` de la plantilla legacy; como
+   esa hoja ya no se carga, el !important sobra. */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--blanco);
+  color: var(--negro);
+  overflow-x: hidden;
+}
+
+/* =====================================================================
+   SCROLL REVEAL
+   =====================================================================
+   Portado de index.html:1365-1377 (el IntersectionObserver que agregaba
+   `.visible`) — la lógica vive en app/composables/useScrollReveal.ts.
+
+   El `opacity: 0` está deliberadamente detrás de `html.br-reveal-on`, una
+   clase que SOLO agrega el cliente después de hidratar. Así el HTML del
+   servidor sale visible: sin JS, o para un crawler, la página se ve
+   completa en vez de quedar en blanco. Es la diferencia entre una
+   animación y un bug de contenido invisible.
+   ===================================================================== */
+html.br-reveal-on .reveal,
+html.br-reveal-on .section-label,
+html.br-reveal-on .section-title,
+html.br-reveal-on .feature-card,
+html.br-reveal-on .plan-card,
+html.br-reveal-on .testi-card,
+html.br-reveal-on .stat-item,
+html.br-reveal-on .award-inner,
+html.br-reveal-on .stats-intro-inner {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.br-reveal-on .reveal.visible,
+html.br-reveal-on .section-label.visible,
+html.br-reveal-on .section-title.visible,
+html.br-reveal-on .feature-card.visible,
+html.br-reveal-on .plan-card.visible,
+html.br-reveal-on .testi-card.visible,
+html.br-reveal-on .stat-item.visible,
+html.br-reveal-on .award-inner.visible,
+html.br-reveal-on .stats-intro-inner.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Cinturón y tiradores: el composable ya no agrega la clase marcadora si
+   el usuario pidió menos movimiento, pero si igual llegara a estar, esto
+   garantiza que nada quede escondido. */
+@media (prefers-reduced-motion: reduce) {
+  html.br-reveal-on .reveal,
+  html.br-reveal-on .section-label,
+  html.br-reveal-on .section-title,
+  html.br-reveal-on .feature-card,
+  html.br-reveal-on .plan-card,
+  html.br-reveal-on .testi-card,
+  html.br-reveal-on .stat-item,
+  html.br-reveal-on .award-inner,
+  html.br-reveal-on .stats-intro-inner {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

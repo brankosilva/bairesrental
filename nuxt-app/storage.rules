@@ -1,0 +1,46 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return isSignedIn() ? request.auth.token.role : null;
+    }
+
+    function isAdmin() {
+      return role() == 'admin';
+    }
+
+    // Layout: rentals/{propertyId}/{fileName}, sales/{propertyId}/{fileName}
+    // — replaces the local images/<id>/... and images/ventas/<id>/...
+    // convention.
+    //
+    // Sellers do NOT get a direct write rule here — ownership can only be
+    // checked against the matching Firestore doc's sellerUid, and that
+    // requires a cross-service `firestore.get()` call from Storage rules.
+    // Confirmed (not assumed) broken in this project/bucket: a rule using
+    // `firestore.get()` was denied even with a hardcoded, guaranteed-true
+    // condition and after granting both `roles/datastore.viewer` and the
+    // specifically-documented `roles/firebaserules.firestoreServiceAgent`
+    // to the Firebase Rules service agent — while a rule with the
+    // identical structure but no `firestore.get()` call succeeded
+    // immediately. See app/CHANGELOG.md's M6 entry for the full
+    // isolation steps. Sellers instead upload via the `uploadListingImage`
+    // Cloud Function (functions/src/index.ts), which checks ownership
+    // server-side via the Admin SDK — Admin SDK access always works
+    // regardless of this cross-service rules gap, since it doesn't go
+    // through Storage Security Rules at all.
+    match /rentals/{propertyId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /sales/{propertyId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

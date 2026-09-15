@@ -1,0 +1,39 @@
+{
+  "functions": [
+    {
+      "source": ".output/server",
+      "codebase": "nuxtssr"
+    },
+    {
+      "source": "functions",
+      "codebase": "default",
+      "predeploy": ["npm --prefix functions run build"]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "site": "bairesrental",
+    "public": ".output/public",
+    "cleanUrls": true,
+    "redirects": [
+      { "source": "/index.html", "destination": "/", "type": 301 },
+      { "source": "/departamentos.html", "destination": "/departamentos", "type": 301 },
+      { "source": "/ventas.html", "destination": "/ventas", "type": 301 },
+      { "source": "/tickets.html", "destination": "/tickets", "type": 301 },
+      { "source": "/catalogo-vendedores.html", "destination": "/app/login", "type": 301 },
+      { "source": "/ficha-vendedor.html", "destination": "/app/login", "type": 301 }
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "function": { "functionId": "nuxtSsr", "region": "southamerica-east1" }
+      }
+    ]
+  }
+}

@@ -143,6 +143,7 @@ onUnmounted(() => {
           <li><NuxtLink :to="localePath('/departamentos')">{{ t('nav.rentals') }}</NuxtLink></li>
           <li><NuxtLink :to="localePath('/ventas')">{{ t('nav.sales') }}</NuxtLink></li>
           <li><NuxtLink :to="localePath('/tickets')">{{ t('nav.tickets') }}</NuxtLink></li>
+          <li><NuxtLink :to="localePath('/requisitos')">{{ t('footer.requirements') }}</NuxtLink></li>
           <li><NuxtLink :to="localePath('/#planes')">{{ t('footer.plans') }}</NuxtLink></li>
           <li><NuxtLink :to="localePath('/#contacto')">{{ t('footer.freeAppraisal') }}</NuxtLink></li>
         </ul>

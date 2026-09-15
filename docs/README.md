@@ -9,7 +9,7 @@
 | [sitio-paginas.md](sitio-paginas.md) | Inventario de rutas del sitio (públicas, modo vendedor, panel interno) |
 | [catalogo-datos.md](catalogo-datos.md) | Esquema de las colecciones `rentals` y `sales` de Firestore, scripts de carga, fotos en Storage, panel interno |
 | [marketing-canales.md](marketing-canales.md) | Canales de contacto/redes, tracking, estrategia de Meta Ads |
-| [requisitos-alquiler.pdf](requisitos-alquiler.pdf) | PDF con los requisitos para alquilar, linkeado desde `/departamentos` (la copia que sirve el sitio está en `nuxt-app/public/docs/`) |
+| [requisitos-alquiler.pdf](requisitos-alquiler.pdf) | PDF con los requisitos para alquilar. El contenido vive ahora como página web en `/requisitos` (`nuxt-app/app/pages/requisitos.vue`), que es a donde apunta el hero de `/departamentos`; el PDF queda como descarga desde esa página y para mandar por WhatsApp (la copia que sirve el sitio está en `nuxt-app/public/docs/`) |
 | [historial-app-vue.md](historial-app-vue.md) | Log histórico de la primera migración a Vue + Firebase (la app `app/`, ya eliminada) — qué se hizo, qué se rompió y cómo se resolvió, milestone por milestone |
 | [../nuxt-app/README.md](../nuxt-app/README.md) | Setup y comandos de la app Nuxt (`nuxt-app/`, la que está viva en `bairesrental.web.app`) — Firebase, functions, rules, build y deploy |
 | [../nuxt-app/CHANGELOG.md](../nuxt-app/CHANGELOG.md) | Log de la migración a Nuxt 4 con SSR real, milestone por milestone |

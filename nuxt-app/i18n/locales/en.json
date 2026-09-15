@@ -1,4 +1,57 @@
 {
+  "requisitos": {
+    "metaTitle": "Requirements to rent a short-term apartment in Buenos Aires",
+    "metaDescription": "What documents we ask for, what you pay on move-in, and the step-by-step process to rent a monthly short-term apartment in Buenos Aires.",
+    "eyebrow": "Monthly short-term rentals",
+    "title": "Requirements to move in",
+    "subtitle": "Everything you need to rent with us, in one place and with no fine print.",
+    "pdfBtn": "Download as PDF",
+    "perfil": {
+      "title": "Guest profile",
+      "lead": "Before booking you send us these details, so we know who will be living in the property.",
+      "items": [
+        "Full name",
+        "Move-in date",
+        "Length of stay (months)",
+        "Nationality (country of origin)",
+        "Age",
+        "Current occupation",
+        "Number of people who will live in the property",
+        "Any pets? (Yes/No)",
+        "Proof of income"
+      ]
+    },
+    "ingresar": {
+      "title": "Requirements to move in",
+      "lead": "What you need to present and pay on the day you move into the apartment.",
+      "items": [
+        "ID or passport, original and a copy",
+        "Proof of income and/or a student certificate",
+        "1 month deposit",
+        "1 month rent",
+        "Agency fee: a percentage of the total contract"
+      ],
+      "nota": "The deposit is returned at the end of the contract, with the property in the same condition you received it."
+    },
+    "proceso": {
+      "title": "How renting works",
+      "lead": "Six steps from your first message to getting the keys.",
+      "items": [
+        "Request the current catalog",
+        "Tell us which apartment you chose",
+        "Send us the guest profile",
+        "Schedule a visit to the apartment",
+        "Book it with a deposit",
+        "Sign the contract and check in"
+      ]
+    },
+    "cta": {
+      "title": "Ready to start?",
+      "sub": "Browse the available apartments or message us and we'll help you find yours.",
+      "catalogo": "Browse apartments",
+      "whatsapp": "Chat on WhatsApp"
+    }
+  },
   "nav": {
     "home": "Home",
     "services": "Services",
@@ -13,6 +66,7 @@
   "footer": {
     "address": "Autonomous City of Buenos Aires (CABA), Argentina",
     "pagesHeading": "Pages",
+    "requirements": "Rental requirements",
     "plans": "Our plans",
     "freeAppraisal": "Free appraisal",
     "contactHeading": "Contact",

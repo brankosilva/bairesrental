@@ -1,4 +1,57 @@
 {
+  "requisitos": {
+    "metaTitle": "Requisitos para alquilar un temporario en Buenos Aires",
+    "metaDescription": "Qué documentación pedimos, qué se paga al ingresar y cómo es el proceso paso a paso para alquilar un departamento temporario mensual en Buenos Aires.",
+    "eyebrow": "Alquileres temporales mensuales",
+    "title": "Requisitos para ingresar",
+    "subtitle": "Todo lo que necesitás para alquilar con nosotros, en un solo lugar y sin letra chica.",
+    "pdfBtn": "Descargar en PDF",
+    "perfil": {
+      "title": "Presentación de perfil",
+      "lead": "Antes de reservar nos pasás estos datos, para conocer a quienes van a vivir en la propiedad.",
+      "items": [
+        "Nombre y apellido completo",
+        "Fecha de ingreso",
+        "Estadía solicitada (meses)",
+        "Nacionalidad (país de origen)",
+        "Edad",
+        "Ocupación actual",
+        "Cantidad de personas que habitarán la propiedad",
+        "¿Poseen alguna mascota? (Sí/No)",
+        "Comprobación de ingresos"
+      ]
+    },
+    "ingresar": {
+      "title": "Requisitos para ingresar",
+      "lead": "Lo que hace falta presentar y abonar el día que entrás al departamento.",
+      "items": [
+        "DNI o pasaporte original y copia",
+        "Comprobante de ingresos y/o certificado de estudios",
+        "1 mes de depósito",
+        "1 mes de alquiler",
+        "Honorarios: un porcentaje sobre el total del contrato"
+      ],
+      "nota": "El depósito se devuelve al finalizar el contrato, con la propiedad en las mismas condiciones en que la recibiste."
+    },
+    "proceso": {
+      "title": "Proceso para alquilar",
+      "lead": "Seis pasos desde la primera consulta hasta que tenés las llaves.",
+      "items": [
+        "Solicitar catálogo actualizado",
+        "Enviar el departamento elegido",
+        "Enviar perfil del huésped",
+        "Coordinar la visita al departamento",
+        "Reservar con una seña",
+        "Firma de contrato y check-in"
+      ]
+    },
+    "cta": {
+      "title": "¿Listo para empezar?",
+      "sub": "Mirá los departamentos disponibles o escribinos y te ayudamos a encontrar el tuyo.",
+      "catalogo": "Ver departamentos",
+      "whatsapp": "Consultar por WhatsApp"
+    }
+  },
   "nav": {
     "home": "Inicio",
     "services": "Servicios",
@@ -13,6 +66,7 @@
   "footer": {
     "address": "Ciudad Autónoma de Buenos Aires (CABA), Argentina",
     "pagesHeading": "Páginas",
+    "requirements": "Requisitos de alquiler",
     "plans": "Nuestros planes",
     "freeAppraisal": "Tasación gratuita",
     "contactHeading": "Contacto",

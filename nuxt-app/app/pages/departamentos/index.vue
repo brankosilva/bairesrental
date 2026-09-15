@@ -258,12 +258,16 @@ function formatFecha(fecha?: string) {
           <span>{{ t('departamentos.subtitle2') }}</span>
         </p>
         <div class="br-dept-hero-btns">
-          <a href="/docs/requisitos-alquiler.pdf" target="_blank" rel="noopener" class="br-dept-hero-btn">
+          <!-- Apuntaba directo al PDF (/docs/requisitos-alquiler.pdf), que
+               abría una pestaña nueva con un documento sin traducir y pesado
+               de leer en el celular. Ahora va a /requisitos, la versión web
+               del mismo material; el PDF se sigue pudiendo bajar desde ahí. -->
+          <NuxtLink :to="vendorLink(localePath('/requisitos'))" class="br-dept-hero-btn">
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
             </svg>
             {{ t('departamentos.reqBtn') }}
-          </a>
+          </NuxtLink>
           <a
             v-if="!isVendor"
             href="https://chat.whatsapp.com/FeYh0RpkLqN0JnWiEi5ucG?mode=gi_t"

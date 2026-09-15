@@ -21,6 +21,7 @@ Documentación detallada del negocio, la marca y el catálogo en [`docs/`](docs/
 | `/` | Home — hero, propuesta de valor, planes, calculadora de ingresos, reviews, contacto |
 | `/departamentos` · `/departamentos/[id]` | Catálogo de alquiler temporario y ficha de detalle |
 | `/ventas` · `/ventas/[id]` | Catálogo de departamentos en venta y ficha de detalle |
+| `/requisitos` | Requisitos y proceso para alquilar — versión web de `docs/requisitos-alquiler.pdf` |
 | `/tickets` | Landing de "Baires-Football Experience" (negocio paralelo) |
 | `/app/*` | Panel interno con login: admin (propiedades, usuarios, links), vendedores (listings, leads, links, perfil), propietarios |
 | `/l/[code]` | Links rastreables que generan los vendedores |

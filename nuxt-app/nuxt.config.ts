@@ -145,6 +145,7 @@ export default defineNuxtConfig({
   // up automatically from the page files + @nuxtjs/i18n's route list
   // (autoI18n). Only the per-listing dynamic routes need a runtime
   // source — see server/api/__sitemap__/urls.ts.
+  // NUXT-NEW: sitemap.xml generado. El estático tenía un sitemap.xml a mano.
   sitemap: {
     sources: ['/api/__sitemap__/urls'],
     // `/app/**` (and its `/en/app/**` locale-prefixed equivalent) is the

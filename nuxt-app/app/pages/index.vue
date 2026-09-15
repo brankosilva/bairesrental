@@ -75,6 +75,9 @@ useHead({
 // filter approach as app/pages/departamentos/index.vue's public catalog
 // (useCollection against `rentals`, client SDK, public-read rule), just
 // capped to a handful of currently-available listings for the homepage. ──
+// NUXT-NEW: esta sección sale de Firestore. En index.html era un mosaico fijo
+// de 7 fotos (images/galeria-1..7.jpg). Se mantiene el dato en vivo pero con el
+// layout de mosaico del estático.
 const db = getFirestore()
 const allRentals = useCollection<RentalProperty>(collection(db, 'rentals'))
 const featuredRentals = computed(() =>
@@ -170,6 +173,8 @@ const form = ref({
   mensaje: '',
 })
 
+// NUXT-NEW: estado `disabled` del botón mientras se envía — el estático solo
+// cambiaba el texto.
 const submitLabel = computed(() => {
   if (submitState.value === 'sending') return t('home.contacto.sending')
   if (submitState.value === 'success') return t('home.contacto.success')
@@ -363,7 +368,9 @@ async function handleContactSubmit() {
         </div>
 
         <div class="plan-card destacado">
-          <div class="plan-destacado-badge">{{ t('home.planes.destacado') }}</div>
+          <!-- NUXT-NEW: el badge es un elemento real y traducible. En el estático era
+                 un `content:` de CSS, hardcodeado en español. -->
+            <div class="plan-destacado-badge">{{ t('home.planes.destacado') }}</div>
           <div class="plan-nombre">{{ t('home.planes.plan2Name') }}</div>
           <div class="plan-precio-row">
             <div class="plan-precio-stat">

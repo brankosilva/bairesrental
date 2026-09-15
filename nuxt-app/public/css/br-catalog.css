@@ -792,6 +792,8 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 .br-btn-compartir:hover { border-color: var(--br-azul); color: var(--br-azul); background: #f0f6ff; }
 .br-btn-compartir-full { width: auto; flex: 1; padding: 5.5px 10px; gap: 4px; }
+/* Texto del botón Compartir en modo vendedor (js/departamentos.js:392). */
+.br-btn-compartir-label { font-family: 'DM Sans', sans-serif; font-size: 8.8px; font-weight: 500; }
 
 /* ---- MODAL DETALLE ---- */
 #detalle-overlay {

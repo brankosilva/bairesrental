@@ -7,6 +7,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 // pattern kept here. The only real change is swapping the old hand-rolled
 // routeName()/useLocaleLinks() scheme for @nuxtjs/i18n's own composables.
 const { t, locale } = useI18n()
+// Modo vendedor (?vendor=1): nav reducida, sin FABs, noindex. Ver
+// app/composables/useVendorMode.ts.
+const { isVendor } = useVendorMode()
 const route = useRoute()
 const localePath = useLocalePath()
 const switchLocalePath = useSwitchLocalePath()
@@ -15,7 +18,14 @@ const switchLocalePath = useSwitchLocalePath()
 // computes them from the current route, so this doesn't need to be
 // repeated per-page like the old useLocaleLinks()-per-page approach.
 useHead(useLocaleHead({ dir: true, lang: true, seo: true }))
+useHead(() => ({
+  meta: isVendor.value ? [{ name: 'robots', content: 'noindex, nofollow' }] : [],
+}))
 
+// NUXT-NEW: i18n por ruta (/ = ES, /en/... = EN) con @nuxtjs/i18n, canonical
+// y hreflang automáticos. El sitio estático también tenía selector ES/EN, pero
+// era un diccionario en JS que reescribía los textos en el lugar, sin cambiar
+// la URL y sin nada indexable en inglés.
 const otherLocale = computed(() => (locale.value === 'es' ? 'en' : 'es'))
 const otherLocaleHref = computed(() => switchLocalePath(otherLocale.value))
 
@@ -30,6 +40,7 @@ function onScroll() {
 // `___<locale>` for non-default locales (e.g. "departamentos___en") — this
 // strips that suffix to compare against the plain base name, equivalent to
 // the old router's explicit `meta.baseName`.
+// NUXT-NEW: resaltado del link activo en la nav — el sitio estático no lo tenía.
 function isActive(baseName: string) {
   return String(route.name ?? '').split('___')[0] === baseName
 }
@@ -75,7 +86,7 @@ onUnmounted(() => {
     <NuxtLink class="br-nav-logo" :to="localePath('/')">
       <img src="/images/bairesrentallogoblanco.png" alt="BairesRental" />
     </NuxtLink>
-    <ul class="br-nav-links">
+    <ul v-if="!isVendor" class="br-nav-links">
       <li><NuxtLink :to="localePath('/#por-que')">{{ t('nav.services') }}</NuxtLink></li>
       <li><NuxtLink :to="localePath('/#planes')">{{ t('nav.plans') }}</NuxtLink></li>
       <li><NuxtLink :to="localePath('/#contacto')">{{ t('nav.owners') }}</NuxtLink></li>
@@ -89,12 +100,12 @@ onUnmounted(() => {
       <span class="br-lang-sep">·</span>
       <span class="br-lang-en">EN</span>
     </a>
-    <NuxtLink class="br-nav-cta" :to="localePath('/#contacto')">{{ t('nav.cta') }}</NuxtLink>
-    <button class="br-nav-toggle" aria-label="Menú" @click="drawerOpen = true">☰</button>
+    <NuxtLink v-if="!isVendor" class="br-nav-cta" :to="localePath('/#contacto')">{{ t('nav.cta') }}</NuxtLink>
+    <button v-if="!isVendor" class="br-nav-toggle" aria-label="Menú" @click="drawerOpen = true">☰</button>
   </nav>
 
-  <div class="br-mob-overlay" :class="{ open: drawerOpen }" @click="closeDrawer"></div>
-  <div class="br-mob-drawer" :class="{ open: drawerOpen }">
+  <div v-if="!isVendor" class="br-mob-overlay" :class="{ open: drawerOpen }" @click="closeDrawer"></div>
+  <div v-if="!isVendor" class="br-mob-drawer" :class="{ open: drawerOpen }">
     <div class="br-drawer-header">
       <img src="/images/bairesrentallogoblanco.png" alt="BairesRental" />
       <button class="br-drawer-close" aria-label="Cerrar" @click="closeDrawer">✕</button>
@@ -140,8 +151,11 @@ onUnmounted(() => {
         <h4>{{ t('footer.contactHeading') }}</h4>
         <ul>
           <li><NuxtLink :to="localePath('/#contacto')">{{ t('footer.inquiries') }}</NuxtLink></li>
-          <li><a href="https://wa.me/5491173735757" target="_blank" rel="noopener">WhatsApp</a></li>
-          <li><a href="https://chat.whatsapp.com/FeYh0RpkLqN0JnWiEi5ucG?mode=gi_t" target="_blank" rel="noopener">{{ t('footer.community') }}</a></li>
+          <!-- catalogo-vendedores.html deja el footer pero le saca WhatsApp y
+               Comunidad: en modo vendedor no debe quedar NINGÚN canal directo
+               de contacto con BairesRental en la página. -->
+          <li v-if="!isVendor"><a href="https://wa.me/5491173735757" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li v-if="!isVendor"><a href="https://chat.whatsapp.com/FeYh0RpkLqN0JnWiEi5ucG?mode=gi_t" target="_blank" rel="noopener">{{ t('footer.community') }}</a></li>
           <li><a href="https://www.instagram.com/bairesrentalok/" target="_blank" rel="noopener">Instagram</a></li>
         </ul>
       </div>
@@ -154,7 +168,7 @@ onUnmounted(() => {
   <!-- Botones flotantes (WhatsApp / Instagram / volver arriba). Estaban en
        todas las páginas del sitio estático y no se habían migrado. El
        mensaje de WhatsApp cambia por página, igual que en el estático. -->
-  <SiteFabs :wa-message="waMessage" />
+  <SiteFabs v-if="!isVendor" :wa-message="waMessage" />
 </template>
 
 <style scoped>

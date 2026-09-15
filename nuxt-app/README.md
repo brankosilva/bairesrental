@@ -134,3 +134,61 @@ To deploy the callable/trigger functions instead (they build via the
 ```
 firebase deploy --only functions:default
 ```
+
+---
+
+## Paridad visual con el sitio estático
+
+La migración del sitio estático (raíz del repo) a Nuxt trajo el markup y los
+datos, pero no la capa de presentación. Se restauró; esta sección documenta
+las dos causas de fondo y cómo quedó, para que no se vuelvan a introducir.
+
+### Arquitectura de CSS
+
+| Archivo | Rol |
+|---|---|
+| `public/css/br-base.css` | Tokens (`--azul`, `--negro`, …), reset y tipografía por defecto. Un único `:root` global. |
+| `public/css/br-catalog.css` | Sistema de diseño `br-*`: filtros, cards, badges, mapa, panel admin. **Todo en px** (ver abajo). |
+| `public/css/legacy-template.css` | Plantilla "fh5co" heredada. **No se carga.** Se conserva solo como referencia. |
+
+Dos cosas que conviene no deshacer:
+
+1. **No volver a cargar `legacy-template.css`.** Define reglas de elemento sin
+   scope (`p { font-size:14px !important }`, `h2 { font-size:2rem !important }`,
+   `h1..h6 { font-family:"Roboto Slab" }`, `body { color:#828282 }`) que ningún
+   `<style scoped>` de Vue puede ganar. En el sitio estático eran inofensivas
+   porque `index.html` no cargaba ninguna hoja; acá pisaban todas las páginas.
+
+2. **`br-catalog.css` va en px, no en rem.** `departamentos.html` y
+   `ventas.html` cargan `css/bootstrap.css` (Bootstrap 3) además de Bootstrap 5,
+   y Bootstrap 3 trae `html { font-size: 10px }`. Todo el sistema `br-*` se
+   diseñó contra ese root de 10px. Nuxt no carga Bootstrap 3, así que en rem
+   cada medida rendereaba 1,6× más grande.
+
+`line-height` también difiere por página, porque en el estático dependía de qué
+hojas cargaba cada una: la home no cargaba ninguna (`normal`), los catálogos y
+tickets cargaban `style.css` (`1.7`), y las fichas solo Bootstrap (`1.5`). Está
+reproducido página por página.
+
+### Modo vendedor
+
+`catalogo-vendedores.html` / `ficha-vendedor.html` no se habían migrado. Ahora
+es `?vendor=1` sobre las rutas que ya existen (`/departamentos`,
+`/departamentos/:id`) — ver `app/composables/useVendorMode.ts`. Esconde todos
+los WhatsApp, reduce la nav a logo + idioma, saca los FABs y pone
+`noindex, nofollow`.
+
+### Funcionalidades que solo existen en Nuxt
+
+Están marcadas en el código para poder revisarlas de a una:
+
+```
+grep -rn "NUXT-NEW\|NUXT-DEVIATION" app/ public/css/ nuxt.config.ts
+```
+
+- `NUXT-NEW` — no existe en el sitio estático: i18n por ruta, mapa Leaflet +
+  vista Lista/Mapa, grilla de destacados desde Firestore en la home, link
+  activo en la nav, sitemap generado, badge "MÁS POPULAR" traducible, estado
+  `disabled` del botón de contacto, barra rápida de filtros en mobile.
+- `NUXT-DEVIATION` — se apartó del estático a propósito: los FABs ahora
+  aparecen también en las fichas de detalle (en el estático no estaban).

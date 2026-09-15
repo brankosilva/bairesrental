@@ -16,6 +16,10 @@ const mapEl = ref<HTMLElement | null>(null)
 let map: LeafletMap | null = null
 let markersLayer: LayerGroup | null = null
 
+// NUXT-NEW: el mapa entero. El sitio estático no tiene ningún mapa en el
+// catálogo (js/google_map.js existe pero es un resto del theme original y
+// ninguna página lo carga). Las coordenadas se sacan de direccionUrl del lado
+// del cliente, así que los listados sin link de Google Maps no aparecen.
 const LEAFLET_CDN = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images'
 const BA_CENTER: [number, number] = [-34.6037, -58.3816]
 

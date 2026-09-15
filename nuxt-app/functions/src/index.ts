@@ -7,7 +7,7 @@
 // legacyVentaDetailRedirect) — see docs/historial-app-vue.md's M8 entry. M8 also
 // added a rebuild-on-data-change automation subsystem
 // (onRentalWrite/onSaleWrite + scheduledRebuildCheck), since removed by
-// N5 of the Nuxt SSR migration (see nuxt-docs/historial-app-vue.md and
+// N5 of the Nuxt SSR migration (see nuxt-app/CHANGELOG.md and
 // docs/historial-app-vue.md's N5 entry) — real per-request SSR reads Firestore
 // live on every request, so there's nothing left to "rebuild." N8
 // completes the admin Usuarios screen's CRUD: updateUser + deleteUser

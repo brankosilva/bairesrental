@@ -422,7 +422,7 @@ function formatFecha(fecha?: string) {
             <span class="br-contador-inline">
               {{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}
             </span>
-            <button v-show="activeFilterCount > 0" type="button" class="br-btn-limpiar" @click="clearFilters">
+            <button type="button" class="br-btn-limpiar" @click="clearFilters">
               {{ t('departamentos.filtros.limpiar') }}
             </button>
           </div>

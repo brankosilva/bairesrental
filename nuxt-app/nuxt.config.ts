@@ -78,6 +78,25 @@ export default defineNuxtConfig({
         { rel: 'stylesheet', href: '/css/br-base.css' },
         { rel: 'stylesheet', href: '/css/br-catalog.css' },
       ],
+      // GA4 + Meta Pixel. Estaban en todas las páginas del sitio estático
+      // (index.html:4-12 y :833-848) y no se habían migrado, o sea que la
+      // app Nuxt no medía absolutamente nada — ni analytics ni atribución
+      // de las campañas de Meta Ads. Mismos IDs que el sitio publicado.
+      script: [
+        { src: 'https://www.googletagmanager.com/gtag/js?id=G-3Q9QZ52W03', async: true },
+        {
+          innerHTML: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3Q9QZ52W03');`,
+        },
+        {
+          innerHTML: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1704524150703684');fbq('track','PageView');`,
+        },
+      ],
+      noscript: [
+        {
+          innerHTML: `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1704524150703684&ev=PageView&noscript=1" />`,
+          tagPosition: 'bodyOpen',
+        },
+      ],
     },
   },
 

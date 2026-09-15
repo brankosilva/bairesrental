@@ -30,6 +30,21 @@ useSeoMeta({
     locale.value === 'en'
       ? 'We manage your apartment in Buenos Aires: verified guests, income in dollars, clear reports, and your property always cared for.'
       : 'Gestionamos tu departamento en Buenos Aires: huéspedes verificados, ingresos en dólares, reportes claros y tu propiedad siempre cuidada. Sin sorpresas.',
+  // Open Graph: index.html:24-29 los tenía y no se habían migrado, así que
+  // cualquier link de la home compartido por WhatsApp/Facebook/LinkedIn salía
+  // sin preview.
+  ogType: 'website',
+  ogUrl: () => (locale.value === 'en' ? 'https://www.bairesrental.com.ar/en' : 'https://www.bairesrental.com.ar/'),
+  ogLocale: () => (locale.value === 'en' ? 'en_US' : 'es_AR'),
+  ogTitle: () =>
+    locale.value === 'en'
+      ? 'BairesRental — Short-term rental management in Buenos Aires'
+      : 'Gestión de Alquileres Temporarios en Buenos Aires | BairesRental',
+  ogDescription: () =>
+    locale.value === 'en'
+      ? 'We manage your apartment in Buenos Aires: verified guests, income in dollars, clear reports, and your property always cared for.'
+      : 'Gestionamos tu departamento en Buenos Aires: huéspedes verificados, ingresos en dólares, reportes claros y tu propiedad siempre cuidada. Sin sorpresas.',
+  ogImage: 'https://www.bairesrental.com.ar/images/bairesrentallogoblanco.png',
 })
 
 useHead({

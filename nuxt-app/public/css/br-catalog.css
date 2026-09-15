@@ -438,6 +438,15 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 
 
+/* Contador de fotos sobre la portada de una card de venta
+   (js/ventas.js:328-330) — la única clase del catálogo de ventas que
+   faltaba en esta hoja. */
+.br-fotos-count {
+  background: rgba(0, 0, 0, .6);
+  color: #fff;
+  margin-left: auto;
+}
+
 /* Buscador de la fila de escritorio (departamentos.html:334-348) — se había
    borrado al mover todo a `.br-quick-search`. */
 .br-busqueda-wrap { flex: 0 1 auto; }

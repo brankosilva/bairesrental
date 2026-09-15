@@ -81,6 +81,41 @@ function requireAdmin<T>(request: CallableRequest<T>, denied: string): void {
 // inviteUser/updateUser/setUserRole all keep the two in sync, and a full
 // listUsers() pagination scan to answer "is there another admin" would be
 // disproportionate here.
+// Deja lista la ficha pública de un vendedor apenas se le asigna el rol.
+//
+// Sin esto, el primer link que comparte un vendedor recién creado
+// renderiza una página sin nombre ni foto — el peor momento posible para
+// que se vea vacía. Con `merge: true` y sólo los campos mínimos, volver a
+// invitar o editar a alguien nunca pisa lo que ya cargó de su ficha.
+async function ensureSellerProfile(uid: string, displayName?: string | null): Promise<void> {
+  const ref = db.collection('sellerProfiles').doc(uid)
+  const existing = await ref.get()
+  if (existing.exists) {
+    // Ya tiene ficha: como mucho, completar el nombre si quedó vacío.
+    if (!existing.data()?.displayName && displayName) {
+      await ref.set({ displayName, updatedAt: FieldValue.serverTimestamp() }, { merge: true })
+    }
+    return
+  }
+  await ref.set(
+    {
+      uid,
+      displayName: displayName || 'Asesor inmobiliario',
+      title: null,
+      photoUrl: null,
+      whatsapp: null,
+      bio: null,
+      instagram: null,
+      logoUrl: null,
+      accentColor: null,
+      slug: null,
+      active: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  )
+}
+
 async function assertNotLastAdmin(uid: string, action: string): Promise<void> {
   const target = await db.collection('users').doc(uid).get()
   if (target.data()?.role !== 'admin') return
@@ -169,6 +204,9 @@ export const inviteUser = onCall<InviteUserRequest>(async (request) => {
     },
     { merge: true },
   )
+  if (role === 'seller') {
+    await ensureSellerProfile(user.uid, displayName ?? user.displayName ?? null)
+  }
   const link = await auth.generatePasswordResetLink(email)
 
   return { uid: user.uid, link }
@@ -230,6 +268,11 @@ export const updateUser = onCall<UpdateUserRequest>(async (request) => {
   }
 
   await db.collection('users').doc(uid).set(profile, { merge: true })
+
+  if (role === 'seller') {
+    const name = displayName !== undefined ? displayName?.trim() || null : (await auth.getUser(uid)).displayName ?? null
+    await ensureSellerProfile(uid, name)
+  }
 
   return { ok: true }
 })
@@ -303,6 +346,10 @@ export const deleteUser = onCall<DeleteUserRequest>(async (request) => {
     if ((e as { code?: string }).code !== 'auth/user-not-found') throw e
   }
   await db.collection('users').doc(uid).delete()
+  // La ficha pública sí se borra (a diferencia de los links, que se
+  // desactivan): es una página con foto y nombre de alguien que ya no
+  // trabaja acá, y nada la referencia por id.
+  await db.collection('sellerProfiles').doc(uid).delete()
 
   return { ok: true, linksDeactivated: links.size }
 })
@@ -316,15 +363,35 @@ function randomCode(length = 7): string {
   return out
 }
 
+const VALID_CHANNELS = ['whatsapp', 'instagram', 'email', 'sms', 'facebook', 'presencial', 'otro'] as const
+type LinkChannel = (typeof VALID_CHANNELS)[number]
+
 interface CreateTrackableLinkRequest {
+  target?: 'property' | 'catalog'
   propertyId?: string | null
   propertyType?: 'rental' | 'sale' | null
+  recipientName?: string
+  channel?: LinkChannel
+  note?: string | null
   sellerUid?: string // only honored when the caller is admin creating on a seller's behalf
 }
 
-// Callable, seller or admin. Document ID is the code itself (see
-// firestore.rules — this is what lets the public /l/:code redirect page
-// do a single-doc `get` without needing list access to the collection).
+// Callable, seller or admin. Document ID is the code itself.
+//
+// Esta función no validaba NADA de lo que le mandaban: aceptaba cualquier
+// propertyId (existente o no, propio o ajeno) y lo escribía tal cual. La
+// pantalla sólo ofrece las propiedades del vendedor en un <select>, pero
+// eso es una restricción de UI: invocando el callable directo, un vendedor
+// podía generar un link apuntado a la publicación de otro y quedarse con
+// los leads que generara. Ahora se valida server-side.
+//
+// También dejó de devolver `url`. Antes armaba
+// `https://www.bairesrental.com.ar/l/${code}` acá adentro, que es el
+// dominio del sitio estático viejo — sin ruta /l/, o sea que todos los
+// links generados hasta hoy están rotos. La URL ahora la arma la UI desde
+// runtimeConfig.public.linkBaseUrl, un solo lugar, para que el día del
+// cambio de DNS sea una línea. Sacarlo es seguro: la pantalla del vendedor
+// descartaba el valor de retorno.
 export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
@@ -335,8 +402,85 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
   }
 
   const sellerUid = callerRole === 'admin' && request.data.sellerUid ? request.data.sellerUid : request.auth.uid
-  const propertyId = request.data.propertyId || null
-  const propertyType = propertyId ? request.data.propertyType || null : null
+
+  // Un admin creando en nombre de alguien: que ese alguien exista y sea
+  // efectivamente un vendedor, o el link queda huérfano y sus leads se
+  // atribuyen a un uid que no resuelve a nadie.
+  if (sellerUid !== request.auth.uid) {
+    const target = await db.collection('users').doc(sellerUid).get()
+    if (!target.exists || target.data()?.role !== 'seller') {
+      throw new HttpsError('invalid-argument', 'El vendedor indicado no existe o no tiene rol de vendedor.')
+    }
+  }
+
+  const recipientName = request.data.recipientName?.trim()
+  if (!recipientName) {
+    throw new HttpsError('invalid-argument', 'Decí para quién es el link.')
+  }
+  if (recipientName.length > 80) {
+    throw new HttpsError('invalid-argument', 'El nombre del destinatario es demasiado largo (máximo 80).')
+  }
+
+  const channel: LinkChannel = request.data.channel ?? 'whatsapp'
+  if (!VALID_CHANNELS.includes(channel)) {
+    throw new HttpsError('invalid-argument', `channel debe ser uno de: ${VALID_CHANNELS.join(', ')}`)
+  }
+
+  const note = request.data.note?.trim() || null
+  if (note && note.length > 280) {
+    throw new HttpsError('invalid-argument', 'La nota es demasiado larga (máximo 280).')
+  }
+
+  const target = request.data.target ?? (request.data.propertyId ? 'property' : 'catalog')
+  let propertyId: string | null = null
+  let propertyType: 'rental' | 'sale' | null = null
+  let propertyTitulo: string | null = null
+
+  if (target === 'property') {
+    propertyId = request.data.propertyId?.trim() || null
+    propertyType = request.data.propertyType ?? null
+    if (!propertyId) {
+      throw new HttpsError('invalid-argument', 'Elegí una publicación.')
+    }
+    if (propertyType !== 'rental' && propertyType !== 'sale') {
+      throw new HttpsError('invalid-argument', 'propertyType debe ser "rental" o "sale".')
+    }
+
+    const propertySnap = await db
+      .collection(propertyType === 'rental' ? 'rentals' : 'sales')
+      .doc(propertyId)
+      .get()
+    if (!propertySnap.exists) {
+      throw new HttpsError('not-found', 'Esa publicación no existe.')
+    }
+    // Un admin puede generar un link para cualquier publicación; un
+    // vendedor, sólo para las suyas.
+    if (callerRole !== 'admin' && propertySnap.data()?.sellerUid !== sellerUid) {
+      throw new HttpsError('permission-denied', 'Esa publicación no te pertenece.')
+    }
+    propertyTitulo = propertySnap.data()?.titulo ?? null
+  }
+
+  const recipientNameLower = recipientName.toLowerCase()
+
+  // Idempotencia: generar dos veces el mismo link para la misma persona y
+  // la misma publicación devuelve el que ya existe en vez de duplicarlo
+  // (tocar "Generar" dos veces es lo más fácil del mundo, y dos links para
+  // el mismo destinatario parten las métricas en dos).
+  //
+  // Son todas igualdades, así que Firestore lo resuelve con zigzag merge
+  // join sobre los índices de campo único — no hace falta índice compuesto.
+  const duplicate = await db
+    .collection('links')
+    .where('sellerUid', '==', sellerUid)
+    .where('propertyId', '==', propertyId)
+    .where('recipientNameLower', '==', recipientNameLower)
+    .where('active', '==', true)
+    .limit(1)
+    .get()
+  if (!duplicate.empty) {
+    return { code: duplicate.docs[0].id, existing: true }
+  }
 
   let code = ''
   let attempts = 0
@@ -355,14 +499,28 @@ export const createTrackableLink = onCall<CreateTrackableLinkRequest>(async (req
 
   await db.collection('links').doc(code).set({
     sellerUid,
+    target,
     propertyId,
     propertyType,
-    clicks: 0,
+    propertyTitulo,
+    recipientName,
+    recipientNameLower,
+    channel,
+    note,
+    outcome: 'pending',
     active: true,
+    opens: 0,
+    botOpens: 0,
+    whatsappClicks: 0,
+    leads: 0,
+    clicks: 0,
+    firstOpenAt: null,
+    lastOpenAt: null,
     createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   })
 
-  return { code, url: `https://www.bairesrental.com.ar/l/${code}` }
+  return { code, existing: false }
 })
 
 interface SubmitLeadRequest {
@@ -392,7 +550,14 @@ export const submitLead = onCall<SubmitLeadRequest>(async (request) => {
     if (linkDoc.exists && linkDoc.data()?.active !== false) {
       sellerUid = linkDoc.data()?.sellerUid ?? null
       linkId = linkDoc.id
-      await linkDoc.ref.update({ clicks: FieldValue.increment(1) })
+      // `leads` es el nombre real de lo que este contador siempre midió.
+      // `clicks` se mantiene una release más porque los links creados
+      // antes de esta milestone sólo tienen ese campo — las pantallas
+      // nuevas leen `leads`. Ver app/types/link.ts.
+      await linkDoc.ref.update({
+        leads: FieldValue.increment(1),
+        clicks: FieldValue.increment(1),
+      })
     }
   }
 

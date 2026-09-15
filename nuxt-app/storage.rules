@@ -42,5 +42,21 @@ service firebase.storage {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Foto de la ficha pública del vendedor.
+    //
+    // Acá sí hay regla de escritura directa para el vendedor, a diferencia
+    // de rentals/ y sales/ de arriba: la pertenencia está codificada en la
+    // RUTA (el uid es un segmento), así que se resuelve con
+    // `request.auth.uid == uid` y no hace falta el `firestore.get()`
+    // cross-service que en este proyecto está confirmado roto. Por eso
+    // esto no necesita pasar por una Cloud Function como uploadListingImage.
+    match /sellerProfiles/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin()
+        || (isSignedIn() && request.auth.uid == uid
+            && request.resource.size < 2 * 1024 * 1024
+            && request.resource.contentType.matches('image/.*'));
+    }
   }
 }

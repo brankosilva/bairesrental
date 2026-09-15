@@ -6,8 +6,37 @@ export function formatPrice(precio: number, moneda: string): string {
   return `${moneda} ${precio.toLocaleString('es-AR')}`
 }
 
-export function whatsappUrl(message: string): string {
-  return `https://wa.me/5491173735757?text=${encodeURIComponent(message)}`
+// El número de BairesRental. Sigue siendo el default de todo el sitio
+// público; el segundo parámetro de whatsappUrl() sólo lo pisa en las
+// páginas con la marca del vendedor.
+export const BR_WHATSAPP = '5491173735757'
+
+// Normaliza lo que un vendedor tipeó en su ficha a lo que espera wa.me:
+// sólo dígitos, sin '+', con código de país.
+//
+// A propósito conservadora — un número de contacto mal "corregido" es un
+// cliente que nunca llega. Sólo hace el arreglo que en Argentina es
+// inequívoco (el 9 de celular después del 54) y, ante cualquier otra cosa,
+// devuelve los dígitos tal cual se cargaron. La pantalla de la ficha
+// muestra un preview del wa.me resultante para que el vendedor lo
+// verifique él mismo en vez de confiar en esta función.
+export function normalizeWhatsapp(raw?: string | null): string | null {
+  if (!raw) return null
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length < 10) return null
+  // 54 + 11 + 8 dígitos = 13 con el 9; sin el 9 son 12 y wa.me no resuelve.
+  if (digits.startsWith('54') && !digits.startsWith('549') && digits.length === 12) {
+    return `549${digits.slice(2)}`
+  }
+  return digits
+}
+
+// `phone` es opcional para que los cuatro call sites que ya existían
+// (las dos fichas públicas, SiteFabs y el layout) sigan andando sin
+// tocarlos: sin segundo argumento, esto es exactamente lo que era.
+export function whatsappUrl(message: string, phone?: string | null): string {
+  const number = normalizeWhatsapp(phone) || BR_WHATSAPP
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
 }
 
 export function truncate(text: string, max: number): string {

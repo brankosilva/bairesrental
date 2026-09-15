@@ -42,11 +42,13 @@ const LINKS_BY_ROLE: Record<string, NavLink[]> = {
     { to: '/app/admin/rentals', label: 'Alquileres' },
     { to: '/app/admin/sales', label: 'Ventas' },
     { to: '/app/admin/users', label: 'Usuarios' },
+    { to: '/app/admin/links', label: 'Links' },
   ],
   seller: [
     { to: '/app/seller/listings', label: 'Mis propiedades' },
     { to: '/app/seller/links', label: 'Links' },
     { to: '/app/seller/leads', label: 'Leads' },
+    { to: '/app/seller/profile', label: 'Mi ficha' },
   ],
   owner: [{ to: '/app/owner', label: 'Mis propiedades' }],
 }

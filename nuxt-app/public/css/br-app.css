@@ -735,3 +735,323 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* =====================================================================
+   9. Links compartibles (vendedor + admin)
+   =====================================================================
+   Reemplaza la tabla que tenía seller/links.vue — la que el §8 de arriba
+   dejaba "degradando sin romper" hasta que llegara su reescritura. Esta es
+   esa reescritura.
+
+   Es una card y no una tabla porque las columnas dejaron de ser
+   comparables entre sí: el destinatario es texto libre, la actividad son
+   tres números que sólo se leen juntos ("12 aperturas · 2 contactos · hace
+   2 h") y el resultado es un control, no un dato. En una tabla de 7
+   columnas eso es scroll horizontal en cualquier celular, que es justo lo
+   que N9 vino a sacar del panel.
+
+   Mismo patrón que .br-app-card (§4): UN solo árbol de markup, grid con
+   columnas reales arriba de 768px y apilado abajo.
+   ===================================================================== */
+
+.br-link-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'main side'
+    'activity activity';
+  gap: 10px 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 12px;
+  background: #fff;
+}
+.br-link-card.is-saving {
+  opacity: 0.6;
+}
+/* Desactivado se apaga, no se esconde: el vendedor tiene que poder ver el
+   historial de un link que ya no reparte. */
+.br-link-card.is-inactive {
+  background: #fafafa;
+  border-style: dashed;
+}
+.br-link-card.is-inactive .br-link-name {
+  text-decoration: line-through;
+  color: var(--br-app-mute);
+}
+
+.br-link-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.br-link-ident {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.br-link-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.br-link-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--br-app-fondo);
+  border: 1px solid var(--br-app-borde);
+  font-size: 12px;
+  color: var(--br-app-mute);
+  white-space: nowrap;
+}
+.br-link-chip.is-off {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.br-link-prop {
+  font-size: 14px;
+  color: var(--br-app-mute);
+}
+
+.br-link-note {
+  font-size: 13px;
+  color: var(--br-app-mute);
+  font-style: italic;
+}
+
+.br-link-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 14px;
+}
+/* Cero aperturas es información, no un error: se apaga para que la vista se
+   lea de un vistazo como "estos se abrieron, estos no". */
+.br-link-stats .is-zero {
+  color: var(--br-app-mute);
+}
+.br-link-stats .is-good {
+  color: #15803d;
+}
+.br-link-when {
+  color: var(--br-app-mute);
+}
+
+.br-link-side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.br-app .br-link-outcome {
+  width: auto;
+  min-width: 130px;
+}
+
+.br-link-outcome-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Mismos colores que los estados de disponibilidad (utils/availability.ts),
+   para que el panel entero se lea como un solo sistema. */
+.br-app .br-link-outcome.is-pending,
+.br-link-outcome-tag.is-pending {
+  color: var(--br-app-mute);
+  border-color: var(--br-app-borde);
+}
+.br-app .br-link-outcome.is-replied,
+.br-link-outcome-tag.is-replied {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.br-app .br-link-outcome.is-visited,
+.br-link-outcome-tag.is-visited {
+  color: #b45309;
+  border-color: #fde68a;
+}
+.br-app .br-link-outcome.is-closed,
+.br-link-outcome-tag.is-closed {
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+.br-app .br-link-outcome.is-lost,
+.br-link-outcome-tag.is-lost {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.br-link-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.br-link-activity {
+  grid-area: activity;
+  padding-top: 10px;
+  border-top: 1px solid var(--br-app-borde);
+}
+
+.br-link-events {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 14px;
+}
+.br-link-events li {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--br-app-fondo);
+}
+.br-link-events .is-good {
+  color: #15803d;
+  font-weight: 600;
+}
+.br-link-event-when {
+  min-width: 130px;
+  color: var(--br-app-mute);
+}
+
+@media (max-width: 575.98px) {
+  .br-link-card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'main'
+      'side'
+      'activity';
+  }
+  .br-link-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .br-link-event-when {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Fila de KPIs del panel admin.
+   --------------------------------------------------------------------- */
+
+.br-stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.br-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.br-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.br-stat-lbl {
+  font-size: 13px;
+  color: var(--br-app-mute);
+}
+
+/* ---------------------------------------------------------------------
+   Preview de la ficha del vendedor (seller/profile.vue).
+   Es una maqueta a escala de lo que ve el cliente, no el componente real:
+   sirve para que el vendedor entienda que esta pantalla es la portada de
+   su página y no "su perfil de usuario".
+   --------------------------------------------------------------------- */
+
+.br-brand-preview {
+  padding: 14px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.br-brand-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.br-brand-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--br-app-fondo);
+  border: 1px solid var(--br-app-borde);
+  font-weight: 700;
+  color: var(--br-app-mute);
+}
+.br-brand-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.br-brand-ident {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.br-brand-title {
+  font-size: 14px;
+  color: var(--br-app-mute);
+}
+.br-brand-bio {
+  font-size: 13px;
+  color: var(--br-app-mute);
+}
+
+.br-brand-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--verde, #25d366);
+  color: #fff;
+  font-weight: 700;
+}
+
+.br-brand-foot {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--br-app-mute);
+  text-align: center;
+}

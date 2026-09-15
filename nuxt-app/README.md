@@ -72,7 +72,45 @@ against a page to confirm SEO tags are actually server-rendered:
 curl -s http://localhost:3000/departamentos/<a-real-id> | grep -o '<title>[^<]*</title>'
 ```
 
-## Building + deploying
+## Deploying via CI (the normal path)
+
+Pushing a `v*` tag whose commit is on `main` runs
+[`.github/workflows/deploy-nuxt.yml`](../.github/workflows/deploy-nuxt.yml),
+which builds and deploys everything in this folder — both Functions
+codebases, Hosting, and the Firestore/Storage rules — then smoke-tests the
+published home page for server-rendered HTML:
+
+```
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+The same workflow can be run by hand from the Actions tab with a picker for
+a single piece (`hosting`, `functions:nuxtssr`, `functions:default`,
+`reglas`). It encodes both deploy gotchas below, so CI can't forget them.
+
+### One-time setup
+
+1. **A service account for CI.** The existing `serviceAccountKey.json`
+   (Firebase Admin SDK) does **not** carry deploy permissions — it's for
+   the Admin SDK at build time, not for publishing. Create a dedicated one
+   in the Google Cloud console with: Firebase Admin, Cloud Functions Admin,
+   Cloud Run Admin, Service Account User, Artifact Registry Writer, API Keys
+   Viewer. Then:
+   ```
+   gh secret set FIREBASE_SERVICE_ACCOUNT < /path/to/ci-service-account.json
+   ```
+2. **The public web config**, straight out of your local `.env` (these ship
+   to the browser in the bundle, so they're repo *variables*, not secrets):
+   ```
+   grep '^NUXT_PUBLIC_FIREBASE' .env | while IFS='=' read -r k v; do
+     gh variable set "$k" --body "$v"
+   done
+   ```
+
+The job runs in a GitHub Environment called `production`, so you can add
+required reviewers there if you ever want a human gate before a tag ships.
+
+## Building + deploying by hand
 
 ```
 npm run build

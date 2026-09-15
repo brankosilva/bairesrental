@@ -89,18 +89,21 @@ jobs:
           fi
           echo "Tag ${GITHUB_REF_NAME} → commit $(git rev-parse --short "$GITHUB_SHA") (en main)."
 
-      # Node 24 (npm 11), no 20 (npm 10), y el motivo es el lockfile: npm 11
-      # anida @emnapi/core y @emnapi/runtime abajo de los bindings de oxc,
-      # mientras que npm 10 los espera hoisteados arriba de todo. Con
-      # `node-version: 20` el `npm ci` de abajo se cae con "Missing:
-      # @emnapi/core@... from lock file" aunque el lockfile esté commiteado
-      # y al día — es un choque de versiones de npm, no un lockfile viejo.
-      # Hay que mantener esto alineado con el npm que genera el lockfile.
+      # Node 24 porque vue-i18n@11 declara `engines.node >= 22` y con 20
+      # todo el install sale lleno de EBADENGINE.
       #
-      # Esto es el Node del BUILD, no el runtime de las functions: ese sigue
+      # Es el Node del BUILD, no el runtime de las functions: ese sigue
       # saliendo de `engines.node` ("20" en functions/package.json y en
       # .output/server/package.json), y se despliega igual como nodejs20.
-      # De paso calla el EBADENGINE de vue-i18n, que pide node >= 22.
+      #
+      # (El "Missing: @emnapi/core@1.11.3 from lock file" que hacía fallar
+      # el `npm ci` de abajo NO era esto: pasaba igual con npm 11 en el
+      # runner. Era que el lockfile, generado en macOS, no tenía las
+      # optional deps que solo se resuelven en linux. Se arregló
+      # regenerándolo adentro de un container linux —
+      # `docker run --rm -v "$PWD":/app -w /app node:24 npm install
+      # --package-lock-only` desde nuxt-app/ — que es lo que hay que hacer
+      # si el error vuelve a aparecer.)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

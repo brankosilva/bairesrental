@@ -1,3 +1,7 @@
 User-agent: *
 Disallow: /app/
+# Links compartibles de los vendedores. Son páginas privadas de un solo
+# destinatario y cada visita de un crawler se registra como una apertura,
+# así que indexarlas sería a la vez una fuga y ruido en las métricas.
+Disallow: /l/
 Sitemap: https://www.bairesrental.com.ar/sitemap.xml

@@ -43,17 +43,82 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Document ID IS the shareable short code (e.g. links/ab3f9k) — a
-    // public `get` (single-doc, by known code) is needed for the /l/:code
-    // redirect page to resolve where to send an anonymous visitor.
-    // `list` (querying "my links") stays restricted to the owning seller
-    // or an admin, and requires the query itself to filter on sellerUid
-    // (Firestore validates this statically against the rule below).
+    // Document ID IS the shareable short code (e.g. links/ab3f9k).
+    //
+    // El `allow get: if true` que había acá SE SACÓ. Existía para que la
+    // ruta /l/:code pudiera resolver el link con el SDK cliente, pero
+    // desde que los documentos llevan `recipientName`/`note` —el nombre y
+    // una nota sobre la persona a la que el vendedor le compartió el
+    // link— dejarlos legibles por cualquiera que tuviese un código de 7
+    // caracteres publicaba datos de un tercero. Ahora esa ruta lee con el
+    // Admin SDK (server/utils/linkTracking.ts), que no pasa por reglas.
+    //
+    // `list` ("mis links") exige que la query filtre por sellerUid;
+    // Firestore lo valida estáticamente contra esta regla.
     match /links/{code} {
-      allow get: if true;
+      allow get: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
       allow list: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
-      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
-      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
+
+      // Crear pasa SIEMPRE por el callable createTrackableLink (Admin SDK,
+      // saltea reglas). La regla anterior permitía que un vendedor
+      // escribiera el documento directo desde el cliente, con los
+      // contadores que quisiera y salteándose la validación de que la
+      // propiedad exista y sea suya.
+      allow create: if false;
+
+      // El vendedor etiqueta y desactiva sus propios links; los contadores
+      // no los toca nadie desde el cliente.
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.sellerUid == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                 ['recipientName', 'recipientNameLower', 'channel', 'note', 'outcome', 'active', 'updatedAt']));
+
+      // `leads` referencia links por linkId: borrar uno rompe el historial
+      // de atribución. deleteUser ya desactiva en vez de borrar.
+      allow delete: if isAdmin();
+
+      // El evento lleva `sellerUid` desnormalizado justamente para que
+      // esta regla no necesite un get() al documento padre — que se
+      // cobraría como una lectura por cada evaluación de la regla. Las
+      // queries filtran por sellerUid y ordenan del lado del cliente,
+      // misma convención de "sin índices compuestos" que leads.vue.
+      match /opens/{eventId} {
+        allow read: if isAdmin() || (isSignedIn() && resource.data.sellerUid == request.auth.uid);
+        // Sólo el Admin SDK. Un contador que el público pueda escribir se
+        // infla con un `curl` en un bucle, y las reglas no pueden expresar
+        // el filtro de User-Agent que distingue una persona de un scraper.
+        allow write: if false;
+      }
+    }
+
+    // Ficha pública del vendedor: lo que ve el cliente en la página que le
+    // compartieron (foto, nombre, su WhatsApp).
+    //
+    // Deliberadamente SEPARADO de users/{uid}, que sigue siendo privado:
+    // users.phone es un contacto interno que administra el admin, y
+    // sellerProfiles.whatsapp es un número publicado. Tienen que poder
+    // diferir, y un admin editando el contacto interno de alguien no puede
+    // cambiarle sin querer lo que aparece en una página pública.
+    match /sellerProfiles/{uid} {
+      allow get: if true;
+      allow list: if isAdmin();
+
+      allow create, update: if
+        (isAdmin()
+         || (role() == 'seller' && request.auth.uid == uid
+             // `active` (despublicar) y `slug` (necesita un chequeo de
+             // unicidad que una regla no puede hacer) son sólo del admin.
+             && !request.resource.data.keys().hasAny(['active', 'slug'])))
+        && request.resource.data.keys().hasOnly(
+             ['uid', 'displayName', 'title', 'photoUrl', 'whatsapp', 'bio', 'instagram',
+              'logoUrl', 'accentColor', 'slug', 'active', 'updatedAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 80
+        && (!('bio' in request.resource.data) || request.resource.data.bio == null
+            || request.resource.data.bio.size() <= 280);
+
+      allow delete: if isAdmin();
     }
 
     match /leads/{id} {

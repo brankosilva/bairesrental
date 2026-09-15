@@ -1,0 +1,229 @@
+/* =====================================================================
+   PÁGINA COMPARTIDA POR UN VENDEDOR (/l/:code)
+   =====================================================================
+   Cuarta hoja propia, al lado de br-base.css (tokens globales),
+   br-catalog.css (catálogo público) y br-app.css (panel autenticado).
+   La pide app/layouts/branded.vue con useHead({ link }), no se carga
+   sitewide.
+
+   Esta página NO lleva marca de BairesRental — ni logo, ni pie, ni el
+   WhatsApp de la empresa. Es una decisión del negocio para esta tanda: el
+   vendedor la presenta como propia. Lo único de BairesRental que queda es
+   el dominio de la URL.
+
+   El cuerpo de la ficha (hero, precio, características, mapa) lo aportan
+   RentalDetailBody/SaleDetailBody con su propio <style scoped>; acá está
+   sólo el envoltorio: la barra del vendedor y el grid del catálogo.
+   ===================================================================== */
+
+.br-brand-page {
+  --br-brand-accent: var(--azul, #1a6fe8);
+  --br-brand-borde: #e4e4e7;
+  --br-brand-mute: #6b7280;
+
+  min-height: 100dvh;
+  background: #fff;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Barra del vendedor ──────────────────────────────── */
+
+.br-brandbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--br-brand-borde);
+}
+
+.br-brandbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.br-brandbar-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.br-brandbar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f4f4f6;
+  border: 1px solid var(--br-brand-borde);
+  font-weight: 700;
+  color: var(--br-brand-mute);
+}
+.br-brandbar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.br-brandbar-ident {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.br-brandbar-ident strong {
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.br-brandbar-ident span {
+  font-size: 13px;
+  color: var(--br-brand-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Verde de WhatsApp y no el acento: acá el color ES la señal de a dónde
+   lleva el botón, y cambiarlo por el color del vendedor haría que parezca
+   un CTA genérico. El acento se usa para el resto. */
+.br-brandbar-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  /* 44px de alto mínimo: mínimo de target táctil de las WCAG, igual que en
+     el panel. Este es EL botón de la página. */
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--verde, #25d366);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.br-brandbar-cta:hover {
+  background: var(--verde-h, #1ebe5b);
+  color: #fff;
+}
+
+.br-brandbar-bio {
+  max-width: 900px;
+  margin: 8px auto 0;
+  font-size: 13px;
+  color: var(--br-brand-mute);
+}
+
+@media (max-width: 480px) {
+  /* El nombre y el botón no entran juntos en un celular angosto sin que el
+     botón se coma el nombre. Se apilan. */
+  .br-brandbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .br-brandbar-cta {
+    justify-content: center;
+  }
+}
+
+/* ── Catálogo del vendedor ───────────────────────────── */
+
+.br-brand-catalog {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.br-brand-catalog-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.br-brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.br-brand-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--br-brand-borde);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.br-brand-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  color: inherit;
+}
+
+.br-brand-card-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  max-width: 100%;
+  background: #f4f4f6;
+  font-size: 28px;
+}
+.br-brand-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.br-brand-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px 12px;
+}
+
+.br-brand-card-loc {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--br-brand-mute);
+}
+
+.br-brand-card-title {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.br-brand-card-price {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--br-brand-accent);
+}
+
+/* ── Estados ─────────────────────────────────────────── */
+
+.br-brand-empty,
+.br-brand-msg {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--br-brand-mute);
+  font-family: 'DM Sans', sans-serif;
+}

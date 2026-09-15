@@ -8,7 +8,22 @@ import { signInWithEmailAndPassword } from 'firebase/auth'
 // doesn't belong on an internal tool page either.
 definePageMeta({ layout: false })
 
-useHead({ title: 'BairesRental — Login', meta: [{ name: 'robots', content: 'noindex' }] })
+// N9 — esta página es `layout: false`, así que NO pasa por app-shell.vue y hay
+// que pedirle acá las dos cosas que el resto del panel recibe del layout:
+//
+//   - br-app.css, que es donde vive el piso de 16px para los inputs. Es la
+//     primera pantalla que se abre desde un celular y tiene dos campos: sin
+//     eso, iOS Safari hace auto-zoom al tocar el email y deja la página
+//     zoomeada para el resto de la sesión.
+//   - viewport-fit=cover, por coherencia con el resto del panel.
+useHead({
+  title: 'BairesRental — Login',
+  meta: [
+    { name: 'robots', content: 'noindex' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+  ],
+  link: [{ rel: 'stylesheet', href: '/css/br-app.css' }],
+})
 
 const { t } = useI18n()
 const route = useRoute()
@@ -49,7 +64,9 @@ async function onSubmit() {
 </script>
 
 <template>
-  <main class="container d-flex align-items-center justify-content-center" style="min-height: 100vh">
+  <!-- 100dvh y no 100vh: en iOS Safari, 100vh cuenta la barra de direcciones
+       como si no estuviera, así que la card quedaba parcialmente tapada. -->
+  <main class="br-app br-app-login container d-flex align-items-center justify-content-center" style="min-height: 100dvh">
     <form class="card p-4" style="max-width: 360px; width: 100%" @submit.prevent="onSubmit">
       <h1 class="h5 mb-3 text-center">{{ t('app.loginTitle') }}</h1>
 

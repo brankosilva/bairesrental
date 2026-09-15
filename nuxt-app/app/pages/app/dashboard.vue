@@ -16,7 +16,6 @@ useHead({ title: 'BairesRental — Panel', meta: [{ name: 'robots', content: 'no
 
 const { t } = useI18n()
 const user = useCurrentUser()
-const role = ref<string | null>(null)
 
 const ROLE_HOME: Record<string, string> = {
   admin: '/app/admin/rentals',
@@ -24,14 +23,14 @@ const ROLE_HOME: Record<string, string> = {
   owner: '/app/owner',
 }
 
-// Read the role off ID token custom claims server- and client-side, same
-// source of truth as the auth middleware (never a Firestore doc read).
-const { data } = await useAsyncData('dashboard-role', async () => {
-  if (!user.value) return null
-  const tokenResult = await user.value.getIdTokenResult()
-  return (tokenResult.claims.role as string | undefined) ?? null
-})
-role.value = data.value ?? null
+// El rol sale de los custom claims del ID token, misma fuente de verdad que el
+// middleware de auth (nunca una lectura de un doc de Firestore).
+//
+// N9: antes esta página hacía su propio `useAsyncData` + `getIdTokenResult()`.
+// Ahora lo publica app/middleware/auth.ts, que ya leía el token igual y corre
+// antes que esta página — una lectura menos, y el mismo valor que ve el nav
+// del layout.
+const role = useState<string | null>('app-user-role', () => null)
 
 if (role.value && ROLE_HOME[role.value]) {
   await navigateTo(ROLE_HOME[role.value])

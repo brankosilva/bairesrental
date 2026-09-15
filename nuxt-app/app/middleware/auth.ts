@@ -27,13 +27,30 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo({ path: '/app/login', query: { redirect: to.fullPath } })
   }
 
+  // Force-refresh, same reasoning as the old store: a role assigned via
+  // setUserRole moments ago must be picked up without requiring a fresh
+  // login.
+  const tokenResult = await user.getIdTokenResult(true)
+  const role = (tokenResult.claims.role as string | undefined) ?? null
+
+  // N9: el rol se publica en un useState en vez de quedar acá adentro.
+  //
+  // app/layouts/app-shell.vue lo resolvía por su cuenta en un onMounted, con lo
+  // cual el servidor mandaba un nav SIN NINGÚN LINK y los links aparecían un
+  // round-trip después — en datos móviles, un parpadeo visible de chrome vacío
+  // en cada carga, y un drawer que se abría vacío. Este middleware ya leyó el
+  // token acá arriba y corre antes de que el layout renderice, tanto en el
+  // servidor como en el cliente; useState viaja en el payload, así que el nav
+  // sale bien desde el HTML del servidor y la hidratación coincide.
+  //
+  // Antes esta lectura se hacía sólo cuando la ruta declaraba `allowedRoles`.
+  // Ahora se hace en toda ruta autenticada, pero app/pages/app/dashboard.vue
+  // dejó de hacer la suya propia, así que el total de lecturas de token no
+  // sube.
+  useState<string | null>('app-user-role', () => null).value = role
+
   const allowedRoles = to.meta.allowedRoles as string[] | undefined
   if (allowedRoles && allowedRoles.length > 0) {
-    // Force-refresh, same reasoning as the old store: a role assigned via
-    // setUserRole moments ago must be picked up without requiring a fresh
-    // login.
-    const tokenResult = await user.getIdTokenResult(true)
-    const role = (tokenResult.claims.role as string | undefined) ?? null
     if (!role || !allowedRoles.includes(role)) {
       return navigateTo({ path: '/app/dashboard' })
     }

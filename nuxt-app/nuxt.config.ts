@@ -155,7 +155,10 @@ export default defineNuxtConfig({
     // file-based routes are gated, so without this they were showing up
     // in the sitemap despite robots.txt disallowing them — harmless (still
     // blocked, still behind auth) but inconsistent. Excluded explicitly.
-    exclude: ['/app/**', '/en/app/**'],
+    // `/l/**` son los links que comparte cada vendedor: páginas privadas de
+    // un solo destinatario, noindex, y cada visita de un crawler se
+    // registraría como una apertura. Fuera del sitemap además de robots.txt.
+    exclude: ['/app/**', '/en/app/**', '/l/**', '/en/l/**'],
   },
 
   vuefire: {

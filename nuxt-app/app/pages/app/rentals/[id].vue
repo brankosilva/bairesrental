@@ -46,6 +46,7 @@ const imageFile = ref<File | null>(null)
 // ajeno que puede dar de baja la publicación.
 const imageUrl = ref('')
 const role = ref<string | null>(null)
+const saveError = ref('')
 
 const TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa']
 const AMENITIES = Object.keys(AMENITY_EMOJI)
@@ -229,6 +230,7 @@ async function onSubmit() {
   }
   saving.value = true
   savingNote.value = 'Guardando…'
+  saveError.value = ''
   try {
     const docId = isNew ? form.id.trim() : id
     if (!docId) {
@@ -290,9 +292,15 @@ async function onSubmit() {
       query: { saved: docId, kind: 'rental', ...(isNew ? { new: '1' } : {}) },
     })
   } catch (e) {
-    if (!(e instanceof DuplicateIdError)) throw e
-    idError.value = `Ya hay un alquiler con el ID "${e.duplicatedId}". Elegí otro.`
-    alert(`${idError.value}\n\nNo se guardó nada: la propiedad que ya tenía ese ID quedó intacta.`)
+    if (e instanceof DuplicateIdError) {
+      idError.value = `Ya hay un alquiler con el ID "${e.duplicatedId}". Elegí otro.`
+      alert(`${idError.value}\n\nNo se guardó nada: la propiedad que ya tenía ese ID quedó intacta.`)
+    } else {
+      // Sin esto, un rechazo de firestore.rules (o cualquier otro error) se
+      // perdía en silencio: el botón volvía a "Guardar" y parecía que no había
+      // pasado nada, sin ninguna pista de que el guardado falló.
+      saveError.value = e instanceof Error ? e.message : 'No se pudo guardar. Volvé a intentar.'
+    }
   } finally {
     saving.value = false
     savingNote.value = ''
@@ -542,6 +550,10 @@ async function onDelete() {
       </AdminSection>
 
       <p v-if="formError" class="text-danger small mb-2">{{ formError }}</p>
+
+      <div v-if="saveError" class="alert alert-warning br-app-notice" role="alert">
+        <div class="small">{{ saveError }}</div>
+      </div>
 
       <!-- Pegajosa abajo en mobile (br-app.css §7): el formulario es largo y si
            no hay que scrollear hasta el fondo para guardar. -->

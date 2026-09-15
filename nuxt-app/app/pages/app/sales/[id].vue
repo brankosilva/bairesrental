@@ -45,6 +45,7 @@ const newFiles = ref<File[]>([])
 const newUrls = ref<string[]>([])
 const urlDraft = ref('')
 const role = ref<string | null>(null)
+const saveError = ref('')
 
 const MAX_FOTOS = 20
 const TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa', 'PH']
@@ -241,6 +242,7 @@ async function onSubmit() {
   }
   saving.value = true
   savingNote.value = 'Guardando…'
+  saveError.value = ''
   try {
     const docId = isNew ? form.id.trim() : id
     if (!docId) {
@@ -313,9 +315,15 @@ async function onSubmit() {
       query: { saved: docId, kind: 'sale', ...(isNew ? { new: '1' } : {}) },
     })
   } catch (e) {
-    if (!(e instanceof DuplicateIdError)) throw e
-    idError.value = `Ya hay una venta con el ID "${e.duplicatedId}". Elegí otro.`
-    alert(`${idError.value}\n\nNo se guardó nada: la propiedad que ya tenía ese ID quedó intacta.`)
+    if (e instanceof DuplicateIdError) {
+      idError.value = `Ya hay una venta con el ID "${e.duplicatedId}". Elegí otro.`
+      alert(`${idError.value}\n\nNo se guardó nada: la propiedad que ya tenía ese ID quedó intacta.`)
+    } else {
+      // Sin esto, un rechazo de firestore.rules (o cualquier otro error) se
+      // perdía en silencio: el botón volvía a "Guardar" y parecía que no había
+      // pasado nada, sin ninguna pista de que el guardado falló.
+      saveError.value = e instanceof Error ? e.message : 'No se pudo guardar. Volvé a intentar.'
+    }
   } finally {
     saving.value = false
     savingNote.value = ''
@@ -604,6 +612,10 @@ async function onDelete() {
       </AdminSection>
 
       <p v-if="formError" class="text-danger small mb-2">{{ formError }}</p>
+
+      <div v-if="saveError" class="alert alert-warning br-app-notice" role="alert">
+        <div class="small">{{ saveError }}</div>
+      </div>
 
       <!-- Pegajosa abajo en mobile — ver rentals/[id].vue. Acá importa todavía
            más: este formulario es más largo y el guardado puede tardar minutos

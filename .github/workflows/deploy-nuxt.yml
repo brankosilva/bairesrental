@@ -44,6 +44,7 @@ on:
           - functions:nuxtssr
           - functions:default
           - reglas
+          - extensiones
 
 concurrency:
   group: deploy-firebase-bairesrental
@@ -237,6 +238,24 @@ jobs:
 
       - name: Estado de las functions antes del deploy
         run: firebase functions:list --project "$FIREBASE_PROJECT"
+
+      # Sin este paso la extensión NUNCA se instaló, aunque estuviera
+      # declarada en firebase.json y configurada en extensions/*.env desde
+      # que se escribió la feature de previews. Resultado: og:image apunta
+      # al derivado _1200x630 que la extensión tendría que generar, ese
+      # objeto no existe, y las 88 fichas publican un og:image que devuelve
+      # 404 — o sea, todos los links compartidos salen sin foto.
+      #
+      # Verificado antes de agregar esto: se reescribió una portada para
+      # disparar el trigger y el derivado no apareció (6 chequeos en ~1
+      # minuto, los 6 en 404).
+      #
+      # Va PRIMERO porque es lo único de lo que depende el backfill, y el
+      # backfill a su vez tiene que correr antes de que las fichas sirvan
+      # esas URLs.
+      - name: Deploy de extensiones (storage-resize-images)
+        if: env.TARGET == 'todo' || env.TARGET == 'extensiones'
+        run: firebase deploy --only extensions --project "$FIREBASE_PROJECT" --non-interactive
 
       - name: Deploy de reglas (Firestore + Storage)
         if: env.TARGET == 'todo' || env.TARGET == 'reglas'

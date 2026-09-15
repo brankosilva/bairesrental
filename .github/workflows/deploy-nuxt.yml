@@ -290,8 +290,18 @@ jobs:
           html=$(curl -sS --fail --retry 3 --retry-delay 5 \
                  -A 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)' "$url")
 
-          og_url=$(grep -o '<meta property="og:url" content="[^"]*"' <<< "$html" | head -1 | sed 's/.*content="//;s/"$//')
-          og_img=$(grep -o '<meta property="og:image" content="[^"]*"' <<< "$html" | head -1 | sed 's/.*content="//;s/"$//')
+          # OJO con el patrón: NO asumir que `property` es el primer atributo.
+          # @nuxtjs/i18n emite `<meta id="i18n-og-url" property="og:url" ...>`,
+          # así que un grep anclado a `<meta property="og:url"` no matchea nada
+          # y el test aborta diciendo que la ficha "salió sin og:url" cuando en
+          # realidad el tag está. Eso es lo que hizo fallar el deploy de v1.0.5
+          # DESPUÉS de haber desplegado todo bien.
+          meta_content() {
+            grep -o "<meta[^>]*property=\"$1\"[^>]*>" <<< "$html" \
+              | head -1 | grep -o 'content="[^"]*"' | head -1 | sed 's/^content="//;s/"$//'
+          }
+          og_url=$(meta_content 'og:url')
+          og_img=$(meta_content 'og:image')
           echo "og:url   = ${og_url:-<vacío>}"
           echo "og:image = ${og_img:-<vacío>}"
 

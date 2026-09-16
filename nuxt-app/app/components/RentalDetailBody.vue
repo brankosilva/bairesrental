@@ -46,6 +46,7 @@ const props = withDefaults(
 )
 
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 
 const heroImgError = ref(false)
 
@@ -71,14 +72,19 @@ const fotosLabel = computed(() => (props.rental.fotos ? t('detail.seeAllPhotos')
 // vendedor un mensaje citando a BairesRental desde una página que justamente
 // no la nombra en ningún lado. `hideBrandBadge` ya es la señal de white-label
 // para el badge y para el título de la hoja de compartir; acá hace lo mismo.
+// Para que el mensaje que llega por WhatsApp traiga el link directo a esta
+// ficha (y no sólo el título/barrio) — se omite en la página con marca del
+// vendedor, igual que el resto de las menciones a BairesRental (ver el
+// comentario de arriba).
+const fichaLink = computed(() => `https://www.bairesrental.com.ar${localePath(`/departamentos/${props.rental.id}`)}`)
+
 const waHref = computed(() => {
   const guardado = props.hideBrandBadge ? '' : props.rental.whatsappMsg
-  return whatsappUrl(
+  const base =
     props.contactMessage ||
-      guardado ||
-      `Hola! Me interesa el departamento "${props.rental.titulo}" en ${props.rental.barrio}. ¿Podés darme más información?`,
-    props.whatsappPhone,
-  )
+    guardado ||
+    `Hola! Me interesa el departamento "${props.rental.titulo}" en ${props.rental.barrio}. ¿Podés darme más información?`
+  return whatsappUrl(props.hideBrandBadge ? base : `${base}\n\n${fichaLink.value}`, props.whatsappPhone)
 })
 
 const { copied: shareCopied, share } = useShare()

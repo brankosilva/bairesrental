@@ -33,11 +33,12 @@ Schema por propiedad:
   "direccionUrl": "https://maps.app.goo.gl/... o google.com/maps/search",
   "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
-  "esPropio": false
+  "esPropio": false,
+  "revision": "aprobada"
 }
 ```
 
-Notas: `precio: 0` muestra "Consultar precio". `serviciosIncluidos: true` = incluye luz **y** wifi. Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en vez de la ficha interna. `lat`/`lng` son el pin del mapa del catálogo; los completa `resolve-map-coords.js`.
+Notas: `precio: 0` muestra "Consultar precio". `serviciosIncluidos: true` = incluye luz **y** wifi. Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en vez de la ficha interna. `lat`/`lng` son el pin del mapa del catálogo; los completa `resolve-map-coords.js`. Sobre `revision`, ver la sección de abajo.
 
 ## `sales` — ventas
 
@@ -68,11 +69,20 @@ Flujo **independiente** del de alquileres. Hasta 20 fotos por ficha, mostradas e
   "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "fichaUrl": "opcional — Zonaprop/Argenprop, botón secundario",
-  "esPropio": false
+  "esPropio": false,
+  "revision": "aprobada"
 }
 ```
 
 Notas: `superficie` es **obligatoria** (el script rechaza la carga sin ella; se usa como filtro "Superficie mín."). `fotos[0]` es la portada. `disponibilidad: "vendido"` se guarda para uso interno pero no se muestra en el catálogo público.
+
+## `revision` — qué está publicado y qué no
+
+Las dos colecciones llevan `revision: "pendiente" | "aprobada" | "rechazada"`. **Sólo lo aprobado sale al sitio.** Lo que carga un vendedor desde `/app/*` entra como `"pendiente"` y un admin lo aprueba o lo rechaza desde `/app/admin/revision`; lo que carga un admin —por el panel o por estos scripts— queda aprobado al instante.
+
+Acompañan tres campos que escribe únicamente el admin al revisar: `motivoRechazo` (el texto que el vendedor ve para corregir), `revisadaPor` y `revisadaEn`. Más `sellerUid` y `sellerNombre`, que dicen quién la cargó.
+
+**El campo no puede faltar.** El catálogo público, la home y el sitemap consultan con `where("revision","==","aprobada")`, y un `where` de igualdad no matchea documentos a los que les falta el campo: una propiedad sin `revision` desaparece del sitio sin dar ningún error. `firestore.rules` además sólo le deja leer a un visitante anónimo los documentos aprobados. Por eso `scripts/lib/catalogo.js` lo escribe siempre con default `"aprobada"`, y por eso existe `scripts/backfill-revision.js`, que lo completa en las propiedades viejas (idempotente; sin `--apply` sólo cuenta).
 
 ## Scripts de carga (`scripts/`)
 

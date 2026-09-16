@@ -61,13 +61,43 @@ no puedan divergir.
 
 | Archivo | De qué es dueño |
 |---|---|
-| `nuxt-app/functions/src/index.ts` | Todos los callables: `inviteUser`, `updateUser`, `deleteUser`, `createTrackableLink`, `ensureSellerLink`, `submitLead`, `uploadListingImage` |
+| `nuxt-app/functions/src/index.ts` | Todos los callables: `inviteUser`, `updateUser`, `deleteUser`, `createTrackableLink`, `ensureSellerLink`, `submitLead`, `uploadListingImage`, `importListingImage`, `importFromFicha` |
 | `nuxt-app/app/types/link.ts` | Forma de `links/{code}`, `links/{code}/opens/{id}` y `sellerProfiles/{uid}` |
 | `nuxt-app/app/utils/sellerScope.ts` | Qué publicaciones ve y comparte un vendedor (`isShareableBySeller`) y cuáles puede **editar** (`isOwnListing`) |
+| `nuxt-app/app/utils/revision.ts` | El estado de revisión y el predicado `estaPublicada()` |
 | `nuxt-app/app/composables/useLinkStats.ts` | Métricas y etiquetas compartidas entre la pantalla del vendedor y la del admin |
 | `nuxt-app/server/middleware/01.link-open.ts` | Cuenta las aperturas de `/l/*` (ve la request real del visitante) |
 | `nuxt-app/server/api/l/[code].get.ts` | Payload de la página compartida (Admin SDK: `links` no es público) |
 | `nuxt-app/firestore.rules` | Quién lee y escribe cada colección |
+
+### Aprobación de propiedades — las reglas del juego
+
+Lo que carga un vendedor **no sale al sitio hasta que un admin lo aprueba**.
+
+- Campo `revision` (`pendiente` / `aprobada` / `rechazada`) en `rentals` y
+  `sales`, más `motivoRechazo`, `revisadaPor` y `revisadaEn`, que escribe sólo
+  el admin. Quién la cargó: `sellerUid` + `sellerNombre` desnormalizado.
+- El vendedor carga y queda `pendiente`. **Editar una aprobada la vuelve a
+  mandar a revisión** — si no, se aprueba una ficha limpia y después le cambian
+  el texto. Cambiar sólo la disponibilidad NO la baja del sitio: es la excepción
+  explícita de `firestore.rules`.
+- El admin aprueba o rechaza desde `/app/admin/revision`. Rechazar pide motivo,
+  el vendedor lo ve en su panel, corrige y vuelve a la cola.
+- Lo que carga un admin —panel o scripts— queda aprobado al instante.
+
+**`revision` no puede faltar en un documento.** El catálogo, la home y el
+sitemap consultan con `where('revision','==','aprobada')`, y un `where` de
+igualdad no matchea documentos sin el campo: la propiedad desaparece del sitio
+sin dar error. Por eso `scripts/lib/catalogo.js` lo escribe siempre y existe
+`scripts/backfill-revision.js`.
+
+**Cuidado con la forma de la regla de lectura.** `list` no se evalúa documento
+por documento: Firestore analiza la *query* contra la regla y rebota la request
+entera si no puede probar que todo resultado pasa. Por eso la regla es la
+comparación literal `resource.data.revision == 'aprobada'` y las queries
+públicas llevan el `where`; una forma más "tolerante" con `.get(campo, default)`
+deja el catálogo público vacío. Y `isSignedIn()` va primero en el `||`: leer una
+clave inexistente en Rules es un **error**, no `false`.
 
 ### Links de vendedor — las reglas del juego
 
@@ -91,13 +121,17 @@ no puedan divergir.
    caracteres) y los largos de cada parte, en `functions/src/index.ts`
    (40 del slug personal + 30 del sufijo). Si no coinciden, el link anda pero
    sus aperturas no se cuentan en ningún lado.
-2. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
+2. **El parseo de ficha.info** vive en `scripts/lib/ficha.js` y otra vez, en
+   TypeScript, en `nuxt-app/functions/src/ficha.ts` — `functions/` es un paquete
+   aparte y no puede importar de `scripts/`. El mapeo tiene que dar lo mismo
+   desde la terminal que desde el panel.
+3. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
    en `createTrackableLink` y en la página compartida. `functions/` es un
    paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.
-3. **`label` / `labelLower`** son los campos de hoy; `recipientName` /
+4. **`label` / `labelLower`** son los campos de hoy; `recipientName` /
    `recipientNameLower` son los viejos, que se leen pero no se escriben. Todo
    lo que muestre el nombre de un link usa `linkLabel()`.
-4. **`firestore.rules`** enumera con `hasOnly()` los campos que el cliente
+5. **`firestore.rules`** enumera con `hasOnly()` los campos que el cliente
    puede tocar de un link. Un campo nuevo que el vendedor edite desde el
    navegador hay que agregarlo ahí o falla en silencio.
 
@@ -129,7 +163,7 @@ Preferencia explícita de Victor: **menos verificación local, más vueltas cort
 - Reportar corto: qué se cambió y dónde. Sin resúmenes largos ni checklists.
 - Para cambios de UI el loop rápido sigue siendo `npm run dev`, que es más barato que un deploy.
 
-**Cómo se mira lo deployado.** El deploy sale con un tag (`git tag v1.0.6 && git push origin v1.0.6`) o a mano desde Actions → *Deploy nuxt-app a Firebase*, eligiendo el target (`hosting` solo es bastante más rápido que `todo`). Ese workflow ya corre el build, el smoke test de la home y el chequeo de los `og:*`: **el CI es la verificación**, no hace falta duplicarla en local. Ojo que publica en el dominio real, no en un preview channel.
+**Cómo se mira lo deployado.** El deploy sale con un tag (`git tag v1.0.6 && git push origin v1.0.6`) o a mano desde Actions → *Deploy nuxt-app a Firebase*, eligiendo el target — pero ojo: `hosting` solo publica lo estático de `public/` (CSS, imágenes, PDFs) y tarda ~1:30; cualquier cambio en un `.vue` lo renderiza la function SSR, así que necesita `functions:nuxtssr`, que es justo la parte lenta. Ese workflow ya corre el build y, después de publicar, el smoke test de la home y el chequeo de los `og:*`: **el CI es la verificación**, no hace falta duplicarla en local. Los dos smoke tests son `continue-on-error`, así que un run verde no garantiza que el sitio renderice — si importa, mirar el log de esos pasos. Ojo que publica en el dominio real, no en un preview channel.
 
 **Dónde sigue valiendo verificar antes** — esto no es fallar rápido, es perder datos:
 
@@ -171,6 +205,7 @@ Hay dos caminos:
 
 | Script | Uso |
 |---|---|
+| `scripts/add-from-ficha.js` | **El camino corto**: recibe la URL de una ficha de ficha.info, la lee y agrega la propiedad a `rentals` |
 | `scripts/add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega a `rentals` |
 | `scripts/add-from-tencery.js` | Lo mismo desde un JSON exportado de Tencery |
 | `scripts/add-property.js` | Valida y agrega/actualiza una propiedad de alquiler ya en formato BairesRental |
@@ -179,12 +214,44 @@ Hay dos caminos:
 | `scripts/check-ficha-links.js` | Solo lectura: audita fichas de Tokko caídas o cedidas a otra inmobiliaria |
 | `scripts/resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa |
 | `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
+| `scripts/backfill-revision.js` | Marca `revision: 'aprobada'` en las propiedades viejas (dry-run; escribe con `--apply`) |
 
 Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`.
 
 ---
 
-### Flujo 1: Import desde Tokko Broker
+### Flujo 1: Import desde ficha.info (el camino corto)
+
+El usuario pega la URL de la ficha para colegas (`https://ficha.info/p/HASH?v=…`) y nada más.
+Guiado por el comando `/agregar-depto-ficha`.
+
+ficha.info es una app Next.js que trae **el JSON completo de Tokko embebido en el HTML**, así que
+una URL alcanza: el `id`, el precio, el barrio, el tipo, los amenities, la descripción, la portada
+y las coordenadas del mapa salen todos de ahí. `scripts/lib/ficha.js` reconstruye ese payload y
+`scripts/add-from-ficha.js` reusa el mapeo de `add-from-tokko.js`.
+
+```
+node scripts/add-from-ficha.js "<url>" --out scripts/temp-ficha.json   # revisar primero
+node scripts/add-from-ficha.js "<url>" --id alq-06 --minimo 3 --sin-mascotas --yes
+```
+
+Flags de override: `--id`, `--precio`, `--minimo`, `--mascotas` / `--sin-mascotas`,
+`--servicios` / `--sin-servicios`, `--barrio`, `--titulo`, `--imagen`, `--desde`, `--propio`.
+
+**El id que genera es `alq-NN`**, rellenando el primer número libre de la serie: se miran los docs
+de `rentals` cuyo id es exactamente `alq-<dígitos>` y se busca el hueco más bajo (con `alq-01`…
+`alq-05` y `alq-07` ocupados, el próximo es `alq-06`). Los ids históricos sucios (`alq-8315-`,
+`alq-PEDRO6767`, `alq-marie-11`) no matchean y quedan afuera del conteo.
+
+Lo que la ficha **no** dice y hay que preguntar: `mascotas`, `minimoMeses` y, a veces,
+`serviciosIncluidos` y `esPropio`. El script los lista con ⚠️.
+
+Lo mismo se puede hacer **sin Claude** desde el panel: `/app/rentals/new` tiene un campo para pegar
+el link, que llama al callable `importFromFicha` y autocompleta el formulario.
+
+---
+
+### Flujo 2: Import desde Tokko Broker
 
 El usuario obtiene el JSON de Tokko por su cuenta y lo pega directamente en el chat. Está guiado por el comando `/agregar-depto`.
 
@@ -244,7 +311,7 @@ node scripts/add-property.js scripts/temp-mapped.json
 
 ---
 
-### Flujo 2: Import desde texto de PDF
+### Flujo 3: Import desde texto de PDF
 
 El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede adjuntar una foto.
 
@@ -281,7 +348,8 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
   "direccionUrl": "https://maps.app.goo.gl/...",
   "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
-  "esPropio": false
+  "esPropio": false,
+  "revision": "aprobada"
 }
 ```
 
@@ -341,7 +409,8 @@ Flujo **independiente** del de alquileres — propiedades en venta, con hasta **
   "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "fichaUrl": "https://... (opcional — Zonaprop/Argenprop, botón secundario en la ficha)",
-  "esPropio": false
+  "esPropio": false,
+  "revision": "aprobada"
 }
 ```
 

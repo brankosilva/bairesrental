@@ -62,3 +62,19 @@ export function ownFirst<T extends SellerScoped & { titulo?: string }>(uid: stri
     return rank !== 0 ? rank : (a.titulo || '').localeCompare(b.titulo || '', 'es')
   }
 }
+
+/**
+ * Como ownFirst(), pero antes le da prioridad a lo que administra BairesRental
+ * (`esPropio`) — a pedido, para que la lista del panel del vendedor muestre
+ * primero el inventario propio y recién después lo suyo y lo de sus colegas.
+ * Sólo la usa esa lista; la página compartida (/l/:code) sigue con ownFirst().
+ */
+export function catalogOrder<T extends SellerScoped & { titulo?: string; esPropio?: boolean }>(
+  uid: string | null | undefined,
+) {
+  const ordenPropio = ownFirst<T>(uid)
+  return (a: T, b: T): number => {
+    const rank = Number(!!b.esPropio) - Number(!!a.esPropio)
+    return rank !== 0 ? rank : ordenPropio(a, b)
+  }
+}

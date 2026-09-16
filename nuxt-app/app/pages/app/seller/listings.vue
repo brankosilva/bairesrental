@@ -113,8 +113,8 @@ onMounted(async () => {
   // rechazaron — que son justamente las únicas que necesita mirar.
   // Compartirla sigue sin poder: eso lo decide isShareableBySeller().
   const visible = (p: RentalRow | SaleRow) => isShareableBySeller(p, uid.value) || isOwnListing(p, uid.value)
-  rentals.value = r.filter(visible).sort(ownFirst(uid.value))
-  sales.value = s.filter(visible).sort(ownFirst(uid.value))
+  rentals.value = r.filter(visible).sort(catalogOrder(uid.value))
+  sales.value = s.filter(visible).sort(catalogOrder(uid.value))
   loading.value = false
 })
 
@@ -157,6 +157,13 @@ function fichaRentalHref(r: RentalRow): string {
 
 function fichaSaleHref(s: SaleRow): string {
   return canShare(s) ? `/ventas/${s.id}` : ''
+}
+
+// "Disponible desde" formateado, mismo criterio que la ficha pública
+// (RentalDetailBody.vue): sólo si está disponible y tiene fecha cargada.
+const { locale } = useI18n()
+function disponibleDesdeLabel(r: RentalRow): string {
+  return r.disponibilidad === 'disponible' && r.disponibleDesde ? formatLongDate(r.disponibleDesde, locale.value) : ''
 }
 
 // Prellenado del formulario de /app/seller/links. No genera el link de una
@@ -284,6 +291,10 @@ function shareTo(id: string, k: PropertyKind) {
           :edit-to="mine(r) ? `/app/rentals/${r.id}` : ''"
           :share-to="canShare(r) ? shareTo(r.id, 'rental') : ''"
           :extra="originLabel(r)"
+          :direccion="r.direccion"
+          price-suffix="/mes"
+          :disponible-desde-label="disponibleDesdeLabel(r)"
+          :servicios-incluidos="r.serviciosIncluidos"
           :revision="revisionDe(r)"
           :motivo-rechazo="r.motivoRechazo"
           :highlight="r.id === rSavedId"
@@ -314,6 +325,7 @@ function shareTo(id: string, k: PropertyKind) {
           :edit-to="mine(s) ? `/app/sales/${s.id}` : ''"
           :share-to="canShare(s) ? shareTo(s.id, 'sale') : ''"
           :extra="originLabel(s)"
+          :direccion="s.direccion"
           :revision="revisionDe(s)"
           :motivo-rechazo="s.motivoRechazo"
           :highlight="s.id === sSavedId"

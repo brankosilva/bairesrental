@@ -51,6 +51,16 @@ const props = withDefaults(
     shareTo?: string
     /** Línea accesoria: vendedor asignado (admin) o fecha de actualización (dueño). */
     extra?: string
+    /** Dirección (calle y número). Vacía = sin línea. */
+    direccion?: string
+    /** Sufijo del precio, ej. "/mes" en alquileres. Vacío = sin sufijo (ventas). */
+    priceSuffix?: string
+    /** "Disponible desde" ya formateado (la página resuelve el locale y decide
+        si corresponde mostrarlo según disponibilidad). Vacío = sin línea. */
+    disponibleDesdeLabel?: string
+    /** Sólo alquileres: si el precio incluye luz y wifi. `null` = no aplica
+        (ventas) y no dibuja nada; con `true`/`false` sí, aunque sea `false`. */
+    serviciosIncluidos?: boolean | null
     /** Estado de revisión. Sólo se dibuja el chip cuando NO está publicada: en
         una lista donde casi todo está aprobado, un chip "publicada" en cada
         fila es ruido: lo que hay que ver de un vistazo es lo que falta revisar.
@@ -81,6 +91,10 @@ const props = withDefaults(
     fichaTo: '',
     shareTo: '',
     extra: '',
+    direccion: '',
+    priceSuffix: '',
+    disponibleDesdeLabel: '',
+    serviciosIncluidos: null,
     revision: 'aprobada',
     motivoRechazo: null,
     readonly: false,
@@ -150,13 +164,28 @@ function onChange(e: Event) {
       <div class="br-app-card-titulo">{{ titulo }}</div>
       <div class="br-app-card-meta">{{ barrio }} · {{ tipo }}</div>
       <div class="br-app-card-id">{{ id }}<template v-if="extra"> · {{ extra }}</template></div>
+      <div v-if="direccion" class="br-app-card-direccion">{{ direccion }}</div>
+      <div v-if="disponibleDesdeLabel || serviciosIncluidos !== null" class="br-app-card-tags">
+        <span v-if="disponibleDesdeLabel" class="br-app-card-desde">Disponible desde {{ disponibleDesdeLabel }}</span>
+        <span
+          v-if="serviciosIncluidos !== null"
+          class="br-app-tag-servicios"
+          :class="{ 'is-aparte': !serviciosIncluidos }"
+        >
+          {{ serviciosIncluidos ? 'Servicios incluidos' : 'Servicios aparte' }}
+        </span>
+      </div>
       <div v-if="revision !== 'aprobada'" class="br-app-card-revision">
         <span class="br-app-status-tag" :class="revisionClass(revision)">{{ revisionLabel(revision) }}</span>
         <span v-if="revision === 'rechazada' && motivoRechazo" class="br-app-card-motivo">{{ motivoRechazo }}</span>
       </div>
     </div>
 
-    <div class="br-app-card-price">{{ formatPrice(precio, moneda) }}</div>
+    <div class="br-app-card-price">
+      {{ formatPrice(precio, moneda) }}<span v-if="priceSuffix && precio > 0" class="br-app-card-price-suffix">{{
+        priceSuffix
+      }}</span>
+    </div>
 
     <div class="br-app-card-status">
       <span v-if="readonly || statusReadonly" class="br-app-status-tag" :class="statusClass">{{ disponibilidad }}</span>

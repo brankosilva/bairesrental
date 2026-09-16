@@ -471,6 +471,43 @@
   white-space: nowrap;
 }
 
+.br-app-card-direccion {
+  font-size: 12px;
+  color: var(--br-app-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* "Disponible desde" y el tag de servicios — sólo alquileres (props
+   opcionales de PropertyAdminCard.vue; en ventas no se pasan). */
+.br-app-card-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.br-app-card-desde {
+  font-size: 12px;
+  color: var(--br-app-mute);
+}
+.br-app-tag-servicios {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e7f6ec;
+  color: #14652f;
+}
+.br-app-tag-servicios.is-aparte {
+  background: #fdf1dd;
+  color: #8a5200;
+}
+
 /* Estado de revisión de una publicación que todavía no salió al sitio. Va
    dentro de la columna de info y NO en .br-app-card-status, que es la columna
    angosta del <select> de disponibilidad: son dos ejes distintos (si está
@@ -502,6 +539,12 @@
   font-weight: 700;
   color: #111;
   white-space: nowrap;
+}
+.br-app-card-price-suffix {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--br-app-mute);
+  margin-left: 2px;
 }
 
 .br-app-card-status {

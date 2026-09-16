@@ -840,7 +840,15 @@ async function saveListingImage(
   const bucket = getStorage().bucket()
   await bucket.file(path).save(buffer, { contentType, metadata: { cacheControl: 'public, max-age=31536000' } })
 
-  return { url: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media` }
+  // fileName es fijo por propiedad (p.ej. "cover.jpg"), así que reemplazar la
+  // foto pisa el mismo path y devolvería la misma URL de siempre. Con
+  // cacheControl de 1 año, el navegador (y el CDN de Storage) seguirían
+  // sirviendo la imagen vieja para esa URL aunque el objeto ya cambió — de
+  // ahí el `?t=`, que la vuelve única en cada subida y fuerza a bajar la
+  // versión nueva.
+  return {
+    url: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&t=${Date.now()}`,
+  }
 }
 
 interface ImportListingImageRequest {

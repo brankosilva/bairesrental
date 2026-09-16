@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { collection, getDocs, query, where, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { useFirestore } from 'vuefire'
-import { getFunctions, httpsCallable } from 'firebase/functions'
 import type { RentalProperty, SaleProperty } from '~/types/property'
 import type { LinkChannel, LinkOpenEvent, LinkOutcome, SellerProfile } from '~/types/link'
 import { LINK_CHANNELS, LINK_OUTCOMES } from '~/types/link'
@@ -59,10 +58,6 @@ const { linkUrl } = useLinkUrl()
 
 type RentalRow = RentalProperty & { id: string; sellerUid?: string | null }
 type SaleRow = SaleProperty & { id: string; sellerUid?: string | null }
-
-function callable<Req, Res>(name: string) {
-  return httpsCallable<Req, Res>(getFunctions(useFirebaseApp(), 'southamerica-east1'), name)
-}
 
 const links = ref<LinkRow[]>([])
 const rentals = ref<RentalRow[]>([])

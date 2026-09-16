@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getFunctions, httpsCallable } from 'firebase/functions'
 
 // Ported from app/src/pages/app/admin/Users.vue, which was role assignment
 // only (a select + Guardar per row). N8 turns it into the full CRUD the
@@ -24,10 +23,6 @@ interface UserDoc {
   phone?: string | null
   role: Role | null
   disabled?: boolean
-}
-
-function callable<Req, Res>(name: string) {
-  return httpsCallable<Req, Res>(getFunctions(useFirebaseApp(), 'southamerica-east1'), name)
 }
 
 const me = useCurrentUser()

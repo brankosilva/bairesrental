@@ -5,8 +5,9 @@ import type { Availability } from '~/utils/availability'
 import { revisionDe } from '~/utils/revision'
 
 // Ported from app/src/pages/app/admin/SalesList.vue — see rentals.vue's
-// sibling comment for why client-fetch-on-mount is fine here, y para el
-// cambio de N9 (cards + disponibilidad desde la lista, sin botón de eliminar).
+// sibling comment for why client-fetch-on-mount is fine here, para el
+// cambio de N9 (cards + disponibilidad desde la lista) y para el botón de
+// eliminar (`allowDelete`, admin nada más).
 // Los filtros son los mismos que allá — usePropertyFilters() +
 // <AdminPropertyFilters>.
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['admin'] })
@@ -23,6 +24,7 @@ interface UserDoc {
 const sales = ref<Row[]>([])
 const users = ref<UserDoc[]>([])
 const loading = ref(true)
+const deletingId = ref('')
 
 const { savingId, notice, setAvailability } = useAvailability('sales')
 const { search, tipos, disponibilidad, propio, tipoOptions, availabilityOptions, matches, activeCount, clear } =
@@ -57,6 +59,17 @@ function sellerLabel(s: Row): string {
 // está, igual que en la ficha pública.
 function fichaHref(s: Row): string {
   return s.fichaUrl || `/ventas/${s.id}`
+}
+
+async function onDelete(s: Row) {
+  if (!confirm(`¿Eliminar "${s.titulo}"? Esta acción no se puede deshacer.`)) return
+  deletingId.value = s.id
+  try {
+    await removeOne('sales', s.id)
+    sales.value = sales.value.filter((x) => x.id !== s.id)
+  } finally {
+    deletingId.value = ''
+  }
 }
 </script>
 
@@ -122,7 +135,10 @@ function fichaHref(s: Row): string {
           :motivo-rechazo="s.motivoRechazo"
           :highlight="s.id === savedId"
           :saving="savingId === s.id"
+          allow-delete
+          :deleting="deletingId === s.id"
           @change="(v: Availability) => setAvailability(s, v)"
+          @delete="onDelete(s)"
         />
       </div>
 

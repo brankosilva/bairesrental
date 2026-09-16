@@ -11,9 +11,9 @@ import { revisionDe } from '~/utils/revision'
 //
 // N9: la tabla de 6 columnas dentro de .table-responsive pasó a ser una lista
 // de <PropertyAdminCard>, y la disponibilidad se cambia desde acá sin entrar
-// al formulario (useAvailability). El botón de eliminar ya no está en la
-// lista: vive dentro del formulario de cada propiedad — ver el comentario del
-// componente.
+// al formulario (useAvailability). El botón de eliminar volvió a la lista
+// (antes vivía sólo dentro del formulario) — sigue existiendo ahí también,
+// éste es un atajo para admin nada más (`allowDelete`, ver el componente).
 //
 // Los filtros (tipo / gestión / disponibilidad) son los mismos que en
 // admin/sales: el estado está en usePropertyFilters() y el markup en
@@ -32,6 +32,7 @@ interface UserDoc {
 const rentals = ref<Row[]>([])
 const users = ref<UserDoc[]>([])
 const loading = ref(true)
+const deletingId = ref('')
 
 const { savingId, notice, setAvailability } = useAvailability('rentals')
 const { search, tipos, disponibilidad, propio, tipoOptions, availabilityOptions, matches, activeCount, clear } =
@@ -76,6 +77,17 @@ function sellerLabel(r: Row): string {
 // que siempre existe — es lo que se manda por WhatsApp igual.
 function fichaHref(r: Row): string {
   return r.fichaUrl || r.fotos || `/departamentos/${r.id}`
+}
+
+async function onDelete(r: Row) {
+  if (!confirm(`¿Eliminar "${r.titulo}"? Esta acción no se puede deshacer.`)) return
+  deletingId.value = r.id
+  try {
+    await removeOne('rentals', r.id)
+    rentals.value = rentals.value.filter((x) => x.id !== r.id)
+  } finally {
+    deletingId.value = ''
+  }
 }
 </script>
 
@@ -142,7 +154,10 @@ function fichaHref(r: Row): string {
           :motivo-rechazo="r.motivoRechazo"
           :highlight="r.id === savedId"
           :saving="savingId === r.id"
+          allow-delete
+          :deleting="deletingId === r.id"
           @change="(v: Availability) => setAvailability(r, v)"
+          @delete="onDelete(r)"
         />
       </div>
 

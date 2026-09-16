@@ -18,9 +18,12 @@ import { revisionClass, revisionLabel, type EstadoRevision } from '~/utils/revis
 // portada la resuelve la página que usa el componente y acá entra ya resuelta
 // como `thumb`.
 //
-// NO tiene botón de eliminar, a propósito. Con targets de 44px y una miniatura
-// al lado, "Eliminar" pegado a "Editar" es el mis-tap garantizado; el borrado
-// sigue existiendo dentro de cada formulario, un toque más adentro.
+// El botón de eliminar es opt-in (`allowDelete`) y sólo lo pasan admin/rentals
+// y admin/sales — esas páginas ya son `allowedRoles: ['admin']`, así que un
+// vendedor ni siquiera puede llegar a esta lista. seller/listings, owner/index
+// y admin/revision no lo pasan y no lo ven. Contra el mis-tap con "Editar" al
+// lado (motivo original de no tenerlo acá) va en rojo, aparte, y la página que
+// lo usa pide confirm() antes de llamarlo — ver admin/rentals.vue.
 const props = withDefaults(
   defineProps<{
     kind: PropertyKind
@@ -40,9 +43,11 @@ const props = withDefaults(
     /** Ruta interna para generar un link con la marca del vendedor. Vacía = sin
         botón.
 
-        La columna de acciones entra tres botones (144px, ver br-app.css §4):
-        ficha, compartir y editar juntos, que es lo que muestra la lista del
-        vendedor. Un cuarto se saldría de la grilla en desktop. */
+        La columna de acciones entra tres botones (144px, ver br-app.css §4).
+        La lista del vendedor usa ficha + compartir + editar; admin/rentals y
+        admin/sales usan ficha + editar + eliminar (`allowDelete`). Ninguna
+        pantalla hoy combina los cuatro — eso sí se saldría de la grilla en
+        desktop. */
     shareTo?: string
     /** Línea accesoria: vendedor asignado (admin) o fecha de actualización (dueño). */
     extra?: string
@@ -65,6 +70,10 @@ const props = withDefaults(
         que el cartel de <SavedPropertyNotice> tenga a qué apuntar. */
     highlight?: boolean
     saving?: boolean
+    /** Admin-only: dibuja el botón de eliminar. Ver el comentario de arriba. */
+    allowDelete?: boolean
+    /** Deshabilita el botón de eliminar mientras esa fila se está borrando. */
+    deleting?: boolean
   }>(),
   {
     thumb: '',
@@ -78,10 +87,12 @@ const props = withDefaults(
     statusReadonly: false,
     highlight: false,
     saving: false,
+    allowDelete: false,
+    deleting: false,
   },
 )
 
-const emit = defineEmits<{ change: [value: Availability] }>()
+const emit = defineEmits<{ change: [value: Availability]; delete: [] }>()
 
 const selectEl = ref<HTMLSelectElement | null>(null)
 const options = computed(() => AVAILABILITY_OPTIONS[props.kind])
@@ -196,6 +207,17 @@ function onChange(e: Event) {
       >
         <i class="bi bi-pencil"></i>
       </NuxtLink>
+      <button
+        v-if="allowDelete"
+        type="button"
+        class="btn btn-outline-danger br-app-icon-btn"
+        :disabled="deleting"
+        :aria-label="`Eliminar ${titulo}`"
+        title="Eliminar"
+        @click="emit('delete')"
+      >
+        <i class="bi bi-trash"></i>
+      </button>
     </div>
   </div>
 </template>

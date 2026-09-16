@@ -55,6 +55,10 @@ interface Row {
   coords: [number, number] | null
   haystack: string
   href: string
+  direccion: string
+  disponibleDesde: string
+  /** Sólo alquileres: null en ventas, para no dibujar el tag. */
+  serviciosIncluidos: boolean | null
 }
 
 function toRow(p: Record<string, unknown>, kind: Kind): Row {
@@ -77,6 +81,9 @@ function toRow(p: Record<string, unknown>, kind: Kind): Row {
     coords: coordsFor(r),
     haystack: [r.titulo, r.barrio, r.tipo, r.descripcion, r.direccion].filter(Boolean).join(' ').toLowerCase(),
     href: `/l/${props.code}/${encodeURIComponent(r.id)}`,
+    direccion: r.direccion || '',
+    disponibleDesde: kind === 'rental' && r.disponibilidad === 'disponible' ? r.disponibleDesde || '' : '',
+    serviciosIncluidos: kind === 'rental' ? !!r.serviciosIncluidos : null,
   }
 }
 
@@ -245,6 +252,36 @@ const activeFilterCount = computed(() => {
 
 function precioLabel(r: Row) {
   return r.precio > 0 ? `${r.moneda} ${r.precio.toLocaleString('es-AR')}` : 'Consultar precio'
+}
+
+function disponibleDesdeLabel(r: Row) {
+  return r.disponibleDesde ? formatLongDate(r.disponibleDesde, 'es') : ''
+}
+
+// Compartir UNA propiedad puntual del catálogo — share nativo si el
+// navegador lo tiene (celular), si no copia el link. Distinto del "Compartir
+// con mi marca" del panel del vendedor: esto es para que el visitante de
+// esta página le reenvíe una propiedad a alguien, no genera un link
+// rastreable nuevo.
+const toast = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | undefined
+function showToast(msg: string) {
+  toast.value = msg
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => (toast.value = ''), 2200)
+}
+async function onShare(r: Row) {
+  const url = `${window.location.origin}${r.href}`
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: `${r.titulo} — BairesRental`, url })
+    } catch {
+      // el visitante cerró la hoja de compartir nativa — no hay nada que hacer
+    }
+  } else {
+    await navigator.clipboard.writeText(url)
+    showToast('Link copiado al portapapeles ✓')
+  }
 }
 
 // ── Vista Lista / Mapa ────────────────────────────────
@@ -494,13 +531,41 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                 <span v-else>📷</span>
                 <div class="br-brand-card-tags">
                   <span v-if="p.kind === 'sale'" class="br-brand-tag br-brand-tag-venta">Venta</span>
-                  <span v-if="p.disponibilidad === 'reservado'" class="br-brand-tag br-brand-tag-reservado">Reservado</span>
+                  <span
+                    class="br-brand-tag"
+                    :class="p.disponibilidad === 'reservado' ? 'br-brand-tag-reservado' : 'br-brand-tag-disponible'"
+                  >
+                    {{ p.disponibilidad === 'reservado' ? 'Reservado' : 'Disponible' }}
+                  </span>
                 </div>
+                <button
+                  type="button"
+                  class="br-brand-card-share"
+                  :aria-label="`Compartir ${p.titulo}`"
+                  title="Compartir"
+                  @click.stop.prevent="onShare(p)"
+                >
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                    <line x1="8.6" y1="10.6" x2="15.4" y2="6.4" /><line x1="8.6" y1="13.4" x2="15.4" y2="17.6" />
+                  </svg>
+                </button>
               </div>
               <div class="br-brand-card-body">
                 <span class="br-brand-card-loc">{{ [p.barrio, p.tipo].filter(Boolean).join(' · ') }}</span>
+                <span v-if="p.direccion" class="br-brand-card-direccion">{{ p.direccion }}</span>
                 <strong class="br-brand-card-title">{{ p.titulo }}</strong>
-                <span class="br-brand-card-price">{{ precioLabel(p) }}</span>
+                <span v-if="disponibleDesdeLabel(p)" class="br-brand-card-desde">Disponible desde {{ disponibleDesdeLabel(p) }}</span>
+                <span class="br-brand-card-price-row">
+                  <span class="br-brand-card-price">{{ precioLabel(p)
+                    }}<template v-if="p.kind === 'rental' && p.precio > 0">/mes</template></span>
+                  <span
+                    v-if="p.serviciosIncluidos !== null"
+                    :class="p.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'"
+                  >
+                    {{ p.serviciosIncluidos ? 'Servicios incluidos' : 'Servicios aparte' }}
+                  </span>
+                </span>
               </div>
             </NuxtLink>
           </div>
@@ -517,5 +582,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
         {{ sinUbicar === 1 ? '1 propiedad no tiene ubicación cargada y no aparece en el mapa.' : `${sinUbicar} propiedades no tienen ubicación cargada y no aparecen en el mapa.` }}
       </p>
     </main>
+
+    <div class="br-brand-toast" v-show="toast">{{ toast }}</div>
   </div>
 </template>

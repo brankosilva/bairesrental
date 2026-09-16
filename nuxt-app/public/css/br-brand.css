@@ -602,8 +602,34 @@
 .br-brand-tag-venta {
   background: color-mix(in srgb, var(--br-brand-accent) 88%, transparent);
 }
+.br-brand-tag-disponible {
+  background: rgba(22, 163, 74, 0.9);
+}
 .br-brand-tag-reservado {
   background: rgba(217, 119, 6, 0.9);
+}
+
+/* Círculo de compartir sobre la portada, opuesto a los tags (arriba a la
+   derecha). Va dentro del <NuxtLink> de la card — @click.stop.prevent en el
+   template evita que ese click también navegue a la ficha. */
+.br-brand-card-share {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(17, 17, 17, 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+.br-brand-card-share:hover {
+  background: rgba(17, 17, 17, 0.75);
 }
 
 .br-brand-card-body {
@@ -621,13 +647,33 @@
   color: var(--br-brand-mute);
 }
 
+.br-brand-card-direccion {
+  font-size: 12px;
+  color: var(--br-brand-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .br-brand-card-title {
   font-size: 15px;
   line-height: 1.3;
 }
 
-.br-brand-card-price {
+.br-brand-card-desde {
+  font-size: 11.5px;
+  color: var(--br-brand-mute);
+}
+
+.br-brand-card-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
   margin-top: 2px;
+}
+
+.br-brand-card-price {
   font-size: 17px;
   font-weight: 700;
   color: var(--br-brand-accent);
@@ -643,4 +689,22 @@
   text-align: center;
   color: var(--br-brand-mute);
   font-family: 'DM Sans', sans-serif;
+}
+
+/* Confirmación de "Compartir" cuando no hay share nativo (desktop) y se
+   copia el link — mismo patrón que .br-toast del catálogo público. */
+.br-brand-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 100px;
+  z-index: 2000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }

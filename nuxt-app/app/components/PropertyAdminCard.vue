@@ -40,9 +40,9 @@ const props = withDefaults(
     /** Ruta interna para generar un link con la marca del vendedor. Vacía = sin
         botón.
 
-        LA COLUMNA DE ACCIONES ENTRA DOS BOTONES (94px, ver br-app.css §4), así
-        que una misma lista usa `fichaTo` o `shareTo`, no los dos: el tercero se
-        sale de la grilla en desktop. */
+        La columna de acciones entra tres botones (144px, ver br-app.css §4):
+        ficha, compartir y editar juntos, que es lo que muestra la lista del
+        vendedor. Un cuarto se saldría de la grilla en desktop. */
     shareTo?: string
     /** Línea accesoria: vendedor asignado (admin) o fecha de actualización (dueño). */
     extra?: string

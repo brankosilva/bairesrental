@@ -145,6 +145,22 @@ function canShare(p: RentalRow | SaleRow) {
   return revisionDe(p) === 'aprobada'
 }
 
+// A dónde manda el botón de ficha, con la misma precedencia que las listas de
+// admin: primero el link directo si lo hay (Airbnb, Booking), en alquileres el
+// álbum de ficha.info que se le pasa a los colegas, y si no la ficha del propio
+// sitio. En ventas NO se usa `fotos`: ahí es un string[] de URLs de Storage y
+// apuntarle abriría una imagen suelta; la galería está en la ficha pública.
+//
+// La caída a la ficha del sitio sólo vale si está aprobada: la de un vendedor
+// que todavía está en revisión no existe para el público y daría 404.
+function fichaRentalHref(r: RentalRow): string {
+  return r.fichaUrl || r.fotos || (canShare(r) ? `/departamentos/${r.id}` : '')
+}
+
+function fichaSaleHref(s: SaleRow): string {
+  return s.fichaUrl || (canShare(s) ? `/ventas/${s.id}` : '')
+}
+
 // Prellenado del formulario de /app/seller/links. No genera el link de una
 // porque ahí se le pone nombre, canal y nota: se llega al formulario con la
 // publicación ya elegida. Para compartir el catálogo entero no hace falta
@@ -166,6 +182,7 @@ function shareTo(id: string, k: PropertyKind) {
 
     <p class="text-muted small mb-2">
       El catálogo completo: el de BairesRental, las tuyas y las que cargaron tus colegas. Con
+      <i class="bi bi-box-arrow-up-right"></i> abrís la ficha con las fotos y con
       <i class="bi bi-link-45deg"></i> generás el link de una publicación con tu nombre y tu WhatsApp; las que no son
       tuyas las compartís igual, pero las edita quien las cargó.
     </p>
@@ -265,6 +282,7 @@ function shareTo(id: string, k: PropertyKind) {
           :moneda="r.moneda"
           :disponibilidad="r.disponibilidad"
           :thumb="r.imagen"
+          :ficha-to="fichaRentalHref(r)"
           :edit-to="mine(r) ? `/app/rentals/${r.id}` : ''"
           :share-to="canShare(r) ? shareTo(r.id, 'rental') : ''"
           :extra="originLabel(r)"
@@ -294,6 +312,7 @@ function shareTo(id: string, k: PropertyKind) {
           :moneda="s.moneda"
           :disponibilidad="s.disponibilidad"
           :thumb="s.fotos?.[0] || ''"
+          :ficha-to="fichaSaleHref(s)"
           :edit-to="mine(s) ? `/app/sales/${s.id}` : ''"
           :share-to="canShare(s) ? shareTo(s.id, 'sale') : ''"
           :extra="originLabel(s)"

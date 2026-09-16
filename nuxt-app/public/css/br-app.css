@@ -400,8 +400,9 @@
   display: grid;
   /* La columna de acciones es fija y no `auto`: cada card es su propio grid,
      así que con `auto` las filas con un solo botón desalinearían la columna
-     respecto de las que tienen dos. */
-  grid-template-columns: 72px minmax(0, 1fr) 130px 168px 94px;
+     respecto de las que tienen dos. 144px = tres botones de 44px: ficha,
+     compartir y editar, que es lo que lleva la lista del vendedor. */
+  grid-template-columns: 72px minmax(0, 1fr) 130px 168px 144px;
   grid-template-areas: 'thumb info price status actions';
   gap: 12px;
   align-items: center;

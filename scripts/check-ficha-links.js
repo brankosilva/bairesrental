@@ -15,50 +15,19 @@
 const fs = require('fs');
 
 const { leerCatalogo } = require('./lib/catalogo');
+const { fetchFicha, estadoDeFicha, esDisponibleSegunTokko, MI_INMOBILIARIA_TOKKO } = require('./lib/ficha');
+
 const DELAY_MS = 400; // pausa entre requests para no saturar ficha.info
-
-// Nombre de la inmobiliaria/cuenta Tokko bajo la que se publican las fichas.
-// Si una ficha muestra una "company" distinta, se marca como sospechosa
-// (indicaría que la propiedad pasó a otra cuenta/agencia dentro de Tokko).
-const MI_INMOBILIARIA_TOKKO = 'GO NEGOCIOS INMOBILIARIOS';
-
-function extraer(html, campo, prevCampo) {
-  // El HTML de ficha.info trae el JSON de Tokko embebido con comillas escapadas
-  // (self.__next_f.push([1,"...\"status\":{\"id\":4,\"name\":\"No disponible\"}..."]))
-  const patrones = {
-    status: /\\"status\\":\{\\"id\\":\d+,\\"name\\":\\"([^"\\]+)\\"/,
-    company: /\\"company\\":\{\\"id\\":\d+,\\"name\\":\\"([^"\\]+)\\"/,
-    branch: /\\"branch\\":\{\\"phone\\":\\"[^"\\]*\\",\\"name\\":\\"([^"\\]+)\\"/,
-    active: /\\"active\\":(true|false)/
-  };
-  const m = html.match(patrones[campo]);
-  return m ? m[1] : null;
-}
 
 async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Tokko no usa un booleano simple: el campo "status" puede venir como
-// "Disponible", "No disponible", "Tasación", "Alquilada", etc. Cualquier
-// valor que no sea exactamente "disponible" cuenta como NO disponible.
-// OJO: no uses /disponible/i.test(status) para esto — "No disponible"
-// también matchea esa regex por contener la palabra "disponible", lo que
-// hace que el chequeo nunca detecte una ficha caída. Ya pasó antes.
-function esDisponibleSegunTokko(status) {
-  if (!status) return null;
-  return /^disponible$/i.test(status.trim());
-}
-
 async function revisarFicha(url, disponibilidadLocal) {
   try {
-    const resp = await fetch(url, { redirect: 'follow' });
-    if (!resp.ok) {
-      return { ok: false, motivo: `HTTP ${resp.status}` };
-    }
-    const html = await resp.text();
-    const status = extraer(html, 'status');
-    const company = extraer(html, 'company');
-    const branch = extraer(html, 'branch');
-    const active = extraer(html, 'active');
+    // El parseo del HTML de ficha.info vive en lib/ficha.js — reconstruye el
+    // payload de Next.js y devuelve el JSON de Tokko entero. Antes eran regex
+    // sobre las comillas escapadas del HTML crudo.
+    const ficha = await fetchFicha(url);
+    const { status, company, branch, active } = estadoDeFicha(ficha);
 
     if (!status && !company) {
       return { ok: false, motivo: 'No se pudo leer el contenido de la ficha (formato cambiado o vacía)' };
@@ -76,14 +45,14 @@ async function revisarFicha(url, disponibilidadLocal) {
       problemas.push(`Tokko muestra un estado distinto a disponible/no disponible: "${status}" (coincide con local, revisar igual)`);
     }
 
-    if (active === 'false') problemas.push('ficha marcada inactiva en Tokko');
+    if (active === false) problemas.push('ficha marcada inactiva en Tokko');
     if (MI_INMOBILIARIA_TOKKO && company && !company.toLowerCase().includes(MI_INMOBILIARIA_TOKKO.toLowerCase())) {
       problemas.push(`aparece otra inmobiliaria: "${company}"${branch ? ' / ' + branch : ''}`);
     }
 
     return { ok: true, status, company, branch, problemas };
   } catch (e) {
-    return { ok: false, motivo: `Error de red: ${e.message}` };
+    return { ok: false, motivo: e.message };
   }
 }
 

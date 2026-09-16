@@ -46,3 +46,21 @@ export async function uploadPropertyImage(
   })
   return data.url
 }
+
+// La otra mitad del par: en vez de subir un archivo, le pasamos un link y la
+// function se baja la foto y la guarda en nuestro Storage. `fileName` va sin
+// extensión — la pone el server según lo que devuelva el origen.
+export async function importPropertyImageFromUrl(
+  collectionName: 'rentals' | 'sales',
+  propertyId: string,
+  fileName: string,
+  sourceUrl: string,
+): Promise<string> {
+  const importListingImage = httpsCallable<
+    { collectionName: string; propertyId: string; fileName: string; sourceUrl: string },
+    { url: string }
+  >(getFunctions(useFirebaseApp(), 'southamerica-east1'), 'importListingImage')
+
+  const { data } = await importListingImage({ collectionName, propertyId, fileName, sourceUrl })
+  return data.url
+}

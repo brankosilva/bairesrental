@@ -20,6 +20,7 @@ import { initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
+import { esUrlDeFicha, fetchFicha, fichaToRental, proximoIdAlq } from './ficha'
 
 initializeApp()
 const db = getFirestore()
@@ -800,31 +801,148 @@ interface UploadListingImageRequest {
 // directly per storage.rules, but routing everyone through one function
 // keeps the client code path uniform.
 export const uploadListingImage = onCall<UploadListingImageRequest>(async (request) => {
+  const { collectionName, propertyId, fileName, contentType, dataBase64 } = request.data
+  await assertCanWriteListing(request, collectionName, propertyId)
+
+  return saveListingImage(collectionName, propertyId, fileName, contentType, Buffer.from(dataBase64, 'base64'))
+})
+
+// El mismo chequeo para las dos formas de cargar una foto (subirla o
+// importarla desde un link): el rol sale del claim y, si es vendedor, la
+// propiedad tiene que ser suya.
+async function assertCanWriteListing(request: CallableRequest, collectionName: string, propertyId: string) {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
   }
-  const { collectionName, propertyId, fileName, contentType, dataBase64 } = request.data
   if (collectionName !== 'rentals' && collectionName !== 'sales') {
     throw new HttpsError('invalid-argument', 'collectionName debe ser "rentals" o "sales".')
   }
 
   const callerRole = request.auth.token.role
-  if (callerRole !== 'admin') {
-    if (callerRole !== 'seller') {
-      throw new HttpsError('permission-denied', 'Solo admins o sellers pueden subir imágenes.')
-    }
-    const propertyDoc = await db.collection(collectionName).doc(propertyId).get()
-    if (!propertyDoc.exists || propertyDoc.data()?.sellerUid !== request.auth.uid) {
-      throw new HttpsError('permission-denied', 'Esta propiedad no te pertenece.')
-    }
+  if (callerRole === 'admin') return
+  if (callerRole !== 'seller') {
+    throw new HttpsError('permission-denied', 'Solo admins o sellers pueden subir imágenes.')
   }
+  const propertyDoc = await db.collection(collectionName).doc(propertyId).get()
+  if (!propertyDoc.exists || propertyDoc.data()?.sellerUid !== request.auth.uid) {
+    throw new HttpsError('permission-denied', 'Esta propiedad no te pertenece.')
+  }
+}
 
-  const buffer = Buffer.from(dataBase64, 'base64')
+async function saveListingImage(
+  collectionName: string,
+  propertyId: string,
+  fileName: string,
+  contentType: string,
+  buffer: Buffer,
+) {
   const path = `${collectionName}/${propertyId}/${fileName}`
   const bucket = getStorage().bucket()
   await bucket.file(path).save(buffer, { contentType, metadata: { cacheControl: 'public, max-age=31536000' } })
 
   return { url: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media` }
+}
+
+interface ImportListingImageRequest {
+  collectionName: 'rentals' | 'sales'
+  propertyId: string
+  /** Sin extensión: la pone el server según el content-type que devuelva el origen. */
+  fileName: string
+  sourceUrl: string
+}
+
+const EXT_BY_TYPE: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/avif': 'avif',
+}
+
+// Callable, admin/seller. Descarga la foto desde un link externo (Tokko,
+// Zonaprop, Airbnb…) y la guarda en nuestro Storage, así el catálogo no
+// queda colgado de un CDN ajeno que puede dar de baja la publicación. Va
+// por el server y no por el navegador porque esos CDN no mandan CORS.
+export const importListingImage = onCall<ImportListingImageRequest>(async (request) => {
+  const { collectionName, propertyId, fileName, sourceUrl } = request.data
+  await assertCanWriteListing(request, collectionName, propertyId)
+
+  let parsed: URL
+  try {
+    parsed = new URL(sourceUrl)
+  } catch {
+    throw new HttpsError('invalid-argument', 'El link no es una URL válida.')
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw new HttpsError('invalid-argument', 'El link tiene que empezar con http o https.')
+  }
+
+  // Sin User-Agent, varios portales devuelven 403 a la descarga directa.
+  const res = await fetch(parsed.toString(), {
+    redirect: 'follow',
+    headers: { 'user-agent': 'Mozilla/5.0 (compatible; BairesRentalBot/1.0)' },
+  })
+  if (!res.ok) {
+    throw new HttpsError('invalid-argument', `No se pudo descargar la imagen (HTTP ${res.status}).`)
+  }
+  const contentType = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase()
+  const ext = EXT_BY_TYPE[contentType]
+  if (!ext) {
+    throw new HttpsError('invalid-argument', 'Ese link no devuelve una imagen (jpg, png, webp, gif o avif).')
+  }
+  const buffer = Buffer.from(await res.arrayBuffer())
+  if (buffer.byteLength > 15 * 1024 * 1024) {
+    throw new HttpsError('invalid-argument', 'La imagen pesa más de 15 MB.')
+  }
+
+  return saveListingImage(collectionName, propertyId, `${fileName}.${ext}`, contentType, buffer)
+})
+
+interface ImportFromFichaRequest {
+  url: string
+}
+
+// Callable, admin/seller. Lee una ficha pública de ficha.info (el "link para
+// colegas" de Tokko) y devuelve los campos ya mapeados para el formulario de
+// alta, más el próximo id `alq-NN` libre. No escribe nada: el alta la sigue
+// haciendo el formulario por el camino de siempre.
+//
+// El request sale del server y no del navegador por dos razones. ficha.info no
+// manda CORS, así que un fetch desde la página no llega nunca. Y sobre todo: un
+// callable que baje cualquier URL que le pasen es un fetcher abierto hacia
+// adentro de la red de GCP, así que el host va en whitelist y se rechaza todo
+// lo demás. El mapeo vive en ./ficha.ts, gemelo de scripts/lib/ficha.js.
+export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Debés iniciar sesión.')
+  }
+  const callerRole = request.auth.token.role
+  if (callerRole !== 'admin' && callerRole !== 'seller') {
+    throw new HttpsError('permission-denied', 'Solo admins o sellers pueden importar fichas.')
+  }
+
+  const url = (request.data?.url || '').trim()
+  if (!esUrlDeFicha(url)) {
+    throw new HttpsError('invalid-argument', 'Pegá el link de una ficha de ficha.info (https://ficha.info/p/…).')
+  }
+
+  let ficha
+  try {
+    ficha = await fetchFicha(url)
+  } catch (e) {
+    // failed-precondition y no internal: el problema está en la ficha (no
+    // existe, cambió de formato, no responde), no en nuestro código.
+    throw new HttpsError('failed-precondition', `No se pudo leer la ficha: ${(e as Error).message}`)
+  }
+
+  const { prop, avisos } = fichaToRental(ficha)
+
+  // select() sin campos trae solo los ids, que es lo único que hace falta para
+  // saber qué números `alq-NN` están tomados.
+  const snap = await db.collection('rentals').select().get()
+
+  return { prop, avisos, sugerencias: { id: proximoIdAlq(snap.docs.map((d) => d.id)) } }
 })
 
 // --- M8: old→new URL redirect map ---

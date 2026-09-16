@@ -3,6 +3,7 @@
 // Usage:
 //   node scripts/add-from-tencery.js property.json
 //   node scripts/add-from-tencery.js property.json --yes
+//   node scripts/add-from-tencery.js property.json --update   (overwrite existing ID)
 //   node scripts/add-from-tencery.js property.json --dry-run
 //   node scripts/add-from-tencery.js property.json --out mapped.json
 //   node scripts/add-from-tencery.js property.json --fotos <url>
@@ -193,13 +194,14 @@ async function main() {
   const filePath = args.find(a => !a.startsWith('-'));
   const yes = args.includes('--yes') || args.includes('-y');
   const dryRun = args.includes('--dry-run');
+  const forceUpdate = args.includes('--update');
   const outIdx = args.indexOf('--out');
   const outFile = outIdx >= 0 ? args[outIdx + 1] : null;
   const fotosIdx = args.indexOf('--fotos');
   const fotosOverride = fotosIdx >= 0 ? args[fotosIdx + 1] : null;
 
   if (!filePath) {
-    console.error('Uso: node scripts/add-from-tencery.js <tencery.json> [--yes] [--dry-run] [--out mapped.json] [--fotos <url>]');
+    console.error('Uso: node scripts/add-from-tencery.js <tencery.json> [--yes] [--update] [--dry-run] [--out mapped.json] [--fotos <url>]');
     process.exit(1);
   }
 
@@ -246,17 +248,26 @@ async function main() {
 
   if (dryRun) { console.log('\n[dry-run] No se guardaron cambios.'); return; }
 
-  const existe = catalog.some(p => p.id === prop.id);
-  if (existe) {
-    const answer = yes ? 's' : await prompt(`\n⚠️  ID "${prop.id}" ya existe. ¿Sobreescribir? (s/N): `);
+  const existente = catalog.find(p => p.id === prop.id);
+
+  // `--yes` es "no me preguntes lo de rutina", no "pisá lo que haya". El id sale
+  // de un slug de la dirección, así que dos fichas de la misma calle colisionan
+  // solas: antes la segunda reemplazaba a la primera sin decir nada.
+  if (existente && !forceUpdate) {
+    if (yes) {
+      console.error(`\n❌ El ID "${prop.id}" ya existe: "${existente.titulo}".`);
+      console.error('   Ajustá el `id` (con --out) o pasá --update si la idea es reemplazar esa propiedad.');
+      process.exit(1);
+    }
+    const answer = await prompt(`\n⚠️  ID "${prop.id}" ya existe ("${existente.titulo}"). ¿Sobreescribir? (s/N): `);
     if (!/^s/i.test(answer)) { console.log('Cancelado.'); return; }
-  } else {
-    const answer = yes ? 's' : await prompt('\n¿Agregar al catálogo? (S/n): ');
+  } else if (!existente && !yes) {
+    const answer = await prompt('\n¿Agregar al catálogo? (S/n): ');
     if (/^n/i.test(answer)) { console.log('Cancelado.'); return; }
   }
 
   await guardarPropiedad('alquileres', prop);
-  console.log(`\n✅ ${existe ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
+  console.log(`\n✅ ${existente ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
   console.log('   Guardado en Firestore (rentals) — ya está publicado en el sitio.');
 }
 

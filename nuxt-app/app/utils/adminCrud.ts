@@ -11,7 +11,18 @@
 // node_modules/vuefire/dist/shared/vuefire.*.mjs), so it's safe to call
 // from anywhere, anytime, including deep inside an onMounted callback
 // after an `await` — no different from the old singleton-based approach.
-import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  query,
+  where,
+  serverTimestamp,
+  runTransaction,
+} from 'firebase/firestore'
 import { useFirestore } from 'vuefire'
 
 export async function listAll<T>(collectionName: string): Promise<(T & { id: string })[]> {
@@ -48,6 +59,50 @@ export async function getOne<T>(collectionName: string, id: string): Promise<(T 
 // owner/index.vue hace `ts.seconds * 1000` y daría Invalid Date.
 export async function saveOne(collectionName: string, id: string, data: Record<string, unknown>): Promise<void> {
   await setDoc(doc(useFirestore(), collectionName, id), { ...data, updatedAt: serverTimestamp() }, { merge: true })
+}
+
+// El `id` de una propiedad ES el id del documento y también su URL pública
+// (/departamentos/marie-01), así que lo tipea una persona en el formulario.
+//
+// Hasta acá el alta usaba saveOne(), o sea un setDoc({ merge: true }): repetir
+// un id sin querer no fallaba, se MEZCLABA con la propiedad que ya estaba.
+// Le pisaba título, precio y fotos, y le dejaba los campos que el formulario no
+// manda (sellerUid, ownerUid, updatedAt) del dueño anterior — sin aviso, sin
+// vuelta atrás y sin que quedara rastro de la propiedad original.
+export class DuplicateIdError extends Error {
+  constructor(
+    readonly collectionName: string,
+    readonly duplicatedId: string,
+  ) {
+    super(`Ya existe una propiedad con el ID "${duplicatedId}".`)
+    this.name = 'DuplicateIdError'
+  }
+}
+
+// Alta: falla si el id ya está tomado, en vez de pisar lo que haya.
+//
+// Va en una transacción y no en un getDoc() + setDoc() para que el chequeo y la
+// escritura sean atómicos: entre leer y escribir no se puede colar otra alta del
+// mismo slug. Y `set` sin merge a propósito — un alta arranca de cero, no hereda
+// campos sueltos de un documento que no debería existir.
+export async function createOne(
+  collectionName: string,
+  id: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  const db = useFirestore()
+  const ref = doc(db, collectionName, id)
+  await runTransaction(db, async (tx) => {
+    if ((await tx.get(ref)).exists()) throw new DuplicateIdError(collectionName, id)
+    tx.set(ref, { ...data, updatedAt: serverTimestamp() })
+  })
+}
+
+// Para avisar del id repetido apenas se sale del campo, sin que haya que llenar
+// el formulario entero (y en ventas, subir hasta 20 fotos) para enterarse.
+// createOne() sigue siendo la validación que manda; esto es sólo el aviso.
+export async function idExists(collectionName: string, id: string): Promise<boolean> {
+  return (await getDoc(doc(useFirestore(), collectionName, id))).exists()
 }
 
 export async function removeOne(collectionName: string, id: string): Promise<void> {

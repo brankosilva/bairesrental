@@ -17,7 +17,15 @@ const readline = require('readline');
 
 const { leerCatalogo, guardarPropiedad } = require('./lib/catalogo');
 
-const REQUIRED_FIELDS = ['id', 'titulo', 'barrio', 'tipo', 'precio', 'moneda', 'disponibilidad'];
+// Mínimo publicable. Es la misma lista que exige el formulario del panel
+// (nuxt-app/app/pages/app/rentals/[id].vue) — la regla es del catálogo, no de
+// la puerta por la que entra la propiedad. `imagen` es la portada del card,
+// `fotos` el link a la ficha/álbum y `direccionUrl` el link de Maps, que
+// además es de donde sale el pin del mapa si no hay lat/lng.
+const REQUIRED_FIELDS = [
+  'id', 'titulo', 'barrio', 'tipo', 'precio', 'moneda', 'disponibilidad',
+  'descripcion', 'imagen', 'fotos', 'direccion', 'direccionUrl',
+];
 const VALID_TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa'];
 const VALID_MONEDAS = ['USD', 'ARS'];
 const VALID_DISPONIBILIDAD = ['disponible', 'reservado', 'no disponible'];
@@ -68,6 +76,11 @@ function validate(prop) {
     if (prop[f] === undefined || prop[f] === null || prop[f] === '') {
       errors.push(`Campo requerido faltante: "${f}"`);
     }
+  }
+  // El 0 pasa el chequeo de arriba (no es '' ni null) y el catálogo lo muestra
+  // como "Consultar precio": una publicación sin precio. Ya no se carga así.
+  if (!(Number(prop.precio) > 0)) {
+    errors.push(`precio inválido: "${prop.precio}". Debe ser un número mayor a 0`);
   }
   if (prop.tipo && !VALID_TIPOS.includes(prop.tipo)) {
     errors.push(`tipo inválido: "${prop.tipo}". Válidos: ${VALID_TIPOS.join(', ')}`);
@@ -153,19 +166,34 @@ async function main() {
     return;
   }
 
-  const existe = catalog.some(p => p.id === prop.id);
+  const existente = catalog.find(p => p.id === prop.id);
 
-  if (existe) {
-    const answer = (yes || forceUpdate) ? 's' : await prompt(`\n⚠️  ID "${prop.id}" ya existe. ¿Sobreescribir? (s/N): `);
+  // `--yes` es "no me preguntes lo de rutina", no "pisá lo que haya". Los
+  // comandos /agregar-depto corren siempre con --yes y sin una terminal donde
+  // responder, así que un slug repetido por casualidad reemplazaba en silencio
+  // la propiedad que ya estaba. Reemplazar ahora se pide con --update.
+  if (existente && !forceUpdate) {
+    if (yes) {
+      console.error(`\n❌ El ID "${prop.id}" ya existe: "${existente.titulo}".`);
+      console.error('   Cambiá el `id`, o pasá --update si la idea es reemplazar esa propiedad.');
+      process.exit(1);
+    }
+    const answer = await prompt(`\n⚠️  ID "${prop.id}" ya existe ("${existente.titulo}"). ¿Sobreescribir? (s/N): `);
     if (!/^s/i.test(answer)) { console.log('Cancelado.'); return; }
-  } else if (!yes) {
+  } else if (!existente && !yes) {
     const answer = await prompt('\n¿Agregar al catálogo? (S/n): ');
     if (/^n/i.test(answer)) { console.log('Cancelado.'); return; }
   }
 
   await guardarPropiedad('alquileres', prop);
-  console.log(`\n✅ ${existe ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
+  console.log(`\n✅ ${existente ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
   console.log('   Guardado en Firestore (rentals) — ya está publicado en el sitio.');
 }
 
-main().catch(err => { console.error('Error:', err.message); process.exit(1); });
+// También se usa como módulo: add-from-ficha.js importa validate()/findDuplicates()
+// para que una carga por URL pase por la misma validación que una carga a mano.
+if (require.main === module) {
+  main().catch(err => { console.error('Error:', err.message); process.exit(1); });
+}
+
+module.exports = { validate, findDuplicates, prompt, VALID_TIPOS, VALID_AMENITIES };

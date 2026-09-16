@@ -60,9 +60,13 @@ Preguntá SOLO lo que no pudiste inferir:
 
 1. Aplicá las respuestas del usuario a `scripts/temp-mapped.json`
 2. Ejecutá: `node scripts/add-property.js scripts/temp-mapped.json --yes`
-3. Eliminá `scripts/temp-tokko.json` y `scripts/temp-mapped.json`
-4. Confirmá: "✅ Agregado: [titulo] (ID: [id])"
-5. Avisá que **ya está publicado**: el script escribe en Firestore, que es lo que
+3. Si corta con `❌ El ID "..." ya existe`: **no agregues `--update` por tu cuenta**. El id
+   sale de un slug de la dirección, así que dos unidades del mismo edificio chocan solas.
+   Decile al usuario con qué propiedad choca y preguntale si es la misma (ahí sí, `--update`)
+   o si es otra (entonces cambiá el `id` en el JSON, ej. `bauness-1100-2b`, y reintentá)
+4. Eliminá `scripts/temp-tokko.json` y `scripts/temp-mapped.json`
+5. Confirmá: "✅ Agregado: [titulo] (ID: [id])"
+6. Avisá que **ya está publicado**: el script escribe en Firestore, que es lo que
    lee www.bairesrental.com.ar. No hace falta commit ni deploy para que aparezca.
 
 ## Notas importantes

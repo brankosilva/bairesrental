@@ -3,6 +3,7 @@
 // Usage:
 //   node scripts/add-from-tokko.js property.json
 //   node scripts/add-from-tokko.js property.json --yes      (skip confirmation)
+//   node scripts/add-from-tokko.js property.json --update   (overwrite existing ID)
 //   node scripts/add-from-tokko.js property.json --dry-run  (preview mapping only)
 //   node scripts/add-from-tokko.js property.json --out mapped.json (only save mapped JSON)
 //   node scripts/add-from-tokko.js property.json --fotos <url>    (set fotos = ficha.info URL)
@@ -264,13 +265,14 @@ async function main() {
   const filePath = args.find(a => !a.startsWith('-'));
   const yes = args.includes('--yes') || args.includes('-y');
   const dryRun = args.includes('--dry-run');
+  const forceUpdate = args.includes('--update');
   const outIdx = args.indexOf('--out');
   const outFile = outIdx >= 0 ? args[outIdx + 1] : null;
   const fichaUrlIdx = args.indexOf('--fotos');
   const fichaUrlOverride = fichaUrlIdx >= 0 ? args[fichaUrlIdx + 1] : null;
 
   if (!filePath) {
-    console.error('Uso: node scripts/add-from-tokko.js <tokko.json> [--yes] [--dry-run] [--out mapped.json]');
+    console.error('Uso: node scripts/add-from-tokko.js <tokko.json> [--yes] [--update] [--dry-run] [--out mapped.json]');
     process.exit(1);
   }
 
@@ -325,19 +327,34 @@ async function main() {
     return;
   }
 
-  const existe = catalog.some(p => p.id === prop.id);
+  const existente = catalog.find(p => p.id === prop.id);
 
-  if (existe) {
-    const answer = yes ? 's' : await prompt(`\n⚠️  ID "${prop.id}" ya existe. ¿Sobreescribir? (s/N): `);
+  // `--yes` es "no me preguntes lo de rutina", no "pisá lo que haya". El id sale
+  // de un slug de la dirección, así que dos fichas de la misma calle colisionan
+  // solas: antes la segunda reemplazaba a la primera sin decir nada.
+  if (existente && !forceUpdate) {
+    if (yes) {
+      console.error(`\n❌ El ID "${prop.id}" ya existe: "${existente.titulo}".`);
+      console.error('   Ajustá el `id` (con --out) o pasá --update si la idea es reemplazar esa propiedad.');
+      process.exit(1);
+    }
+    const answer = await prompt(`\n⚠️  ID "${prop.id}" ya existe ("${existente.titulo}"). ¿Sobreescribir? (s/N): `);
     if (!/^s/i.test(answer)) { console.log('Cancelado.'); return; }
-  } else {
-    const answer = yes ? 's' : await prompt('\n¿Agregar al catálogo? (S/n): ');
+  } else if (!existente && !yes) {
+    const answer = await prompt('\n¿Agregar al catálogo? (S/n): ');
     if (/^n/i.test(answer)) { console.log('Cancelado.'); return; }
   }
 
   await guardarPropiedad('alquileres', prop);
-  console.log(`\n✅ ${existe ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
+  console.log(`\n✅ ${existente ? 'Actualizado' : 'Agregado'}: "${prop.titulo}" (ID: ${prop.id})`);
   console.log('   Guardado en Firestore (rentals) — ya está publicado en el sitio.');
 }
 
-main().catch(err => { console.error('Error:', err.message); process.exit(1); });
+// También se usa como módulo: add-from-ficha.js reusa el mapeo, porque una
+// ficha de ficha.info trae adentro el mismo JSON de Tokko que este script recibe
+// pegado a mano.
+if (require.main === module) {
+  main().catch(err => { console.error('Error:', err.message); process.exit(1); });
+}
+
+module.exports = { tokkoToProperty, findDuplicates, stripHtml, slugify, capitalize, AMENITIES_MAP };

@@ -55,7 +55,8 @@ Del texto pegado, extraé todo lo que puedas para armar este objeto:
   "direccionUrl": "https://maps.app.goo.gl/... (Google Maps con la dirección)",
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "fichaUrl": "https://... (opcional — link a Zonaprop/Argenprop si el usuario lo da)",
-  "esPropio": false
+  "esPropio": false,
+  "revision": "aprobada"
 }
 ```
 
@@ -96,9 +97,12 @@ Preguntá SOLO lo que no pudiste inferir del texto (antigüedad, apto crédito, 
 1. Aplicá las respuestas del usuario al objeto
 2. Guardalo en `scripts/temp-venta.json`
 3. Ejecutá: `node scripts/add-property-venta.js scripts/temp-venta.json --yes`
-4. Eliminá `scripts/temp-venta.json`
-5. Confirmá: "✅ Agregado: [titulo] (ID: [id])"
-6. Avisá que **ya está publicado**: el script escribe en Firestore y las fotos están
+4. Si corta con `❌ El ID "..." ya existe`: **no agregues `--update` por tu cuenta**. Decile
+   al usuario con qué propiedad choca y preguntale si es la misma (ahí sí, `--update`) o si
+   es otra (entonces cambiá el `id`, ej. `arenales-2500-4b`, y reintentá)
+5. Eliminá `scripts/temp-venta.json`
+6. Confirmá: "✅ Agregado: [titulo] (ID: [id])"
+7. Avisá que **ya está publicado**: el script escribe en Firestore y las fotos están
    en Storage, que es de donde lee www.bairesrental.com.ar. No hace falta commit ni deploy.
 
 ## Notas importantes

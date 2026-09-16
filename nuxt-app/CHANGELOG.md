@@ -1,5 +1,74 @@
 # Migration log — Nuxt SSR rewrite
 
+## N11 — Las aperturas dejan de contar requests y pasan a contar personas
+
+`opens` sumaba **una por cada request a `/l/*`**. O sea que una sola persona
+que abre el link, recarga, vuelve atrás y mira tres fichas del catálogo le
+dejaba al vendedor **seis aperturas**. El número no medía interés: medía
+navegación.
+
+### El id del visitante vive en el navegador, no en una cookie
+
+La idea obvia era una cookie. No se puede: **Firebase Hosting borra todas las
+cookies entrantes salvo `__session`** en las requests que van a una Cloud
+Function, y acá `__session` ya la usa la sesión de Firebase Auth. Una cookie
+propia se setearía bien y no volvería nunca — y el bug sería silencioso: cada
+request se vería como un visitante nuevo, exactamente lo que ya pasaba.
+
+Así que el id lo guarda el navegador en `localStorage` (`br_vid`, un
+`randomUUID`) y viaja explícito en el ping. Si el navegador no deja guardar
+nada —incógnito estricto, storage bloqueado— **no se manda nada**: mejor un
+número corto que uno inflado que vuelve a contar a la misma persona en cada
+vista. Safari en modo privado acepta el `setItem` y devuelve `null` después,
+así que se relee la clave antes de darla por buena.
+
+### Quién cuenta qué
+
+- `app/utils/linkVisitor.ts` (navegador) decide **si el ping se manda y si
+  cuenta**, con dos claves de sesión de 30 minutos: una por link (¿es una
+  apertura nueva?) y otra por link+publicación (¿vale la pena registrar que
+  miró esta ficha?). Una sesión que ya se contó sigue mandando el rastro de
+  las fichas nuevas con `c=0`: el vendedor quiere ver **qué** miró el cliente
+  sin que eso vuelva a inflar el contador.
+- `server/api/l/[code]/open.post.ts` registra la apertura. Valida lo mismo que
+  validaba el middleware (link activo, publicación existente y compartible por
+  ese vendedor), porque ahora es el que cuenta.
+- `server/middleware/01.link-open.ts` mantiene los headers (`no-store`,
+  `noindex`) y **sólo cuenta bots**. Sale temprano si la request no es de un
+  bot, lo que además le ahorra las lecturas de Firestore al camino caliente.
+
+Los scrapers de preview de WhatsApp, Facebook e Instagram no ejecutan JS, así
+que ya no llegan nunca al conteo de personas. El filtro de User-Agent sigue
+donde estaba: es lo que separa `botOpens` de las aperturas, y ahora se puede
+auditar contra un segundo criterio.
+
+### `visitors`: cuántas personas, no cuántas veces
+
+Contador nuevo en el documento del link. Avanza **sólo la primera vez que un
+navegador se presenta con un id nuevo** (`n=1` en el ping) — o sea que la
+cuenta la lleva el cliente. Es la misma confianza que ya existía: los
+contadores son best-effort y con `curl` siempre se pudieron inflar. No hay
+backfill: los links viejos no tienen el campo, así que el panel muestra
+"personas" sólo cuando hay alguna, para no poner un `0 personas` al lado de
+aperturas históricas.
+
+`opens` sigue contando que la misma persona **vuelva mañana**, que es
+información real para el vendedor, y ya no cuenta que recargue.
+
+### Dos arreglos que venían de arriba
+
+- Los eventos llevan `counted`, para que el detalle de actividad no muestre
+  más filas que aperturas y parezca que el número de arriba está mal.
+- `classifyRequest()` toma `expectDocument`. El clic de contacto sale por
+  `sendBeacon`, que manda `Accept: */*`, así que la regla "un navegador pide
+  `text/html`" lo venía marcando como bot: el contacto sumaba igual, pero en
+  el detalle de actividad quedaba escondido entre los scrapers.
+
+El hash del visitante (`visitorHash`) ahora sale del id cuando está, salado
+con el código del link: dos links de la misma persona dan hashes distintos, o
+sea que sigue sin servir para seguir a nadie por el sitio. La IP cruda no se
+guarda, igual que antes.
+
 ## N10 — El vendedor ya no genera su link: viene con la cuenta
 
 Para tener algo que mandarle a un cliente, un vendedor tenía que entrar a

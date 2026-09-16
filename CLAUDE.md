@@ -66,7 +66,9 @@ no puedan divergir.
 | `nuxt-app/app/utils/sellerScope.ts` | Qué publicaciones ve y comparte un vendedor (`isShareableBySeller`) y cuáles puede **editar** (`isOwnListing`) |
 | `nuxt-app/app/utils/revision.ts` | El estado de revisión y el predicado `estaPublicada()` |
 | `nuxt-app/app/composables/useLinkStats.ts` | Métricas y etiquetas compartidas entre la pantalla del vendedor y la del admin |
-| `nuxt-app/server/middleware/01.link-open.ts` | Cuenta las aperturas de `/l/*` (ve la request real del visitante) |
+| `nuxt-app/app/utils/linkVisitor.ts` | El id del visitante en `localStorage` y la sesión de 30 min: decide si el ping se manda y si cuenta |
+| `nuxt-app/server/api/l/[code]/open.post.ts` | Registra la apertura que avisa el navegador |
+| `nuxt-app/server/middleware/01.link-open.ts` | Headers de `/l/*` (no-store, noindex) y conteo de **bots** — las personas ya no se cuentan acá |
 | `nuxt-app/server/api/l/[code].get.ts` | Payload de la página compartida (Admin SDK: `links` no es público) |
 | `nuxt-app/firestore.rules` | Quién lee y escribe cada colección |
 
@@ -131,7 +133,12 @@ clave inexistente en Rules es un **error**, no `false`.
 4. **`label` / `labelLower`** son los campos de hoy; `recipientName` /
    `recipientNameLower` son los viejos, que se leen pero no se escriben. Todo
    lo que muestre el nombre de un link usa `linkLabel()`.
-5. **`firestore.rules`** enumera con `hasOnly()` los campos que el cliente
+5. **El conteo de aperturas es cliente + servidor.** `linkVisitor.ts` arma
+   el ping (`v`, `n`, `c`, `p`) y `open.post.ts` lo lee. No se puede volver
+   a contar desde el middleware: una cookie propia no llega —Firebase
+   Hosting borra todas menos `__session`, que usa Auth— y contar por request
+   es contar recargas.
+6. **`firestore.rules`** enumera con `hasOnly()` los campos que el cliente
    puede tocar de un link. Un campo nuevo que el vendedor edite desde el
    navegador hay que agregarlo ahí o falla en silencio.
 

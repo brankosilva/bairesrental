@@ -28,7 +28,18 @@ export default defineEventHandler(async (event) => {
   // no es una API pública que tenga que explicar errores, y contestar 404
   // sólo serviría para que alguien pueda sondear qué códigos existen.
   if (link && link.active !== false) {
-    await recordLinkEvent(event, link, { type: 'whatsapp', propertyId: getQuery(event).p as string | undefined ?? null })
+    const query = getQuery(event)
+    await recordLinkEvent(event, link, {
+      type: 'whatsapp',
+      propertyId: (query.p as string | undefined) ?? null,
+      // El mismo id que manda el ping de apertura, para que el contacto
+      // quede pegado a la persona que abrió y no a un visitante fantasma.
+      visitorId: typeof query.v === 'string' ? query.v.slice(0, 64) : null,
+      // sendBeacon manda `Accept: */*`: sin esto, el clic de contacto queda
+      // marcado como bot y el detalle de actividad lo esconde entre los
+      // scrapers.
+      expectDocument: false,
+    })
   }
 
   setResponseStatus(event, 204)

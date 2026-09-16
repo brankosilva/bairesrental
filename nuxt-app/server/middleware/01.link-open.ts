@@ -1,10 +1,10 @@
-// Registra la apertura de un link compartible /l/:code, y le pone a esa
-// respuesta los headers que necesita.
+// Headers de un link compartible /l/:code, y el conteo de lo que NO es una
+// persona.
 //
 // ¿POR QUÉ UN MIDDLEWARE Y NO LA PÁGINA?
 //
 // 1. Acá se ve la request REAL del visitante: su User-Agent y su
-//    x-forwarded-for. Si el conteo viviera dentro del useAsyncData de la
+//    x-forwarded-for. Si esto viviera dentro del useAsyncData de la
 //    página, durante el SSR ese fetch interno no arrastra los headers del
 //    visitante salvo que uno se acuerde de useRequestFetch() — y el día
 //    que alguien lo olvide, el filtro de bots empieza a clasificar todo
@@ -15,6 +15,16 @@
 //    no está auto-importado del lado de la app (sí `setResponseStatus`),
 //    así que ponerlos desde el <script setup> de la página era directamente
 //    un ReferenceError en SSR.
+//
+// LAS APERTURAS DE PERSONAS YA NO SE CUENTAN ACÁ. Contar por request
+// significaba contar recargas, el botón de atrás y cada ficha que el
+// cliente mirara dentro del catálogo: el vendedor veía 12 aperturas de una
+// sola persona. Ahora avisa el navegador desde
+// api/l/[code]/open.post.ts, que es el único que sabe quién es (el id que
+// guarda en localStorage) y no vuelve a avisar dentro de la misma media
+// hora. Acá queda lo que nunca ejecuta JS y por lo tanto nunca pingea: los
+// scrapers de preview, que siguen sumando a `botOpens` para que el filtro
+// se pueda auditar.
 //
 // Corre en CADA request del sitio, así que el guard de path va primero y
 // es estricto.
@@ -48,6 +58,10 @@ export default defineEventHandler(async (event) => {
 
   const code = match[1]!
   const propertyId = match[2] ? decodeURIComponent(match[2]) : null
+
+  // Una persona: la cuenta su navegador cuando carga la página. Salir acá
+  // ahorra además las lecturas de Firestore de abajo en el camino caliente.
+  if (!classifyRequest(event, code).isBot) return
 
   const link = await resolveLink(code)
   // Los links inexistentes o apagados no suman: la página igual devuelve

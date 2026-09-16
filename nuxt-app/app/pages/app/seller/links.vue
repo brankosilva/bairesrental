@@ -36,9 +36,12 @@ import {
 // o una campaña.
 //
 // Lo de siempre, que no cambió:
-//  · las aperturas las cuenta el servidor (server/middleware/01.link-open.ts);
-//  · "visitantes" ≠ "aperturas": la misma persona abriendo tres veces es un
-//    visitante, y eso es justo lo que el vendedor quiere saber;
+//  · las aperturas las cuenta el navegador del visitante y las registra
+//    server/api/l/[code]/open.post.ts — una por persona cada media hora,
+//    así recargar o mirar cinco fichas no son cinco aperturas;
+//  · "personas" ≠ "aperturas": que la misma persona vuelva mañana es una
+//    apertura más y una sola persona, y eso es justo lo que el vendedor
+//    quiere saber;
 //  · las vistas previas de WhatsApp/Instagram se cuentan aparte y se
 //    muestran plegadas, para que no inflen el número;
 //  · la query de `links` es inline filtrada por sellerUid (lo exige
@@ -300,6 +303,13 @@ const canSubmit = computed(() => targetKind.value === 'catalog' || !!selectedPro
         <span :class="{ 'is-zero': n(primaryLink.opens) === 0 }">
           <strong>{{ n(primaryLink.opens) }}</strong> {{ n(primaryLink.opens) === 1 ? 'apertura' : 'aperturas' }}
         </span>
+        <!-- Personas ≠ aperturas: la misma persona puede volver en otro
+             momento. Sólo aparece en links con id de visitante — los
+             anteriores no tienen `visitors` y mostrar 0 confundiría. -->
+        <span v-if="n(primaryLink.visitors) > 0">
+          <strong>{{ n(primaryLink.visitors) }}</strong>
+          persona{{ n(primaryLink.visitors) === 1 ? '' : 's' }}
+        </span>
         <span v-if="n(primaryLink.whatsappClicks) > 0" class="is-good">
           <strong>{{ n(primaryLink.whatsappClicks) }}</strong>
           contacto{{ n(primaryLink.whatsappClicks) === 1 ? '' : 's' }}
@@ -404,6 +414,9 @@ const canSubmit = computed(() => targetKind.value === 'catalog' || !!selectedPro
           <div class="br-link-stats">
             <span :class="{ 'is-zero': n(l.opens) === 0 }">
               <strong>{{ n(l.opens) }}</strong> {{ n(l.opens) === 1 ? 'apertura' : 'aperturas' }}
+            </span>
+            <span v-if="n(l.visitors) > 0">
+              <strong>{{ n(l.visitors) }}</strong> persona{{ n(l.visitors) === 1 ? '' : 's' }}
             </span>
             <span v-if="n(l.whatsappClicks) > 0" class="is-good">
               <strong>{{ n(l.whatsappClicks) }}</strong> contacto{{ n(l.whatsappClicks) === 1 ? '' : 's' }}

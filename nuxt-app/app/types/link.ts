@@ -79,7 +79,15 @@ export interface TrackableLink {
   // Pueden faltar en links creados antes de esta milestone: FieldValue
   // .increment() crea el campo en su primer incremento, así que no hay
   // backfill. Leerlos siempre con `?? 0`.
+  // Aperturas: una por persona y por sesión (media hora). Las cuenta el
+  // ping del navegador, no el SSR — antes esto contaba requests, o sea
+  // recargas y cada ficha que el cliente mirara adentro del link.
   opens?: number
+  // Personas distintas que abrieron el link alguna vez. Avanza sólo la
+  // primera vez que un navegador se presenta con un id nuevo, así que
+  // falta en todos los links anteriores a esto: leer con `n()` y no
+  // mostrarlo como 0 al lado de aperturas viejas.
+  visitors?: number
   botOpens?: number
   whatsappClicks?: number
   leads?: number
@@ -114,6 +122,12 @@ export interface LinkOpenEvent {
   // Qué regla del filtro disparó, para poder auditar si el filtro se está
   // comiendo gente real.
   botName: string | null
+  // Primera vez de ese navegador en cualquier link (sumó a `visitors`).
+  visitorNew?: boolean
+  // ¿Movió el contador de aperturas? `false` en las fichas que el cliente
+  // abre dentro de una sesión ya contada: el evento está para mostrar QUÉ
+  // miró, no para volver a contarlo.
+  counted?: boolean
 }
 
 // Documento público con la identidad del vendedor que se muestra en la

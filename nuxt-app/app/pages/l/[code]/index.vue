@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import type { RentalProperty, SaleProperty } from '~/types/property'
 import type { SellerProfile } from '~/types/link'
 
@@ -11,8 +11,10 @@ import type { SellerProfile } from '~/types/link'
 // en una URL de catálogo de BairesRental con un ?ref= colgando, y no había
 // forma de mostrarle quién se la mandó. Ahora renderiza acá.
 //
-// El conteo de aperturas NO está en esta página: lo hace
-// server/middleware/01.link-open.ts, que ve la request real del visitante.
+// La apertura SÍ se cuenta desde acá (pingLinkOpen), porque el id del
+// visitante vive en su localStorage: el middleware no lo ve, y contar por
+// request convertía una sola persona recargando en cinco aperturas. Ver
+// app/utils/linkVisitor.ts.
 definePageMeta({ layout: 'branded' })
 
 const route = useRoute()
@@ -68,7 +70,13 @@ useSharedLinkSeo(() => data.value ?? null)
 // keepalive es el fallback. Nunca bloquea ni rompe la navegación.
 function pingContact(propertyId?: string | null) {
   if (!import.meta.client) return
-  const url = `/api/l/${code}/click${propertyId ? `?p=${encodeURIComponent(propertyId)}` : ''}`
+  const params = new URLSearchParams()
+  if (propertyId) params.set('p', propertyId)
+  // El mismo id que mandó la apertura: así el contacto es de una persona
+  // que abrió, y no de un visitante suelto.
+  const vid = linkVisitorId()
+  if (vid) params.set('v', vid)
+  const url = `/api/l/${code}/click?${params}`
   try {
     if (navigator.sendBeacon) navigator.sendBeacon(url)
     else fetch(url, { method: 'POST', keepalive: true }).catch(() => {})
@@ -80,6 +88,12 @@ function pingContact(propertyId?: string | null) {
 function onContact() {
   pingContact(data.value?.property?.id ?? null)
 }
+
+// Una sola vez por sesión: volver atrás desde una ficha no es otra
+// apertura. Lo decide linkVisitor.ts, no esta página.
+onMounted(() => {
+  if (!error.value) pingLinkOpen(code, data.value?.property?.id ?? null)
+})
 
 const rentals = computed(() => data.value?.catalog?.rentals ?? [])
 const sales = computed(() => data.value?.catalog?.sales ?? [])

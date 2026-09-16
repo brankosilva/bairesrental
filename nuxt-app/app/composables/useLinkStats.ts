@@ -122,6 +122,7 @@ export function eventDateTime(value: unknown): string {
 export interface LinkTotals {
   links: number
   opens: number
+  visitors: number
   whatsappClicks: number
   leads: number
   closed: number
@@ -137,6 +138,7 @@ export function totalsFor(rows: LinkRow[]): LinkTotals {
     (acc, l) => {
       acc.links += 1
       acc.opens += n(l.opens)
+      acc.visitors += n(l.visitors)
       acc.whatsappClicks += n(l.whatsappClicks)
       // `clicks` es el nombre viejo de `leads`; los links anteriores a esta
       // milestone sólo tienen ese campo. Se toma el mayor de los dos en vez
@@ -148,7 +150,7 @@ export function totalsFor(rows: LinkRow[]): LinkTotals {
       if (last && (!acc.lastActivity || last > acc.lastActivity)) acc.lastActivity = last
       return acc
     },
-    { links: 0, opens: 0, whatsappClicks: 0, leads: 0, closed: 0, contactRate: 0, lastActivity: null as number | null },
+    { links: 0, opens: 0, visitors: 0, whatsappClicks: 0, leads: 0, closed: 0, contactRate: 0, lastActivity: null as number | null },
   )
   totals.contactRate = totals.opens > 0 ? totals.whatsappClicks / totals.opens : 0
   return totals
@@ -167,9 +169,11 @@ export function splitEvents(events: LinkOpenEvent[]) {
   return { human, bots }
 }
 
-// Cuántas personas distintas, no cuántas aperturas. El hash rota por día
-// (ver server/utils/botDetect.ts), así que la misma persona en dos días
-// cuenta como dos — es el precio de no guardar un identificador persistente.
+// Cuántas personas distintas hay en ESTA lista de eventos. Desde que el
+// navegador manda su id, el hash es estable en el tiempo (ver
+// server/utils/botDetect.ts): la misma persona en dos días es una sola. En
+// los eventos viejos el hash salía de IP+UA+día, así que ahí sigue
+// contando doble. El total de siempre del link es `visitors`.
 export function distinctVisitors(events: LinkOpenEvent[]): number {
   return new Set(events.filter((e) => !e.isBot).map((e) => e.visitorHash)).size
 }

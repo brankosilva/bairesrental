@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import type { RentalProperty, SaleProperty } from '~/types/property'
 import type { SellerProfile } from '~/types/link'
 
@@ -62,9 +62,18 @@ const contactHref = computed(() => whatsappUrl(contactMessage.value, seller.valu
 // preview acá importa todavía más.
 useSharedLinkSeo(() => data.value ?? null)
 
+// Registra qué publicación miró. Si el cliente venía del catálogo del
+// mismo link, no suma otra apertura: suma el detalle. Ver linkVisitor.ts.
+onMounted(() => {
+  if (!error.value) pingLinkOpen(code, propertyId)
+})
+
 function onContact() {
   if (!import.meta.client) return
-  const url = `/api/l/${code}/click?p=${encodeURIComponent(propertyId)}`
+  const params = new URLSearchParams({ p: propertyId })
+  const vid = linkVisitorId()
+  if (vid) params.set('v', vid)
+  const url = `/api/l/${code}/click?${params}`
   try {
     if (navigator.sendBeacon) navigator.sendBeacon(url)
     else fetch(url, { method: 'POST', keepalive: true }).catch(() => {})

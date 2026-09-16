@@ -156,6 +156,7 @@ function propertyLabel(l: LinkRow) {
       <div class="br-stat-row">
         <div class="br-stat"><span class="br-stat-num">{{ globalTotals.links }}</span><span class="br-stat-lbl">Links</span></div>
         <div class="br-stat"><span class="br-stat-num">{{ globalTotals.opens }}</span><span class="br-stat-lbl">Aperturas</span></div>
+        <div class="br-stat"><span class="br-stat-num">{{ globalTotals.visitors }}</span><span class="br-stat-lbl">Personas</span></div>
         <div class="br-stat"><span class="br-stat-num">{{ globalTotals.whatsappClicks }}</span><span class="br-stat-lbl">Contactos</span></div>
         <div class="br-stat">
           <span class="br-stat-num">{{ formatRate(globalTotals.contactRate) }}</span>
@@ -235,6 +236,9 @@ function propertyLabel(l: LinkRow) {
             <div class="br-link-stats">
               <span :class="{ 'is-zero': n(l.opens) === 0 }">
                 <strong>{{ n(l.opens) }}</strong> {{ n(l.opens) === 1 ? 'apertura' : 'aperturas' }}
+              </span>
+              <span v-if="n(l.visitors) > 0">
+                <strong>{{ n(l.visitors) }}</strong> persona{{ n(l.visitors) === 1 ? '' : 's' }}
               </span>
               <span v-if="n(l.whatsappClicks) > 0" class="is-good">
                 <strong>{{ n(l.whatsappClicks) }}</strong> contacto{{ n(l.whatsappClicks) === 1 ? '' : 's' }}

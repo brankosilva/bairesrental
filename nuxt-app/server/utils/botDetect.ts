@@ -69,24 +69,53 @@ function detectDevice(ua: string): LinkDevice {
   return 'other'
 }
 
+// Cómo se agrupan las aperturas de una misma persona.
+//
 // La IP cruda es dato personal y no hay ninguna razón para guardarla: lo
 // único que se necesita es poder decir "estas dos aperturas fueron de la
-// misma persona". El hash lleva la fecha, así que el mismo visitante en
-// dos días distintos cuenta como dos visitantes — deliberado: un hash
-// estable en el tiempo sería un identificador persistente, que es
-// exactamente lo que no queremos guardar.
+// misma persona".
+//
+// Cuando el navegador manda su id (app/utils/linkVisitor.ts, guardado en
+// localStorage) el hash sale de ahí: es un id aleatorio que no dice nada
+// de la persona, sobrevive el cambio de red —la misma persona en datos y
+// en wifi es una sola— y va salado CON EL CÓDIGO DEL LINK, así que dos
+// links del mismo visitante dan hashes distintos y esto no sirve para
+// seguir a nadie por el sitio.
+//
+// Sin ese id (bots, y cualquier request que no pase por el ping del
+// navegador) se cae al hash de IP+UA+día de siempre. Ese lleva la fecha a
+// propósito: un hash de IP estable en el tiempo sería un identificador
+// persistente de algo que la persona no eligió.
 //
 // La sal sale del entorno si está, y si no cae a una constante. Esto es
 // ofuscación, no criptografía: alguien que conozca la sal y la IP puede
 // reconstruir el hash. Alcanza para lo que hace (agrupar, no identificar).
 const SALT = process.env.NUXT_LINK_HASH_SALT || 'br-link-visitor-v1'
 
-function hashVisitor(code: string, ip: string, ua: string): string {
+function hashVisitor(code: string, ip: string, ua: string, visitorId?: string | null): string {
+  if (visitorId) {
+    return createHash('sha256').update(`${SALT}|${code}|${visitorId}`).digest('hex').slice(0, 12)
+  }
   const day = new Date().toISOString().slice(0, 10)
   return createHash('sha256').update(`${SALT}|${code}|${ip}|${ua}|${day}`).digest('hex').slice(0, 12)
 }
 
-export function classifyRequest(event: H3Event, code: string): RequestClassification {
+export interface ClassifyOptions {
+  // El id que mandó el navegador en el ping, si lo mandó.
+  visitorId?: string | null
+  // ¿Esta request tendría que ser un documento HTML? En la navegación sí;
+  // en un ping de sendBeacon/fetch NO —mandan `Accept: */*`— y aplicarle
+  // esa regla marcaba como bot a la persona que acababa de tocar el botón
+  // de contacto.
+  expectDocument?: boolean
+}
+
+export function classifyRequest(
+  event: H3Event,
+  code: string,
+  options: ClassifyOptions = {},
+): RequestClassification {
+  const { visitorId = null, expectDocument = true } = options
   const headers = event.node.req.headers
   const ua = (headers['user-agent'] as string) || ''
   const accept = (headers['accept'] as string) || ''
@@ -100,7 +129,7 @@ export function classifyRequest(event: H3Event, code: string): RequestClassifica
 
   const base = {
     device: detectDevice(ua),
-    visitorHash: hashVisitor(code, ip, ua),
+    visitorHash: hashVisitor(code, ip, ua, visitorId),
     referer: referer ? referer.slice(0, 200) : null,
     lang: acceptLang ? acceptLang.split(',')[0]!.trim().slice(0, 16) || null : null,
   }
@@ -135,7 +164,7 @@ export function classifyRequest(event: H3Event, code: string): RequestClassifica
   //    Los scrapers que no se identifican mandan casi siempre `*/*`. Va
   //    último para que los casos conocidos queden etiquetados con su
   //    nombre real en vez de caer todos en un cajón genérico.
-  if (!accept.includes('text/html')) {
+  if (expectDocument && !accept.includes('text/html')) {
     return { ...base, isBot: true, botName: 'non-document-request', skip: false }
   }
 

@@ -126,7 +126,8 @@ clave inexistente en Rules es un **error**, no `false`.
 2. **El parseo de ficha.info** vive en `scripts/lib/ficha.js` y otra vez, en
    TypeScript, en `nuxt-app/functions/src/ficha.ts` — `functions/` es un paquete
    aparte y no puede importar de `scripts/`. El mapeo tiene que dar lo mismo
-   desde la terminal que desde el panel.
+   desde la terminal que desde el panel. El de **venta** (`fichaToSale`) existe
+   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres.
 3. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
    en `createTrackableLink` y en la página compartida. `functions/` es un
    paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.
@@ -222,6 +223,7 @@ Hay dos caminos:
 | `scripts/resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa |
 | `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
 | `scripts/backfill-revision.js` | Marca `revision: 'aprobada'` en las propiedades viejas (dry-run; escribe con `--apply`) |
+| `scripts/reset-link-stats.js` | Deja en cero la actividad de los links de vendedores — contadores y eventos, nunca los leads (dry-run; escribe con `--apply`) |
 
 Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`.
 
@@ -254,7 +256,8 @@ Lo que la ficha **no** dice y hay que preguntar: `mascotas`, `minimoMeses` y, a 
 `serviciosIncluidos` y `esPropio`. El script los lista con ⚠️.
 
 Lo mismo se puede hacer **sin Claude** desde el panel: `/app/rentals/new` tiene un campo para pegar
-el link, que llama al callable `importFromFicha` y autocompleta el formulario.
+el link, que llama al callable `importFromFicha` y autocompleta el formulario. `/app/sales/new` tiene
+el mismo campo para el catálogo de ventas — ver abajo.
 
 ---
 
@@ -388,6 +391,28 @@ Flujo **independiente** del de alquileres — propiedades en venta, con hasta **
 ### Comando
 
 `/agregar-depto-venta` — guía el flujo completo: recibe texto (PDF o descripción manual) + fotos adjuntadas en el chat, las sube a Storage, arma el JSON y lo agrega al catálogo.
+
+### Alta pegando el link de una ficha de ficha.info
+
+`/app/sales/new` tiene el mismo campo que `/app/rentals/new`: se pega el link para colegas de Tokko,
+el callable `importFromFicha` (con `collectionName: 'sales'`) lee la ficha en el server y completa el
+formulario. El mapeo de venta es `fichaToSale()` en `nuxt-app/functions/src/ficha.ts`.
+
+Lo que sale de la ficha y el alquiler no usa: `precio` (de `operations.Sale`, en formato "USD 120.000"),
+`superficie` y `superficieCubierta` (de `measurement`), `ambientes` / `banios` / `antiguedad` /
+`aptoCredito` (de `basic_info`) y `expensas` (de `operation_block_data`).
+
+**Las fotos vienen también.** La ficha trae hasta 20 URLs del CDN de Tokko y entran como links
+pendientes: al guardar, `importListingImage` las baja una por una a nuestro Storage, así la galería
+nativa no queda colgada de un CDN ajeno. Son hasta 20 requests en serie — el botón va contando
+("Copiando foto 3 de 19…") y puede tardar minutos con datos móviles.
+
+El id que sugiere es `ven-NN`, la serie nueva; los ids históricos (`lafinur-3000`, `poli-venta-01`)
+no matchean y quedan afuera del conteo. Hay que confirmar a mano `aptoCredito` (Tokko casi siempre
+dice "No especificado") y, si la ficha es de alquiler y no de venta, el precio: el aviso lo marca.
+
+De la terminal esto **sólo existe para alquileres** (`scripts/add-from-ficha.js`): el camino de venta
+necesita bajar y volver a subir hasta 20 fotos, que es justo lo que el panel ya hace.
 
 ### Schema de una propiedad en venta
 

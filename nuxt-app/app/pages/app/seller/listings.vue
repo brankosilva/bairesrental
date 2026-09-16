@@ -145,20 +145,18 @@ function canShare(p: RentalRow | SaleRow) {
   return revisionDe(p) === 'aprobada'
 }
 
-// A dónde manda el botón de ficha, con la misma precedencia que las listas de
-// admin: primero el link directo si lo hay (Airbnb, Booking), en alquileres el
-// álbum de ficha.info que se le pasa a los colegas, y si no la ficha del propio
-// sitio. En ventas NO se usa `fotos`: ahí es un string[] de URLs de Storage y
-// apuntarle abriría una imagen suelta; la galería está en la ficha pública.
+// A dónde manda el botón de ficha: siempre la ficha pública de BairesRental
+// (no el link de Airbnb/Booking ni el álbum de ficha.info que sí usan las
+// listas de admin) — es lo que el vendedor comparte con el cliente.
 //
-// La caída a la ficha del sitio sólo vale si está aprobada: la de un vendedor
-// que todavía está en revisión no existe para el público y daría 404.
+// Sólo vale si está aprobada: la de una publicación que todavía está en
+// revisión no existe para el público y daría 404.
 function fichaRentalHref(r: RentalRow): string {
-  return r.fichaUrl || r.fotos || (canShare(r) ? `/departamentos/${r.id}` : '')
+  return canShare(r) ? `/departamentos/${r.id}` : ''
 }
 
 function fichaSaleHref(s: SaleRow): string {
-  return s.fichaUrl || (canShare(s) ? `/ventas/${s.id}` : '')
+  return canShare(s) ? `/ventas/${s.id}` : ''
 }
 
 // Prellenado del formulario de /app/seller/links. No genera el link de una

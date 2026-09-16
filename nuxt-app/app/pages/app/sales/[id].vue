@@ -4,6 +4,7 @@ import { AMENITY_EMOJI } from '~/utils/amenities'
 import { DuplicateIdError } from '~/utils/adminCrud'
 import type { SaleProperty, SaleRow } from '~/types/property'
 import { revisionDe, type EstadoRevision } from '~/utils/revision'
+import { resolverPin } from '~/utils/pin'
 
 interface SellerOption {
   id: string
@@ -154,6 +155,49 @@ async function checkId() {
   }
 }
 
+// Alta desde el link para colegas de Tokko, igual que en rentals/[id].vue.
+// `importFromFicha` baja la ficha en el server (ficha.info no manda CORS) y la
+// mapea al catálogo de ventas: precio de venta, metros, ambientes, baños,
+// expensas y antigüedad, más el próximo id `ven-NN` libre.
+//
+// La diferencia con alquileres es la galería: la ficha trae hasta 20 fotos y
+// caen todas en la lista de links pendientes, así que al guardar terminan en
+// nuestro Storage por el mismo camino que una foto pegada a mano.
+const fichaUrlInput = ref('')
+const importando = ref(false)
+const importAvisos = ref<string[]>([])
+const importError = ref('')
+
+async function onImportarFicha() {
+  importError.value = ''
+  importAvisos.value = []
+  importando.value = true
+  try {
+    const importFromFicha = callable<
+      { url: string; collectionName: 'rentals' | 'sales' },
+      {
+        prop: Record<string, unknown> & { fotos?: string[] }
+        avisos: string[]
+        sugerencias: { id: string }
+      }
+    >('importFromFicha')
+    const { data } = await importFromFicha({ url: fichaUrlInput.value.trim(), collectionName: 'sales' })
+
+    const { fotos, ...campos } = data.prop
+    Object.assign(form, campos)
+    // `fotos` del formulario son las que ya están en nuestro Storage; las de la
+    // ficha todavía son del CDN de Tokko, así que van a la lista de pendientes.
+    newUrls.value = (fotos || []).slice(0, MAX_FOTOS - form.fotos.length - newFiles.value.length)
+    form.id = data.sugerencias.id
+    idError.value = ''
+    importAvisos.value = data.avisos
+  } catch (e) {
+    importError.value = (e as Error).message
+  } finally {
+    importando.value = false
+  }
+}
+
 // Ver el comentario gemelo en rentals/[id].vue: el nombre del vendedor viaja
 // desnormalizado, así que reasignar la propiedad tiene que actualizarlo.
 function onSellerChange() {
@@ -207,6 +251,20 @@ async function onSubmit() {
     // que sacarlo de acá no publica directo: hace fallar el guardado. Ver el
     // comentario gemelo en rentals/[id].vue.
     if (role.value === 'seller') form.revision = 'pendiente'
+
+    // Última chance para el pin: si la propiedad quedó sin ubicar —nadie tocó
+    // el botón, el link corto no se resolvió, la dirección se escribió al
+    // final— lo resolvemos acá, del lado del servidor, antes de escribir. Si
+    // tampoco sale, va como null: el catálogo la muestra igual, sin pin.
+    if (form.lat == null || form.lng == null) {
+      savingNote.value = 'Ubicando en el mapa…'
+      const pin = await resolverPin(form.direccion, form.direccionUrl)
+      if (pin?.ok) {
+        form.lat = pin.lat
+        form.lng = pin.lng
+      }
+      savingNote.value = 'Guardando…'
+    }
 
     // lat/lng explícitos: si nunca se pudo ubicar la dirección van como null.
     // Firestore tira error si le llega un undefined.
@@ -285,6 +343,41 @@ async function onDelete() {
         :motivo-rechazo="form.motivoRechazo"
         :is-admin="isAdmin"
       />
+
+      <AdminSection v-if="isNew" title="Importar desde ficha.info">
+        <p class="small text-muted mb-2">
+          Pegá el link para colegas de Tokko y se completa solo, fotos incluidas. Después revisá y corregí lo que
+          haga falta.
+        </p>
+        <div class="input-group">
+          <input
+            v-model="fichaUrlInput"
+            type="url"
+            class="form-control"
+            placeholder="https://ficha.info/p/..."
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            :disabled="importando"
+            @keydown.enter.prevent="onImportarFicha"
+          />
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            :disabled="importando || !fichaUrlInput.trim()"
+            @click="onImportarFicha"
+          >
+            {{ importando ? 'Trayendo…' : 'Traer datos' }}
+          </button>
+        </div>
+        <p v-if="importError" class="text-danger small mt-2 mb-0">{{ importError }}</p>
+        <div v-if="importAvisos.length" class="alert alert-info br-app-notice mt-2 mb-0">
+          <strong class="small">Listo. Revisá esto antes de guardar:</strong>
+          <ul class="small mb-0 mt-1 ps-3">
+            <li v-for="a in importAvisos" :key="a">{{ a }}</li>
+          </ul>
+        </div>
+      </AdminSection>
 
       <AdminSection title="Identificación">
         <div class="mb-2">

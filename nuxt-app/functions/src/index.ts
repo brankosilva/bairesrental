@@ -20,7 +20,7 @@ import { initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
-import { esUrlDeFicha, fetchFicha, fichaToRental, proximoIdAlq } from './ficha'
+import { esUrlDeFicha, fetchFicha, fichaToRental, fichaToSale, proximoIdAlq, proximoIdVen } from './ficha'
 
 initializeApp()
 const db = getFirestore()
@@ -901,12 +901,19 @@ export const importListingImage = onCall<ImportListingImageRequest>(async (reque
 
 interface ImportFromFichaRequest {
   url: string
+  /** A qué catálogo va. Por defecto `rentals`, que fue el primero en tenerlo. */
+  collectionName?: 'rentals' | 'sales'
 }
 
 // Callable, admin/seller. Lee una ficha pública de ficha.info (el "link para
 // colegas" de Tokko) y devuelve los campos ya mapeados para el formulario de
-// alta, más el próximo id `alq-NN` libre. No escribe nada: el alta la sigue
-// haciendo el formulario por el camino de siempre.
+// alta, más el próximo id libre de la serie (`alq-NN` o `ven-NN`). No escribe
+// nada: el alta la sigue haciendo el formulario por el camino de siempre.
+//
+// La misma ficha se puede leer como alquiler o como venta: Tokko publica las
+// dos operaciones en el mismo documento, así que lo que decide qué campos se
+// miran (el precio de venta y los metros, o el precio por mes y el plazo
+// mínimo) es de qué formulario salió el pedido, no la ficha.
 //
 // El request sale del server y no del navegador por dos razones. ficha.info no
 // manda CORS, así que un fetch desde la página no llega nunca. Y sobre todo: un
@@ -927,6 +934,11 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
     throw new HttpsError('invalid-argument', 'Pegá el link de una ficha de ficha.info (https://ficha.info/p/…).')
   }
 
+  const collectionName = request.data?.collectionName || 'rentals'
+  if (collectionName !== 'rentals' && collectionName !== 'sales') {
+    throw new HttpsError('invalid-argument', 'collectionName debe ser "rentals" o "sales".')
+  }
+
   let ficha
   try {
     ficha = await fetchFicha(url)
@@ -936,13 +948,18 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
     throw new HttpsError('failed-precondition', `No se pudo leer la ficha: ${(e as Error).message}`)
   }
 
-  const { prop, avisos } = fichaToRental(ficha)
+  const { prop, avisos } = collectionName === 'sales' ? fichaToSale(ficha) : fichaToRental(ficha)
 
   // select() sin campos trae solo los ids, que es lo único que hace falta para
-  // saber qué números `alq-NN` están tomados.
-  const snap = await db.collection('rentals').select().get()
+  // saber qué números de la serie están tomados.
+  const snap = await db.collection(collectionName).select().get()
+  const ids = snap.docs.map((d) => d.id)
 
-  return { prop, avisos, sugerencias: { id: proximoIdAlq(snap.docs.map((d) => d.id)) } }
+  return {
+    prop,
+    avisos,
+    sugerencias: { id: collectionName === 'sales' ? proximoIdVen(ids) : proximoIdAlq(ids) },
+  }
 })
 
 // --- M8: old→new URL redirect map ---

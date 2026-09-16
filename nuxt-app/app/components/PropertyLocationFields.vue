@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { extractLatLng } from '~/utils/geo'
+import { resolverPin } from '~/utils/pin'
 
 // La sección "Ubicación" de los dos formularios del panel (alquiler y venta),
 // que eran dos copias del mismo par de campos.
@@ -10,8 +11,12 @@ import { extractLatLng } from '~/utils/geo'
 //
 //   1. si el link de Google Maps ya trae las coordenadas adentro, se sacan de
 //      ahí — es el punto exacto que eligió una persona, la fuente más confiable;
-//   2. si no, se geocodifica la dirección contra Nominatim/OpenStreetMap
-//      (/api/geocode).
+//   2. si es un link corto (maps.app.goo.gl, share.google), lo sigue el
+//      servidor: el navegador no puede por CORS, y adentro está el mismo pin;
+//   3. si no, se geocodifica la dirección contra Nominatim/OpenStreetMap.
+//
+// Los tres pasos los resuelve /api/geocode, que es lo que vuelve a llamar el
+// onSubmit de los dos formularios si acá quedó sin pin.
 //
 // Hasta ahora lat/lng las escribía SOLO scripts/resolve-map-coords.js, después
 // de la carga y a mano: una propiedad recién cargada no tenía pin hasta que
@@ -70,13 +75,32 @@ function borrarPin() {
 }
 
 // Al salir del campo del link: si trae las coordenadas adentro, ganan sobre
-// cualquier geocoding posterior.
-function desdeLink() {
-  const c = extractLatLng(direccionUrlModel.value)
-  if (!c) return
-  setCoords(c[0], c[1])
-  etiqueta.value = 'el pin del link de Maps'
-  aviso.value = ''
+// cualquier geocoding posterior. Si es corto no las trae, y ahí va el servidor
+// a seguir el redirect — es el caso más común, porque es el link que da el
+// botón "Compartir" de Google Maps en el celular.
+async function desdeLink() {
+  const url = direccionUrlModel.value.trim()
+  if (!url) return
+
+  const c = extractLatLng(url)
+  if (c) {
+    setCoords(c[0], c[1])
+    etiqueta.value = 'el pin del link de Maps'
+    aviso.value = ''
+    return
+  }
+
+  buscando.value = true
+  try {
+    const r = await resolverPin('', url)
+    if (r?.ok) {
+      setCoords(r.lat, r.lng)
+      etiqueta.value = r.etiqueta
+      aviso.value = ''
+    }
+  } finally {
+    buscando.value = false
+  }
 }
 
 async function ubicar() {
@@ -85,11 +109,12 @@ async function ubicar() {
   buscando.value = true
   aviso.value = ''
   try {
-    const r = await $fetch('/api/geocode', { query: { q } })
-    if (!r.ok) {
+    const r = await resolverPin(q, direccionUrlModel.value)
+    if (!r?.ok) {
+      const motivo = r?.motivo || 'No pudimos ubicar la dirección.'
       setCoords(null, null)
       etiqueta.value = ''
-      aviso.value = `${r.motivo} Poné el link de Google Maps con el pin y lo sacamos de ahí.`
+      aviso.value = `${motivo} Poné el link de Google Maps con el pin y lo sacamos de ahí.`
       return
     }
     setCoords(r.lat, r.lng)

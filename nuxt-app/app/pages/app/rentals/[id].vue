@@ -4,6 +4,7 @@ import { AMENITY_EMOJI } from '~/utils/amenities'
 import { DuplicateIdError } from '~/utils/adminCrud'
 import type { RentalProperty, RentalRow } from '~/types/property'
 import { revisionDe, type EstadoRevision } from '~/utils/revision'
+import { resolverPin } from '~/utils/pin'
 
 interface SellerOption {
   id: string
@@ -181,10 +182,10 @@ async function onImportarFicha() {
   importando.value = true
   try {
     const importFromFicha = callable<
-      { url: string },
+      { url: string; collectionName: 'rentals' | 'sales' },
       { prop: Record<string, unknown>; avisos: string[]; sugerencias: { id: string } }
     >('importFromFicha')
-    const { data } = await importFromFicha({ url: fichaUrlInput.value.trim() })
+    const { data } = await importFromFicha({ url: fichaUrlInput.value.trim(), collectionName: 'rentals' })
 
     // La portada viene como URL del CDN de Tokko. Va al campo de "link de la
     // foto" y no a form.imagen, así al guardar `importListingImage` la copia a
@@ -243,6 +244,20 @@ async function onSubmit() {
     // `revisadaEn` se reenvían tal cual vinieron (la regla mira affectedKeys,
     // o sea lo que cambió: reenviar el mismo valor no cuenta como tocarlos).
     if (role.value === 'seller') form.revision = 'pendiente'
+
+    // Última chance para el pin: si la propiedad quedó sin ubicar —nadie tocó
+    // el botón, el link corto no se resolvió, la dirección se escribió al
+    // final— lo resolvemos acá, del lado del servidor, antes de escribir. Si
+    // tampoco sale, va como null: el catálogo la muestra igual, sin pin.
+    if (form.lat == null || form.lng == null) {
+      savingNote.value = 'Ubicando en el mapa…'
+      const pin = await resolverPin(form.direccion, form.direccionUrl)
+      if (pin?.ok) {
+        form.lat = pin.lat
+        form.lng = pin.lng
+      }
+      savingNote.value = 'Guardando…'
+    }
 
     // lat/lng explícitos: si nunca se pudo ubicar la dirección van como null.
     // Firestore tira error si le llega un undefined.

@@ -1,5 +1,7 @@
 // Lee una ficha pública de ficha.info (el "link para colegas" de Tokko Broker)
-// y la convierte a una propiedad del catálogo de alquileres.
+// y la convierte a una propiedad del catálogo: `fichaToRental()` para alquiler
+// temporario, `fichaToSale()` para venta. El parseo del HTML es el mismo; lo que
+// cambia es de dónde sale el precio y qué campos mira cada catálogo.
 //
 // ficha.info es una app Next.js que trae el JSON completo de la propiedad
 // embebido en el HTML, repartido en chunks `self.__next_f.push([1,"..."])`.
@@ -30,6 +32,10 @@ export interface FichaProperty {
   description?: string
   basic_info?: { key?: string; name?: string; value?: unknown }[]
   additionals?: string[]
+  /** La clave real de Tokko es en singular; `additionals` quedó del mapeo viejo. */
+  additional?: string[]
+  rooms?: string[]
+  services?: string[]
   tags?: { name?: string }[]
   type?: { name?: string }
   status?: { name?: string }
@@ -37,13 +43,26 @@ export interface FichaProperty {
   created_at?: string
   geolocation?: { lat?: string; lng?: string }
   temporary?: { periods?: [string, string][] }
+  /** `{ Sale: ["USD 120.000"], Rent: ["USD 990"], Temporary: [...] }`. */
+  operations?: Record<string, string[]>
+  /** `[{ key: 'total_surface', value: '62 m²', original_value: 62 }]`. */
+  measurement?: { key?: string; name?: string; value?: string; original_value?: number }[]
+  /** Donde Tokko mete las expensas: `[{ name: 'Expensas', value: '172.000' }]`. */
+  operation_block_data?: { name?: string; value?: string }[]
   pictures?: { front_cover_image?: { url?: string }; images?: string[] }
   company?: { name?: string }
 }
 
 export interface Ficha {
   property?: FichaProperty
-  edited_ficha?: { url?: string; description?: string; created_at?: string }
+  edited_ficha?: {
+    url?: string
+    description?: string
+    created_at?: string
+    // La selección de fotos de la ficha. Viene vacía si nadie la editó, y ahí
+    // valen las de `property`.
+    pictures?: { front_cover_image?: { url?: string } | null; images?: string[] }
+  }
   branch?: { name?: string; company?: { name?: string } }
   operation_can_edit?: boolean
 }
@@ -176,6 +195,17 @@ function capitalize(str: string): string {
   return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
 }
 
+// Tokko escribe los precios como texto ya formateado: "USD 990", "USD 120.000",
+// "ARS 1.250.000". El punto es separador de miles, así que hay que sacarlo antes
+// de parsear — un parseFloat directo sobre "USD 120.000" devuelve 120.
+function parsePrecio(texto: string): { precio: number; moneda: 'USD' | 'ARS' } | null {
+  const m = (texto || '').match(/(USD|ARS|U\$S|\$)\s*([\d.,]+)/i)
+  if (!m) return null
+  const precio = parseFloat(m[2].replace(/[.,]/g, ''))
+  if (!Number.isFinite(precio)) return null
+  return { precio, moneda: /ars|^\$$/i.test(m[1]) ? 'ARS' : 'USD' }
+}
+
 function mapTipo(basicInfo: FichaProperty['basic_info'], propertyType?: { name?: string }): string {
   if (/casa|house|chalet|quinta/i.test(propertyType?.name || '')) return 'casa'
   const rooms = Number((basicInfo || []).find(b => b.key === 'room_amount')?.value)
@@ -273,14 +303,8 @@ export function fichaToRental(ficha: Ficha): { prop: RentalFields; avisos: strin
   const tipo = mapTipo(property.basic_info, property.type)
 
   // Precio: las fichas de alquiler temporario lo traen como ["Por mes", "USD 550"]
-  let precio = 0
-  let moneda: 'USD' | 'ARS' = 'USD'
   const periodo = (property.temporary?.periods || [])[0]
-  const match = (periodo?.[1] || '').match(/(USD|ARS)\s*([\d,.]+)/)
-  if (match) {
-    moneda = match[1] as 'USD' | 'ARS'
-    precio = parseFloat(match[2].replace(',', ''))
-  }
+  const { precio, moneda } = parsePrecio(periodo?.[1] || '') || { precio: 0, moneda: 'USD' as const }
 
   // `edited_ficha.description` es el mismo texto ya en plano; el `description`
   // de `property` viene en HTML y al limpiarlo quedan espacios colgando.
@@ -379,4 +403,213 @@ export function proximoIdAlq(ids: string[]): string {
   let n = 1
   while (usados.has(n)) n++
   return `alq-${String(n).padStart(2, '0')}`
+}
+
+// ─── Mapeo a SaleProperty ────────────────────────────────────────────────────
+
+// Los campos que el formulario de /app/sales/new sabe llenar. Es el gemelo de
+// RentalFields, con lo que cambia entre alquilar y vender: sale el plazo mínimo
+// y las mascotas, entran los metros, los ambientes, las expensas y el crédito.
+export interface SaleFields {
+  titulo: string
+  barrio: string
+  tipo: string
+  precio: number
+  moneda: 'USD' | 'ARS'
+  disponibilidad: 'disponible' | 'reservado' | 'vendido'
+  superficie: number
+  superficieCubierta?: number
+  ambientes?: number
+  banios?: number
+  antiguedad: string
+  expensas?: number
+  aptoCredito: boolean
+  amueblado: boolean
+  amenities: string[]
+  descripcion: string
+  // Las fotos como las publica Tokko, todavía en su CDN. El formulario las pasa
+  // por `importListingImage` al guardar, así la galería termina apuntando a
+  // nuestro Storage: son hasta 20 fotos que no pueden depender de un CDN ajeno.
+  fotos: string[]
+  direccion: string
+  direccionUrl: string
+  lat?: number
+  lng?: number
+  whatsappMsg: string
+  fichaUrl: string
+  esPropio: boolean
+}
+
+function basico(property: FichaProperty, key: string): unknown {
+  return (property.basic_info || []).find(b => b.key === key)?.value
+}
+
+// Los números de `basic_info` vienen como number, pero no siempre: cuando Tokko
+// no tiene el dato manda el texto "No especificado".
+function numeroBasico(property: FichaProperty, key: string): number | undefined {
+  const n = Number(basico(property, key))
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+// `measurement` trae `original_value` numérico; si faltara, la superficie está
+// igual adentro de `value` ("62 m²").
+function medida(property: FichaProperty, key: string): number | undefined {
+  const m = (property.measurement || []).find(x => x.key === key)
+  if (!m) return undefined
+  if (Number.isFinite(m.original_value) && (m.original_value as number) > 0) return m.original_value
+  const n = parseFloat(String(m.value || '').replace(/[.,]/g, ''))
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+function mapTipoVenta(property: FichaProperty): string {
+  const nombre = property.type?.name || ''
+  // PH sólo existe en el catálogo de ventas, así que se mira antes que nada:
+  // un PH de 3 ambientes tiene que quedar "PH" y no "3 ambientes".
+  if (/^ph\b|propiedad horizontal/i.test(nombre)) return 'PH'
+  return mapTipo(property.basic_info, property.type)
+}
+
+// Los amenities de una ficha salen de tres listas distintas de Tokko
+// (`additional`, `rooms`, `services`) más la descripción. Se busca por
+// substring y no por igualdad: Tokko escribe "Seguridad portería" o "Pileta
+// climatizada", que con una comparación exacta no matchean nunca.
+function detectarAmenities(items: string[], texto: string): string[] {
+  const fuentes = [...items.map(s => (s || '').toLowerCase()), texto.toLowerCase()]
+  const amenities: string[] = []
+  for (const [palabra, mapeado] of Object.entries(AMENITIES_MAP)) {
+    if (!amenities.includes(mapeado) && fuentes.some(f => f.includes(palabra))) amenities.push(mapeado)
+  }
+  return amenities
+}
+
+export function fichaToSale(ficha: Ficha): { prop: SaleFields; avisos: string[] } {
+  const property = ficha.property || {}
+  const avisos: string[] = []
+
+  const direccion = (property.address || '').trim()
+  const barrio = (property.location || '').split('|')[0].trim()
+  const tipo = mapTipoVenta(property)
+
+  // Precio: `operations` es un objeto con una clave por operación
+  // (`{ Sale: ["USD 120.000"], Rent: [...] }`). Si no hay operación de venta,
+  // la ficha es de alquiler y se está cargando en el catálogo equivocado.
+  const operaciones = property.operations || {}
+  const claveVenta = Object.keys(operaciones).find(k => /sale|venta/i.test(k))
+  const precioTexto = claveVenta ? (operaciones[claveVenta] || [])[0] || '' : ''
+  const { precio, moneda } = parsePrecio(precioTexto) || { precio: 0, moneda: 'USD' as const }
+  if (!claveVenta) {
+    const otras = Object.keys(operaciones).join(', ') || 'ninguna'
+    avisos.push(`OJO: la ficha no tiene operación de venta (tiene: ${otras}) — cargá el precio a mano`)
+  } else if (!precio) {
+    avisos.push(`precio: no pude leer "${precioTexto}", cargalo a mano`)
+  }
+
+  const descripcion = (ficha.edited_ficha?.description || '').trim() || stripHtml(property.description || '')
+  const titulo = `${capitalize(tipo)} en ${barrio}`
+  const texto = `${descripcion}\n${titulo}`
+
+  const listas = [
+    ...(property.additional || property.additionals || []),
+    ...(property.rooms || []),
+    ...(property.services || []),
+    ...(property.tags || []).map(t => t.name || ''),
+  ]
+  const amenities = detectarAmenities(listas, texto)
+
+  const superficie = medida(property, 'total_surface') || medida(property, 'surface') || 0
+  const superficieCubierta = medida(property, 'roofed_surface')
+  if (!superficie) avisos.push('superficie: la ficha no trae los m² totales y son obligatorios — cargalos a mano')
+
+  const expensasTexto = (property.operation_block_data || []).find(b => /expensa/i.test(b.name || ''))?.value
+  const expensas = expensasTexto ? parseFloat(String(expensasTexto).replace(/[.,]/g, '')) : undefined
+
+  // "No especificado" es lo que manda Tokko cuando nadie cargó el dato, que es
+  // casi siempre. Se deja en false y se avisa, en vez de publicar "apto crédito"
+  // sobre algo que nadie confirmó.
+  const credito = String(basico(property, 'credit_eligible') || '')
+  const aptoCredito = /^(apto|s[ií]|true)/i.test(credito.trim())
+  if (!aptoCredito && credito) avisos.push(`aptoCredito: la ficha dice "${credito}" — confirmalo antes de tildarlo`)
+
+  const lat = parseFloat(property.geolocation?.lat || '')
+  const lng = parseFloat(property.geolocation?.lng || '')
+  const tieneCoords = Number.isFinite(lat) && Number.isFinite(lng)
+
+  const status = property.status?.name
+  const disponibleEnTokko = esDisponibleSegunTokko(status)
+
+  // La galería: la portada primero y después el resto, sin repetirla. Las que
+  // eligió la ficha ganan sobre las de la propiedad, que es el orden en que las
+  // ve el colega. El tope de 20 lo vuelve a aplicar el formulario.
+  const dePropiedad = property.pictures || {}
+  const deFicha = ficha.edited_ficha?.pictures
+  const fuente = (deFicha?.images || []).length ? deFicha! : dePropiedad
+  const fotos = [...new Set([
+    fuente.front_cover_image?.url || dePropiedad.front_cover_image?.url || '',
+    ...(fuente.images || []),
+  ].filter(Boolean))].slice(0, 20)
+
+  const prop: SaleFields = {
+    titulo,
+    barrio,
+    tipo,
+    precio,
+    moneda,
+    // Cualquier cosa que no sea "Disponible" en Tokko queda fuera del catálogo
+    // público: "vendido" no se muestra. Es el default seguro — que no se
+    // publique sola una propiedad que ya no está a la venta.
+    disponibilidad: disponibleEnTokko === false ? 'vendido' : 'disponible',
+    superficie,
+    antiguedad: String(basico(property, 'age') || '').trim(),
+    aptoCredito,
+    amueblado: /amoblad|amueblad|equipad/i.test(`${texto}\n${listas.join('\n')}`),
+    amenities,
+    descripcion,
+    fotos,
+    direccion,
+    direccionUrl: tieneCoords ? `https://www.google.com/maps?q=${lat},${lng}` : '',
+    whatsappMsg: `Hola! Me interesa el ${tipo} en venta en ${barrio} (${direccion}). ¿Podría darme más información?`,
+    // La ficha de ficha.info es el link para colegas: no va como "Ver
+    // publicación completa", que es un botón público. `fichaUrl` es para
+    // Zonaprop/Argenprop y se carga a mano.
+    fichaUrl: '',
+    // `esPropio` no se deduce: ver el comentario gemelo en fichaToRental().
+    esPropio: false,
+  }
+  if (superficieCubierta) prop.superficieCubierta = superficieCubierta
+  const ambientes = numeroBasico(property, 'room_amount')
+  if (ambientes) prop.ambientes = ambientes
+  const banios = numeroBasico(property, 'bathroom_amount')
+  if (banios) prop.banios = banios
+  if (expensas) prop.expensas = expensas
+  if (tieneCoords) {
+    prop.lat = lat
+    prop.lng = lng
+  }
+
+  if (disponibleEnTokko === false) avisos.push(`Tokko marca esta ficha como "${status}" → quedó "vendido"`)
+
+  const company = property.company?.name || ficha.branch?.company?.name
+  if (company && company.toLowerCase().includes(MI_INMOBILIARIA_TOKKO.toLowerCase())) {
+    avisos.push(`la ficha está publicada bajo "${company}" — marcá "es propio" si la propiedad es de BairesRental`)
+  } else if (company) {
+    avisos.push(`OJO: la ficha aparece bajo otra inmobiliaria ("${company}")`)
+  }
+
+  if (!fotos.length) avisos.push('la ficha no trae fotos — subilas desde el formulario')
+  else avisos.push(`${fotos.length} foto${fotos.length === 1 ? '' : 's'} del CDN de Tokko: las copiamos a nuestro Storage al guardar`)
+
+  return { prop, avisos }
+}
+
+// Igual que `proximoIdAlq` pero para la serie `ven-NN` de `sales`. Los ids
+// históricos (`lafinur-3000`, `poli-venta-01`) no matchean y quedan afuera.
+export function proximoIdVen(ids: string[]): string {
+  const usados = new Set<number>()
+  for (const id of ids) {
+    const m = /^ven-(\d+)$/.exec(id || '')
+    if (m) usados.add(parseInt(m[1], 10))
+  }
+  let n = 1
+  while (usados.has(n)) n++
+  return `ven-${String(n).padStart(2, '0')}`
 }

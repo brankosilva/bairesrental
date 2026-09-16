@@ -431,13 +431,6 @@ function formatFecha(fecha?: string) {
               </div>
 
               <div class="br-filtro-grupo">
-                <span class="br-filtro-label">{{ t('departamentos.filtros.mascotas') }}</span>
-                <label class="br-toggle-wrap">
-                  <input v-model="mascotas" type="checkbox" />
-                </label>
-              </div>
-
-              <div class="br-filtro-grupo">
                 <span class="br-filtro-label">BairesRental</span>
                 <div class="br-filtro-pills">
                   <button type="button" class="br-pill-btn br-pill-btn-baires" :class="{ active: soloBairesRental }" @click="soloBairesRental = !soloBairesRental">
@@ -457,6 +450,10 @@ function formatFecha(fecha?: string) {
 
               <div class="br-filtro-grupo">
                 <div class="br-filtro-pills">
+                  <label class="br-amenity-check">
+                    <input v-model="mascotas" type="checkbox" />
+                    <span>{{ t('departamentos.filtros.mascotas') }}</span>
+                  </label>
                   <label v-for="a in AMENITY_FILTERS" :key="a" class="br-amenity-check">
                     <input type="checkbox" :checked="amenitiesSel.includes(a)" @change="toggleAmenity(a)" />
                     <span>{{ amenityLabel(a) }}</span>
@@ -526,7 +523,6 @@ function formatFecha(fecha?: string) {
             <div class="br-prop-clickzone" @click="goTo(r)">
               <div class="br-prop-location">
                 {{ r.barrio }} · <em style="font-style: normal; font-weight: 500">{{ r.tipo }}</em>
-                <span v-if="r.mascotas" class="br-mascota-inline">{{ t('departamentos.card.mascotas') }}</span>
               </div>
               <div v-if="r.direccion && r.direccionUrl" class="br-prop-direccion">
                 <a :href="r.direccionUrl" target="_blank" rel="noopener" class="br-btn-ver-mapa" @click.stop>
@@ -556,9 +552,9 @@ function formatFecha(fecha?: string) {
                 <span v-else class="br-precio" style="font-size: 1rem; font-weight: 700">{{ t('departamentos.card.consultarPrecio') }}</span>
               </div>
               <div class="br-amenities-row">
+                <span v-if="r.mascotas" class="br-amenity-tag">{{ t('departamentos.card.mascotas') }}</span>
                 <span v-for="a in r.amenities.slice(0, 4)" :key="a" class="br-amenity-tag">{{ amenityLabel(a) }}</span>
               </div>
-              <p class="br-prop-desc">{{ truncate(r.descripcion, 120) }}</p>
             </div>
             <div class="br-prop-actions">
               <NuxtLink :to="detailHref(r)" class="br-btn-detalle-primary w-100 mb-2">
@@ -637,9 +633,6 @@ function formatFecha(fecha?: string) {
   font-size: 11px;
   padding: 4px 10px;
   min-width: 110px;
-}
-.br-filtros-row .br-toggle-wrap span {
-  font-size: 11px;
 }
 .br-filtros-row #label-precio {
   font-size: 11px;

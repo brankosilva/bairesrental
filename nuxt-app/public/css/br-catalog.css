@@ -139,25 +139,6 @@ input[type="range"].br-range::-webkit-slider-thumb {
   box-shadow: 0 1px 4px rgba(0,0,0,.2);
 }
 
-.br-toggle-wrap { display: flex; align-items: center; gap: 4.5px; cursor: pointer; }
-.br-toggle-wrap input[type="checkbox"] {
-  width: 36px; height: 20px;
-  appearance: none; -webkit-appearance: none;
-  background: var(--br-gris-borde);
-  border-radius: 20px;
-  position: relative; cursor: pointer;
-  transition: background .2s; flex-shrink: 0;
-}
-.br-toggle-wrap input[type="checkbox"]::after {
-  content: ""; position: absolute;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: #fff; top: 3px; left: 3px;
-  transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
-}
-.br-toggle-wrap input[type="checkbox"]:checked { background: var(--br-azul); }
-.br-toggle-wrap input[type="checkbox"]:checked::after { left: 19px; }
-.br-toggle-wrap span { font-family: 'DM Sans', sans-serif; font-size: 8.8px; font-weight: 500; }
-
 .br-amenity-check {
   display: flex; align-items: center; gap: 4px;
   background: var(--br-gris-bg);
@@ -772,12 +753,6 @@ input[type="range"].br-range::-webkit-slider-thumb {
 .br-badge-disponible   { background: #16a34a; color: #fff; }
 .br-badge-reservado    { background: #d97706; color: #fff; }
 .br-badge-nodisponible { background: #dc2626; color: #fff; }
-
-.br-mascota-inline {
-  font-size: 11px; color: #555; font-weight: 500;
-  margin-left: auto;
-  white-space: nowrap;
-}
 
 .br-prop-body {
   padding: 11px 12px 12px;

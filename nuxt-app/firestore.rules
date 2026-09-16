@@ -14,19 +14,124 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Public catalog — same visibility as today's fully-public JSON files.
-    // Sellers may only create/edit/delete their own listings (sellerUid
-    // must equal the caller's uid on both the existing doc and the write).
+    // ── Catálogo (rentals / sales) ──────────────────────────────────────
+    //
+    // Público, pero SÓLO lo que ya aprobó un admin: lo que carga un vendedor
+    // pasa por revisión antes de salir al sitio.
+    //
+    // Las dos colecciones tienen reglas idénticas, y la lógica vive en estas
+    // funciones en vez de repetirse en cada match justamente para que no
+    // puedan divergir.
+
+    // POR QUÉ `get` Y `list` SON DISTINTOS, que es lo no obvio de este bloque.
+    //
+    // `get` se evalúa contra el DOCUMENTO real, así que `.get(campo, default)`
+    // es legal y hace lo que dice: una propiedad vieja sin el campo (las ~88
+    // que cargó el admin por script) se lee como aprobada.
+    //
+    // `list` NO se evalúa documento por documento: Firestore chequea la QUERY
+    // contra la regla y deniega la request entera si no puede PROBAR que todo
+    // resultado posible pasa ("rules are not filters"). Ese analizador
+    // reconoce sólo comparaciones simples contra un campo, no llamadas a
+    // método como `.get()`. Con `.get(...)` acá, la query anónima REBOTA
+    // ENTERA y el catálogo público sale vacío — no "con menos propiedades".
+    // Por eso tiene que ser la comparación literal, y por eso las queries
+    // públicas llevan where('revision','==','aprobada').
+    //
+    // Corolario, y la razón de que el backfill no sea opcional: un `where` de
+    // igualdad no matchea documentos sin el campo. Uno sin `revision` abriría
+    // por URL directa pero no aparecería ni en el catálogo ni en el sitemap.
+    // Ver app/utils/revision.ts y scripts/lib/catalogo.js.
+    //
+    // Y OJO CON EL ORDEN: `isSignedIn()` va PRIMERO en las dos. En Rules leer
+    // una clave que no existe es un ERROR de evaluación, no `false`, y `||`
+    // cortocircuita. Al revés, un documento legacy sin `revision` sería
+    // ilegible hasta para el admin.
+    function puedeLeerPropiedad() {
+      return isSignedIn() || resource.data.get('revision', 'aprobada') == 'aprobada';
+    }
+
+    function puedeListarPropiedades() {
+      return isSignedIn() || resource.data.revision == 'aprobada';
+    }
+
+    // `.get('sellerUid', '')` por lo mismo: los ~88 documentos legacy no
+    // tienen el campo y leerlo directo sería un error de evaluación.
+    function esDelVendedor() {
+      return role() == 'seller' && resource.data.get('sellerUid', '') == request.auth.uid;
+    }
+
+    function camposTocados() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function creaElVendedor() {
+      return role() == 'seller'
+        && request.resource.data.get('sellerUid', '') == request.auth.uid
+        // Sin esto el vendedor se auto-publica en el alta y todo lo demás no
+        // sirve para nada.
+        && request.resource.data.revision == 'pendiente'
+        && !request.resource.data.keys().hasAny(['motivoRechazo', 'revisadaPor', 'revisadaEn']);
+    }
+
+    function editaElVendedor() {
+      return esDelVendedor()
+        // El pin que faltaba, y que no es de esta feature: la regla vieja sólo
+        // miraba el documento EXISTENTE, así que un vendedor podía
+        // reasignarse la propiedad a otro uid —o dejarla sin dueño— y
+        // perderla para siempre.
+        && request.resource.data.get('sellerUid', '') == request.auth.uid
+        && (
+          // El cambio rápido de disponibilidad desde la lista NO manda nada a
+          // revisión: no toca lo que el admin aprobó. Si lo hiciera, un
+          // vendedor marcando "reservado" se bajaría su propia publicación del
+          // sitio. El set es exactamente ['disponibilidad','updatedAt'] porque
+          // useAvailability() llama a saveOne(), que sella updatedAt siempre.
+          (camposTocados().hasOnly(['disponibilidad', 'updatedAt'])
+           && !camposTocados().hasAny(['revision', 'motivoRechazo', 'revisadaPor', 'revisadaEn']))
+
+          // Cualquier otra edición deja el documento EN REVISIÓN.
+          //
+          // Se mira el documento RESULTANTE y no lo que mandó el cliente, y
+          // ésa es la diferencia entre que ande y que no: el formulario guarda
+          // DOS veces (primero los campos, después saveOne(id, { imagen }) con
+          // la foto ya subida), y esa segunda escritura no reenvía `revision`.
+          // En un merge `request.resource.data` es lo que QUEDA, así que las
+          // dos pasan.
+          || (request.resource.data.revision == 'pendiente'
+              && !camposTocados().hasAny(['motivoRechazo', 'revisadaPor', 'revisadaEn']))
+        );
+      // A propósito NO hay un keys().hasOnly([...]) con los campos de la
+      // propiedad. RentalProperty/SaleProperty tienen ~40 campos y cambian
+      // seguido: el día que alguien agregue uno al formulario y se olvide de
+      // esta regla, se romperían TODOS los guardados de los vendedores sin que
+      // nada avise. Las restricciones de acá son negativas y sobre lo que
+      // CAMBIÓ (affectedKeys), que es lo que resiste que el esquema se mueva —
+      // el formulario hace Object.assign(form, existing) y reenvía
+      // motivoRechazo tal cual vino, y eso no cuenta como afectado. Con
+      // keys().hasAny() le rechazaría al vendedor todo guardado posterior a un
+      // rechazo. Misma lección que sellerProfiles más abajo.
+      //
+      // El vendedor tampoco puede LIMPIAR motivoRechazo, y es deliberado: el
+      // historial queda para el admin, y la UI lo muestra sólo cuando
+      // revision == 'rechazada' (ver app/utils/revision.ts), así que un motivo
+      // viejo nunca aparece sobre una propiedad ya corregida.
+    }
+
     match /rentals/{id} {
-      allow read: if true;
-      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
-      allow update, delete: if isAdmin() || (role() == 'seller' && resource.data.sellerUid == request.auth.uid);
+      allow get: if puedeLeerPropiedad();
+      allow list: if puedeListarPropiedades();
+      allow create: if isAdmin() || creaElVendedor();
+      allow update: if isAdmin() || editaElVendedor();
+      allow delete: if isAdmin() || esDelVendedor();
     }
 
     match /sales/{id} {
-      allow read: if true;
-      allow create: if isAdmin() || (role() == 'seller' && request.resource.data.sellerUid == request.auth.uid);
-      allow update, delete: if isAdmin() || (role() == 'seller' && resource.data.sellerUid == request.auth.uid);
+      allow get: if puedeLeerPropiedad();
+      allow list: if puedeListarPropiedades();
+      allow create: if isAdmin() || creaElVendedor();
+      allow update: if isAdmin() || editaElVendedor();
+      allow delete: if isAdmin() || esDelVendedor();
     }
 
     // Owners get read access to their own properties (v1 scope is

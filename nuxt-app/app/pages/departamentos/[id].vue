@@ -23,6 +23,21 @@ const id = route.params.id as string
 const db = getFirestore()
 const rental = useDocument<RentalProperty>(doc(db, 'rentals', id))
 
+// Una publicación que todavía no aprobó un admin no es legible para un
+// visitante anónimo: firestore.rules la rechaza, así que acá no llega `null`
+// sino un permission-denied, y `promise` de vuefire REchaza (no resuelve en
+// undefined). Sin este catch el SSR devuelve 500 en lugar de 404.
+//
+// A propósito no se chequea `estaPublicada()` acá: la regla ya es el filtro, y
+// dejarlo así hace que un admin logueado SÍ pueda abrir la ficha de una
+// pendiente — que es justo como la revisa antes de aprobarla. Para él la
+// página existe; para cualquiera de afuera, no. El noindex de abajo se encarga
+// de que eso nunca llegue a un buscador.
+await rental.promise.value.catch(() => {})
+if (!rental.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Propiedad no encontrada' })
+}
+
 const description = computed(() => (rental.value ? truncate(metaText(rental.value.descripcion), 160) : ''))
 
 // La portada cruda (foto de celular vertical, ~2 MB) no sirve como preview:
@@ -49,7 +64,11 @@ useSeoMeta({
   twitterTitle: () => rental.value?.titulo,
   twitterDescription: () => description.value || undefined,
   twitterImage: () => og.value?.url,
-  robots: () => (rental.value ? undefined : 'noindex'),
+  // Sin aprobar = fuera del índice. Acá sólo llega un usuario logueado
+  // revisándola (los de afuera se comen el 404 de arriba), pero el noindex es
+  // lo que garantiza que una ficha en revisión no se cuele en un buscador si
+  // alguien pega el link.
+  robots: () => (rental.value && estaPublicada(rental.value) ? undefined : 'noindex'),
 })
 
 useHead({

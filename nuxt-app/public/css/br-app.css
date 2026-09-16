@@ -129,6 +129,31 @@
   background: rgba(255, 255, 255, 0.16);
 }
 
+/* Cuántas publicaciones esperan revisión. Ámbar y no rojo: es trabajo
+   pendiente, no un error. Va pegado al label en los dos menús (barra y
+   drawer), por eso el markup no deja espacio entre el texto y el <span>. */
+.br-app-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  margin-left: 7px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e8a33d;
+  color: #1a1a1f;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+/* En el drawer el fondo es claro, así que el globito necesita su propio
+   contraste. */
+.br-app-drawer-link .br-app-nav-badge {
+  background: #b8730a;
+  color: #fff;
+}
+
 .br-app-nav-email {
   color: rgba(255, 255, 255, 0.55);
   font-size: 13px;
@@ -388,6 +413,14 @@
 .br-app-card.is-saving {
   opacity: 0.6;
 }
+/* La que se acaba de guardar, primera de la lista (useJustSaved). El borde
+   verde es el mismo hilo visual que el cartel de <SavedPropertyNotice> de
+   arriba: sin él, "está primera" no se lee como una respuesta a lo que uno
+   acaba de hacer. */
+.br-app-card.is-highlight {
+  border-color: #198754;
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.16);
+}
 
 .br-app-card-thumb {
   grid-area: thumb;
@@ -435,6 +468,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Estado de revisión de una publicación que todavía no salió al sitio. Va
+   dentro de la columna de info y NO en .br-app-card-status, que es la columna
+   angosta del <select> de disponibilidad: son dos ejes distintos (si está
+   publicada vs. si está disponible) y meterlos en la misma celda los hace
+   parecer opciones del mismo control. El chip se reusa de §5. */
+.br-app-card-revision {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+/* El chip de revisión es más chico que el de disponibilidad: acá es una
+   anotación, no el control principal de la fila. */
+.br-app-card-revision .br-app-status-tag {
+  padding: 2px 9px;
+  font-size: 12px;
+}
+.br-app-card-motivo {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #6b6b75;
 }
 
 .br-app-card-price {
@@ -639,6 +697,25 @@
   .br-app textarea {
     font-size: 16px;
   }
+}
+
+/* Campo obligatorio. Casi todo el formulario lo es, así que marcarlos es
+   menos ruidoso que dejar que el navegador avise recién al querer guardar. */
+.br-app .form-label.is-required::after {
+  content: ' *';
+  color: #dc3545;
+  font-weight: 700;
+}
+
+/* --- Ubicación: confirmación visual del pin (PropertyLocationFields.vue) --- */
+
+.br-app-geo-map {
+  display: block;
+  width: 100%;
+  height: 190px;
+  margin: 8px 0 4px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 10px;
 }
 
 /* --- Chips de amenities --- */
@@ -1206,4 +1283,65 @@
   font-size: 12px;
   color: var(--br-app-mute);
   text-align: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Cola de revisión (/app/admin/revision)
+
+   Fila propia y no <PropertyAdminCard>: esa card tiene la columna de acciones
+   fijada en 94px (dos botones) y su <select> es el de disponibilidad, que es
+   otro eje. Acá hacen falta cuatro acciones y un <textarea> que se despliega
+   abajo, ocupando el ancho entero.
+
+   Es flex y no grid justamente por eso: el bloque del motivo tiene que poder
+   caer fuera de la fila sin pelearse con las columnas. Se reusan
+   .br-app-card-thumb / -info / -titulo / -meta / -id, que fuera del grid de
+   .br-app-card siguen sirviendo (su `grid-area` queda inerte y las medidas del
+   thumb son fijas).
+   ───────────────────────────────────────────────────────────────────────── */
+.br-review-card {
+  padding: 10px 12px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 12px;
+  background: #fff;
+}
+.br-review-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.br-review-seller {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--br-app-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.br-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.br-review-motivo {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--br-app-borde);
+}
+
+/* En celular la fila se apila y las acciones pasan a ocupar el ancho entero:
+   con cuatro botones a la derecha de una miniatura no entra nada legible. */
+@media (max-width: 767.98px) {
+  .br-review-main {
+    flex-wrap: wrap;
+  }
+  .br-review-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .br-review-actions .btn {
+    flex: 1 1 auto;
+  }
 }

@@ -1,5 +1,6 @@
 import type { SellerProfile, TrackableLink } from '~/types/link'
 import { isShareableBySeller, ownFirst } from '~/utils/sellerScope'
+import type { EstadoRevision } from '~/utils/revision'
 
 // Payload de la página con la marca del vendedor (/l/:code).
 //
@@ -76,7 +77,7 @@ export default defineEventHandler(async (event) => {
   // Los dos campos que este endpoint mira por nombre salen del índice de
   // strings: con `Record<string, unknown>` a secas, `sellerUid` es `unknown` y
   // no entra en SellerScoped.
-  type Row = Record<string, unknown> & { sellerUid?: string | null; titulo?: string }
+  type Row = Record<string, unknown> & { sellerUid?: string | null; titulo?: string; revision?: EstadoRevision }
 
   let property: Row | null = null
   let propertyKind: 'rental' | 'sale' | null = null
@@ -85,10 +86,11 @@ export default defineEventHandler(async (event) => {
   if (isCatalog) {
     // El catálogo entero, que es lo que el vendedor presenta como propio:
     // el de BairesRental, lo que cargó él y también las exclusivas de sus
-    // colegas. El recorte lo decide isShareableBySeller() —hoy, ninguno— y
-    // no esta función, para que el panel y la página compartida no puedan
-    // mostrar cosas distintas. Son ~88 lecturas por apertura: exactamente lo
-    // mismo que ya hace /departamentos en cada request de SSR.
+    // colegas. El recorte lo decide isShareableBySeller() —hoy, lo que todavía
+    // no aprobó un admin— y no esta función, para que el panel y la página
+    // compartida no puedan mostrar cosas distintas. Son ~88 lecturas por
+    // apertura: exactamente lo mismo que ya hace /departamentos en cada
+    // request de SSR.
     const [r, s] = await Promise.all([db.collection('rentals').get(), db.collection('sales').get()])
     const rows = (snap: typeof r) =>
       snap.docs.map((d) => ({ id: d.id, ...plain(d.data()) }) as Row).filter((p) => isShareableBySeller(p, link.sellerUid))
@@ -120,11 +122,18 @@ export default defineEventHandler(async (event) => {
     }
     if (!property) throw createError({ statusCode: 404, statusMessage: 'Publicación no encontrada' })
 
-    // Un link de catálogo sólo abre fichas que ese vendedor puede mostrar.
-    // Hoy son todas, pero el chequeo se queda: es el mismo predicado que
-    // arma la lista de arriba, y sin él una ficha que la lista NO muestre
-    // igual se abriría por URL directa.
-    if (requestedProperty && !isShareableBySeller(property, link.sellerUid)) {
+    // Una ficha compartida tiene que pasar el mismo predicado que arma la
+    // lista de arriba; si no, una publicación que la lista NO muestra igual se
+    // abre por URL directa.
+    //
+    // El `requestedProperty &&` que condicionaba esto SE SACÓ. Dejaba afuera
+    // del chequeo justo el caso del link directo a una propiedad
+    // (`link.propertyId`, que es lo que genera el formulario de
+    // /app/seller/links): sólo se validaba el `?p=` de un link de catálogo.
+    // Mientras el predicado devolvía `true` para todo daba igual; desde que
+    // mira el estado de revisión, era la manera de que una publicación sin
+    // aprobar se publicara igual con la marca del vendedor.
+    if (!isShareableBySeller(property, link.sellerUid)) {
       throw createError({ statusCode: 404, statusMessage: 'Publicación no encontrada' })
     }
   }

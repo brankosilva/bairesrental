@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { RentalProperty } from '~/types/property'
+import type { RentalRow } from '~/types/property'
 import type { Availability } from '~/utils/availability'
+import { revisionDe } from '~/utils/revision'
 
 // Ported from app/src/pages/app/admin/RentalsList.vue. Plain list +
 // client-side search filter, same as the old app — no SEO/crawler reason
@@ -20,24 +21,52 @@ import type { Availability } from '~/utils/availability'
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['admin'] })
 useHead({ title: 'BairesRental — Admin · Alquileres', meta: [{ name: 'robots', content: 'noindex' }] })
 
-type Row = RentalProperty & { id: string; sellerUid?: string | null }
+type Row = RentalRow
+
+interface UserDoc {
+  id: string
+  email?: string | null
+  displayName?: string | null
+}
 
 const rentals = ref<Row[]>([])
+const users = ref<UserDoc[]>([])
 const loading = ref(true)
 
 const { savingId, notice, setAvailability } = useAvailability('rentals')
 const { search, tipos, disponibilidad, propio, tipoOptions, availabilityOptions, matches, activeCount, clear } =
   usePropertyFilters<Row>('rental', rentals)
 
+// El cartel de "listo, se guardó" + la recién guardada primera de la lista.
+// Sin esto, una propiedad nueva cae por ID en el medio de ~85 y parece que no
+// se guardó nada — ver el encabezado de useJustSaved().
+const { savedId, isNew: savedIsNew, saved, savedFirst, close: closeSaved } = useJustSaved(rentals, 'rental')
+
 onMounted(async () => {
-  rentals.value = await listAll('rentals')
+  // `users` va sólo para poner nombre y mail donde antes había un uid cortado.
+  // Es una lectura más de una colección chica, y sólo la hace el admin — un
+  // vendedor no puede leer el `users/{uid}` de otro (firestore.rules).
+  const [r, u] = await Promise.all([listAll<Row>('rentals'), listAll<UserDoc>('users')])
+  rentals.value = r
+  users.value = u
   loading.value = false
 })
 
-const filtered = computed(() => rentals.value.filter(matches))
+const filtered = computed(() => rentals.value.filter(matches).sort(savedFirst))
 
+// Antes decía `vendedor ab3f9k…`, que no identifica a nadie: para saber de
+// quién era una publicación había que ir a Usuarios y cruzar el uid a mano.
+//
+// El nombre de `users` gana sobre el `sellerNombre` del documento: ése quedó
+// congelado cuando se guardó la propiedad, y si alguien se cambió el nombre el
+// que vale es el de su usuario.
 function sellerLabel(r: Row): string {
-  return r.sellerUid ? `vendedor ${r.sellerUid.slice(0, 8)}…` : 'gestiona BairesRental'
+  if (!r.sellerUid) return 'gestiona BairesRental'
+  const u = users.value.find((x) => x.id === r.sellerUid)
+  const nombre = u?.displayName || r.sellerNombre || null
+  const email = u?.email || null
+  if (nombre && email) return `${nombre} · ${email}`
+  return nombre || email || `vendedor ${r.sellerUid.slice(0, 8)}…`
 }
 
 // A dónde manda el botón de ficha. Misma precedencia que el mensaje de
@@ -71,6 +100,15 @@ function fichaHref(r: Row): string {
       @clear="clear"
     />
 
+    <SavedPropertyNotice
+      v-if="saved"
+      kind="rental"
+      :id="saved.id"
+      :titulo="saved.titulo"
+      :is-new="savedIsNew"
+      @close="closeSaved"
+    />
+
     <div
       v-if="notice"
       class="alert br-app-notice d-flex align-items-start gap-2"
@@ -100,6 +138,9 @@ function fichaHref(r: Row): string {
           :edit-to="`/app/rentals/${r.id}`"
           :ficha-to="fichaHref(r)"
           :extra="sellerLabel(r)"
+          :revision="revisionDe(r)"
+          :motivo-rechazo="r.motivoRechazo"
+          :highlight="r.id === savedId"
           :saving="savingId === r.id"
           @change="(v: Availability) => setAvailability(r, v)"
         />

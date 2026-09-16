@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { SaleProperty } from '~/types/property'
+import type { SaleRow } from '~/types/property'
 import type { Availability } from '~/utils/availability'
+import { revisionDe } from '~/utils/revision'
 
 // Ported from app/src/pages/app/admin/SalesList.vue — see rentals.vue's
 // sibling comment for why client-fetch-on-mount is fine here, y para el
@@ -11,24 +12,42 @@ import type { Availability } from '~/utils/availability'
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['admin'] })
 useHead({ title: 'BairesRental — Admin · Ventas', meta: [{ name: 'robots', content: 'noindex' }] })
 
-type Row = SaleProperty & { id: string; sellerUid?: string | null }
+type Row = SaleRow
+
+interface UserDoc {
+  id: string
+  email?: string | null
+  displayName?: string | null
+}
 
 const sales = ref<Row[]>([])
+const users = ref<UserDoc[]>([])
 const loading = ref(true)
 
 const { savingId, notice, setAvailability } = useAvailability('sales')
 const { search, tipos, disponibilidad, propio, tipoOptions, availabilityOptions, matches, activeCount, clear } =
   usePropertyFilters<Row>('sale', sales)
 
+// Ver el comentario gemelo en admin/rentals.vue.
+const { savedId, isNew: savedIsNew, saved, savedFirst, close: closeSaved } = useJustSaved(sales, 'sale')
+
 onMounted(async () => {
-  sales.value = await listAll('sales')
+  const [s, u] = await Promise.all([listAll<Row>('sales'), listAll<UserDoc>('users')])
+  sales.value = s
+  users.value = u
   loading.value = false
 })
 
-const filtered = computed(() => sales.value.filter(matches))
+const filtered = computed(() => sales.value.filter(matches).sort(savedFirst))
 
+// Ver el comentario gemelo en admin/rentals.vue.
 function sellerLabel(s: Row): string {
-  return s.sellerUid ? `vendedor ${s.sellerUid.slice(0, 8)}…` : 'gestiona BairesRental'
+  if (!s.sellerUid) return 'gestiona BairesRental'
+  const u = users.value.find((x) => x.id === s.sellerUid)
+  const nombre = u?.displayName || s.sellerNombre || null
+  const email = u?.email || null
+  if (nombre && email) return `${nombre} · ${email}`
+  return nombre || email || `vendedor ${s.sellerUid.slice(0, 8)}…`
 }
 
 // A dónde manda el botón de ficha. Acá NO se usa `fotos` como en alquileres:
@@ -61,6 +80,15 @@ function fichaHref(s: Row): string {
       @clear="clear"
     />
 
+    <SavedPropertyNotice
+      v-if="saved"
+      kind="sale"
+      :id="saved.id"
+      :titulo="saved.titulo"
+      :is-new="savedIsNew"
+      @close="closeSaved"
+    />
+
     <div
       v-if="notice"
       class="alert br-app-notice d-flex align-items-start gap-2"
@@ -90,6 +118,9 @@ function fichaHref(s: Row): string {
           :edit-to="`/app/sales/${s.id}`"
           :ficha-to="fichaHref(s)"
           :extra="sellerLabel(s)"
+          :revision="revisionDe(s)"
+          :motivo-rechazo="s.motivoRechazo"
+          :highlight="s.id === savedId"
           :saving="savingId === s.id"
           @change="(v: Availability) => setAvailability(s, v)"
         />

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { RentalProperty, SaleProperty } from '~/types/property'
+import type { RentalRow, SaleRow } from '~/types/property'
 import type { Availability, PropertyKind } from '~/utils/availability'
+import { revisionDe } from '~/utils/revision'
 
 // Las propiedades que puede trabajar un vendedor.
 //
@@ -24,16 +25,16 @@ import type { Availability, PropertyKind } from '~/utils/availability'
 definePageMeta({ layout: 'app-shell', middleware: 'auth', requiresAuth: true, allowedRoles: ['seller'] })
 useHead({ title: 'BairesRental — Propiedades', meta: [{ name: 'robots', content: 'noindex' }] })
 
-type RentalRow = RentalProperty & { id: string; sellerUid?: string | null }
-type SaleRow = SaleProperty & { id: string; sellerUid?: string | null }
-
+const route = useRoute()
 const user = useCurrentUser()
 const uid = computed(() => user.value?.uid ?? null)
 
 const rentals = ref<RentalRow[]>([])
 const sales = ref<SaleRow[]>([])
 const loading = ref(true)
-const kind = ref<PropertyKind>('rental')
+// Arranca en la pestaña de lo que se acaba de guardar, si se viene de un
+// formulario (?kind=…, ver useJustSaved()).
+const kind = ref<PropertyKind>(route.query.kind === 'sale' ? 'sale' : 'rental')
 
 const {
   savingId: savingRentalId,
@@ -81,18 +82,44 @@ const {
   clear: sClear,
 } = usePropertyFilters<SaleRow>('sale', sales)
 
+// Cartel de "listo, se guardó" + la recién guardada primera de su lista. Cada
+// instancia sólo reacciona a lo suyo: la query trae el `kind`. Ver useJustSaved().
+const {
+  savedId: rSavedId,
+  isNew: rSavedIsNew,
+  saved: rSaved,
+  savedFirst: rSavedFirst,
+  close: rCloseSaved,
+} = useJustSaved(rentals, 'rental')
+
+const {
+  savedId: sSavedId,
+  isNew: sSavedIsNew,
+  saved: sSaved,
+  savedFirst: sSavedFirst,
+  close: sCloseSaved,
+} = useJustSaved(sales, 'sale')
+
 onMounted(async () => {
-  // listAll() y no listBySeller(): las reglas ya dan lectura pública sobre
-  // `rentals`/`sales`, y el recorte lo decide isShareableBySeller() — hoy,
-  // ninguno: el equipo comparte un catálogo solo.
+  // listAll() y no listBySeller(): las reglas le dan a cualquier usuario
+  // logueado lectura de las dos colecciones enteras (el recorte público por
+  // `revision` sólo le pega a los anónimos), y qué se muestra lo decide el
+  // filtro de abajo.
   const [r, s] = await Promise.all([listAll<RentalRow>('rentals'), listAll<SaleRow>('sales')])
-  rentals.value = r.filter((p) => isShareableBySeller(p, uid.value)).sort(ownFirst(uid.value))
-  sales.value = s.filter((p) => isShareableBySeller(p, uid.value)).sort(ownFirst(uid.value))
+  // El `|| isOwnListing()` es la excepción a isShareableBySeller(), que desde
+  // la revisión deja afuera lo que todavía no aprobó un admin. Sin él, la
+  // propiedad que el vendedor acaba de cargar desaparece de su propio panel
+  // apenas la guarda: no la puede ver, ni corregir, ni leer por qué se la
+  // rechazaron — que son justamente las únicas que necesita mirar.
+  // Compartirla sigue sin poder: eso lo decide isShareableBySeller().
+  const visible = (p: RentalRow | SaleRow) => isShareableBySeller(p, uid.value) || isOwnListing(p, uid.value)
+  rentals.value = r.filter(visible).sort(ownFirst(uid.value))
+  sales.value = s.filter(visible).sort(ownFirst(uid.value))
   loading.value = false
 })
 
-const filteredRentals = computed(() => rentals.value.filter(rMatches))
-const filteredSales = computed(() => sales.value.filter(sMatches))
+const filteredRentals = computed(() => rentals.value.filter(rMatches).sort(rSavedFirst))
+const filteredSales = computed(() => sales.value.filter(sMatches).sort(sSavedFirst))
 
 function mine(p: { sellerUid?: string | null }) {
   return isOwnListing(p, uid.value)
@@ -101,9 +128,21 @@ function mine(p: { sellerUid?: string | null }) {
 // A propósito NO dice "gestiona BairesRental" como en las listas de admin: el
 // filtro "Gestión" de la toolbar es `esPropio` —si la administra BairesRental o
 // un colega— y son dos cosas distintas. Acá lo que el vendedor necesita saber
-// es otra: cuál puede tocar.
-function originLabel(p: { sellerUid?: string | null }) {
-  return mine(p) ? '★ mía' : 'sólo lectura'
+// es otra: cuál puede tocar y, si no es suya, de quién es.
+//
+// El nombre sale de `sellerNombre`, desnormalizado en el documento: las reglas
+// no le dan a un vendedor lectura sobre el `users/{uid}` de otro, así que no
+// hay forma de resolverlo con una consulta.
+function originLabel(p: RentalRow | SaleRow) {
+  if (mine(p)) return '★ mía'
+  if (p.sellerNombre) return `de ${p.sellerNombre} · sólo lectura`
+  return 'sólo lectura'
+}
+
+// Una publicación en revisión todavía no se puede compartir: el link existiría
+// pero /l/:code le contestaría 404 al cliente. Mejor no ofrecer el botón.
+function canShare(p: RentalRow | SaleRow) {
+  return revisionDe(p) === 'aprobada'
 }
 
 // Prellenado del formulario de /app/seller/links. No genera el link de una
@@ -129,6 +168,10 @@ function shareTo(id: string, k: PropertyKind) {
       El catálogo completo: el de BairesRental, las tuyas y las que cargaron tus colegas. Con
       <i class="bi bi-link-45deg"></i> generás el link de una publicación con tu nombre y tu WhatsApp; las que no son
       tuyas las compartís igual, pero las edita quien las cargó.
+    </p>
+    <p class="text-muted small mb-2">
+      Lo que cargás pasa por una revisión antes de salir al sitio: queda <em>en revisión</em> hasta que un admin la
+      aprueba, y mientras tanto la ves sólo vos, acá. Si te la rechazan vas a ver el motivo en la fila.
     </p>
 
     <div class="br-app-filters" role="tablist" aria-label="Tipo de operación">
@@ -177,6 +220,25 @@ function shareTo(id: string, k: PropertyKind) {
       @clear="sClear"
     />
 
+    <SavedPropertyNotice
+      v-if="rSaved"
+      kind="rental"
+      :id="rSaved.id"
+      :titulo="rSaved.titulo"
+      :is-new="rSavedIsNew"
+      :en-revision="revisionDe(rSaved) !== 'aprobada'"
+      @close="rCloseSaved"
+    />
+    <SavedPropertyNotice
+      v-if="sSaved"
+      kind="sale"
+      :id="sSaved.id"
+      :titulo="sSaved.titulo"
+      :is-new="sSavedIsNew"
+      :en-revision="revisionDe(sSaved) !== 'aprobada'"
+      @close="sCloseSaved"
+    />
+
     <div
       v-if="notice"
       class="alert br-app-notice d-flex align-items-start gap-2"
@@ -204,8 +266,11 @@ function shareTo(id: string, k: PropertyKind) {
           :disponibilidad="r.disponibilidad"
           :thumb="r.imagen"
           :edit-to="mine(r) ? `/app/rentals/${r.id}` : ''"
-          :share-to="shareTo(r.id, 'rental')"
+          :share-to="canShare(r) ? shareTo(r.id, 'rental') : ''"
           :extra="originLabel(r)"
+          :revision="revisionDe(r)"
+          :motivo-rechazo="r.motivoRechazo"
+          :highlight="r.id === rSavedId"
           :status-readonly="!mine(r)"
           :saving="savingRentalId === r.id"
           @change="(v: Availability) => setRentalAvailability(r, v)"
@@ -230,8 +295,11 @@ function shareTo(id: string, k: PropertyKind) {
           :disponibilidad="s.disponibilidad"
           :thumb="s.fotos?.[0] || ''"
           :edit-to="mine(s) ? `/app/sales/${s.id}` : ''"
-          :share-to="shareTo(s.id, 'sale')"
+          :share-to="canShare(s) ? shareTo(s.id, 'sale') : ''"
           :extra="originLabel(s)"
+          :revision="revisionDe(s)"
+          :motivo-rechazo="s.motivoRechazo"
+          :highlight="s.id === sSavedId"
           :status-readonly="!mine(s)"
           :saving="savingSaleId === s.id"
           @change="(v: Availability) => setSaleAvailability(s, v)"

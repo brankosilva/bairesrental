@@ -20,6 +20,8 @@
 // Se importa explícito desde server/ (que no tiene los auto-imports de la app)
 // para que cliente y servidor no puedan quedar con criterios distintos.
 
+import { estaPublicada, type Revisable } from '~/utils/revision'
+
 export interface SellerScoped {
   sellerUid?: string | null
 }
@@ -30,16 +32,22 @@ export function isOwnListing(p: SellerScoped, uid: string | null | undefined): b
 }
 
 /**
- * La puede ver y generar links con su marca: todas.
+ * La puede mostrar y generar links con su marca: todo el catálogo, pero sólo
+ * lo que ya aprobó un admin.
  *
- * Se mantiene como función (en vez de borrar las llamadas) porque es el
- * único lugar donde vive esta decisión: el día que el negocio quiera volver
- * a recortar el catálogo por vendedor, se cambia acá y vuelve a valer para
- * el panel, el selector de links, el callable que los crea y la página
- * compartida, sin que ninguno quede con un criterio distinto.
+ * El recorte por vendedor sigue sin existir (la decisión de N10: el equipo
+ * comparte un catálogo solo, y la exclusiva de un colega se comparte igual).
+ * Lo único que saca de acá es el estado de revisión: una publicación que
+ * todavía no se revisó, o que se rechazó, no está para mostrársela a nadie.
+ *
+ * Éste sigue siendo el único lugar donde vive la decisión, y por eso vale de
+ * una sola vez para el selector de links, el callable que los crea y la página
+ * compartida. La excepción es la lista del panel del vendedor, que suma sus
+ * propias pendientes con isOwnListing(): son justamente las que tiene que ver
+ * para corregirlas.
  */
-export function isShareableBySeller(_p: SellerScoped, _uid: string | null | undefined): boolean {
-  return true
+export function isShareableBySeller(p: SellerScoped & Revisable, _uid: string | null | undefined): boolean {
+  return estaPublicada(p)
 }
 
 /**

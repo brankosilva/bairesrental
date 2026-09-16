@@ -22,6 +22,15 @@ const id = route.params.id as string
 const db = getFirestore()
 const sale = useDocument<SaleProperty>(doc(db, 'sales', id))
 
+// Ídem departamentos/[id].vue: una publicación sin aprobar no la lee un
+// anónimo, y el rechazo de firestore.rules hace REchazar a `promise`. Sin el
+// catch el SSR contesta 500 en vez de 404. Un admin logueado sí la abre — es
+// como la revisa antes de aprobarla — y de eso se ocupa el noindex de abajo.
+await sale.promise.value.catch(() => {})
+if (!sale.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Propiedad no encontrada' })
+}
+
 const description = computed(() => (sale.value ? truncate(metaText(sale.value.descripcion), 160) : ''))
 
 // fotos[0] es la portada. Igual que en alquileres, va el derivado 1200x630 y
@@ -44,7 +53,7 @@ useSeoMeta({
   twitterTitle: () => sale.value?.titulo,
   twitterDescription: () => description.value || undefined,
   twitterImage: () => og.value?.url,
-  robots: () => (sale.value ? undefined : 'noindex'),
+  robots: () => (sale.value && estaPublicada(sale.value) ? undefined : 'noindex'),
 })
 
 useHead({

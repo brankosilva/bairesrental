@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { collection, getFirestore } from 'firebase/firestore'
+import { collection, getFirestore, query, where } from 'firebase/firestore'
 import { useCollection } from 'vuefire'
 import type { RentalProperty } from '~/types/property'
 import { coordsFor } from '~/utils/geo'
@@ -35,7 +35,12 @@ useSeoMeta({
 })
 
 const db = getFirestore()
-const allRentals = useCollection<RentalProperty>(collection(db, 'rentals'))
+// El `where` NO es una optimización y no se puede sacar: firestore.rules sólo
+// le deja leer a un anónimo los documentos aprobados, y Firestore valida una
+// query ANALIZÁNDOLA contra la regla, no mirando lo que devuelve. Sin este
+// filtro no llegan "menos propiedades": rebota la query entera y el catálogo
+// queda vacío. Ver el encabezado de utils/revision.ts.
+const allRentals = useCollection<RentalProperty>(query(collection(db, 'rentals'), where('revision', '==', 'aprobada')))
 // "no disponible" listings are kept in the data for internal use but never shown publicly.
 const visibleRentals = computed(() => (allRentals.value ?? []).filter((r) => r.disponibilidad !== 'no disponible'))
 

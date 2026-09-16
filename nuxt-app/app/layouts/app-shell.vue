@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
+import { collection, getCountFromServer, query, where } from 'firebase/firestore'
+import { useFirestore } from 'vuefire'
 
 // Ported from app/src/layouts/AppShellLayout.vue — shared chrome for
 // every authenticated /app/* page (admin/seller/owner). Deliberately
@@ -37,10 +39,45 @@ interface NavLink {
   label: string
 }
 
+// Cuántas publicaciones están esperando revisión, para que el admin lo vea sin
+// entrar a la pantalla — si no, la cola se descubre de casualidad.
+//
+// Va con getCountFromServer() y no trayendo los documentos: es una agregación,
+// cobra 1 lectura cada 1000 documentos contados, y este layout se monta en
+// TODAS las pantallas del panel. Traer las dos colecciones enteras en cada
+// navegación para mostrar un número sería ~176 lecturas por página.
+//
+// Sólo para admin: un vendedor no tiene cola que mirar, y encima esto correría
+// en cada pantalla suya para nada.
+const pendientes = ref(0)
+
+watch(
+  role,
+  async (r) => {
+    if (r !== 'admin') {
+      pendientes.value = 0
+      return
+    }
+    try {
+      const db = useFirestore()
+      const pend = (nombre: 'rentals' | 'sales') =>
+        getCountFromServer(query(collection(db, nombre), where('revision', '==', 'pendiente')))
+      const [a, v] = await Promise.all([pend('rentals'), pend('sales')])
+      pendientes.value = a.data().count + v.data().count
+    } catch {
+      // El contador es una comodidad: si falla, el nav queda sin globito y la
+      // pantalla de Revisión sigue estando. No hay nada que avisar acá.
+      pendientes.value = 0
+    }
+  },
+  { immediate: true },
+)
+
 const LINKS_BY_ROLE: Record<string, NavLink[]> = {
   admin: [
     { to: '/app/admin/rentals', label: 'Alquileres' },
     { to: '/app/admin/sales', label: 'Ventas' },
+    { to: '/app/admin/revision', label: 'Revisión' },
     { to: '/app/admin/users', label: 'Usuarios' },
     { to: '/app/admin/links', label: 'Links' },
   ],
@@ -111,7 +148,8 @@ async function onLogout() {
             active-class="is-active"
             :to="l.to"
           >
-            {{ l.label }}
+            {{ l.label
+            }}<span v-if="l.to === '/app/admin/revision' && pendientes" class="br-app-nav-badge">{{ pendientes }}</span>
           </NuxtLink>
         </div>
 
@@ -141,7 +179,8 @@ async function onLogout() {
       <ul class="br-app-drawer-links">
         <li v-for="l in links" :key="l.to">
           <NuxtLink class="br-app-drawer-link" active-class="is-active" :to="l.to" @click="closeDrawer">
-            {{ l.label }}
+            {{ l.label
+            }}<span v-if="l.to === '/app/admin/revision' && pendientes" class="br-app-nav-badge">{{ pendientes }}</span>
           </NuxtLink>
         </li>
       </ul>

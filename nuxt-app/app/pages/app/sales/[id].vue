@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { AMENITY_EMOJI } from '~/utils/amenities'
-import type { SaleProperty } from '~/types/property'
+import { DuplicateIdError } from '~/utils/adminCrud'
+import type { SaleProperty, SaleRow } from '~/types/property'
+import { revisionDe, type EstadoRevision } from '~/utils/revision'
 
 interface SellerOption {
   id: string
   email: string | null
+  displayName?: string | null
 }
 
 // Ported from app/src/pages/app/SaleForm.vue — see rentals/[id].vue's
@@ -27,14 +30,44 @@ const saving = ref(false)
 // señal de que estaba avanzando.
 const savingNote = ref('')
 const notFound = ref(false)
+// Ver rentals/[id].vue: el id lo tipea una persona y no se cambia después.
+// Acá importa todavía más — si el alta falla recién en el submit, ya se
+// subieron las fotos.
+const idError = ref('')
+// Lo que el `required` del navegador no puede chequear solo: la galería, que
+// mezcla lo ya guardado con lo que está por subirse.
+const formError = ref('')
 const newFiles = ref<File[]>([])
+// Fotos que se agregan pegando un link en vez de subiendo el archivo. Al
+// guardar, `importListingImage` las baja y las deja en nuestro Storage — la
+// galería nunca apunta al CDN de otro.
+const newUrls = ref<string[]>([])
+const urlDraft = ref('')
 const role = ref<string | null>(null)
 
 const MAX_FOTOS = 20
 const TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa', 'PH']
 const AMENITIES = Object.keys(AMENITY_EMOJI)
 
-const form = reactive<Omit<SaleProperty, 'id'> & { id: string; sellerUid: string | null; ownerUid: string | null }>({
+// lat/lng salen del Omit para poder arrancar en null y no en undefined:
+// Firestore rechaza el undefined y el formulario los escribe siempre, aunque
+// no se haya podido ubicar la dirección (ver PropertyLocationFields.vue).
+const form = reactive<
+  Omit<SaleProperty, 'id' | 'lat' | 'lng'> & {
+    id: string
+    lat: number | null
+    lng: number | null
+    sellerUid: string | null
+    sellerNombre: string | null
+    ownerUid: string | null
+    revision: EstadoRevision
+    // Round-trip, igual que ownerUid: el formulario los reenvía tal cual
+    // vinieron. Ver el comentario gemelo en rentals/[id].vue.
+    motivoRechazo: string | null
+    revisadaPor: string | null
+    revisadaEn: unknown
+  }
+>({
   id: '',
   titulo: '',
   barrio: '',
@@ -55,11 +88,19 @@ const form = reactive<Omit<SaleProperty, 'id'> & { id: string; sellerUid: string
   fotos: [],
   direccion: '',
   direccionUrl: '',
+  lat: null,
+  lng: null,
   whatsappMsg: '',
   fichaUrl: '',
   esPropio: false,
   sellerUid: null,
+  sellerNombre: null,
   ownerUid: null,
+  // Default de admin; si el que entra es vendedor, el onMounted lo baja.
+  revision: 'aprobada',
+  motivoRechazo: null,
+  revisadaPor: null,
+  revisadaEn: null,
 })
 
 const isAdmin = computed(() => role.value === 'admin')
@@ -77,23 +118,62 @@ onMounted(async () => {
   }
 
   if (isNew) {
-    if (role.value === 'seller') form.sellerUid = user.value?.uid ?? null
+    if (role.value === 'seller') {
+      form.sellerUid = user.value?.uid ?? null
+      // Desnormalizado a propósito: ver el comentario gemelo en
+      // rentals/[id].vue y ListingMeta en types/property.ts.
+      form.sellerNombre = user.value?.displayName || user.value?.email || null
+      form.revision = 'pendiente'
+    }
     return
   }
-  const existing = await getOne<SaleProperty & { sellerUid?: string | null; ownerUid?: string | null }>('sales', id)
+  const existing = await getOne<SaleRow>('sales', id)
   if (!existing) {
     notFound.value = true
     loading.value = false
     return
   }
-  Object.assign(form, existing, { sellerUid: existing.sellerUid ?? null, ownerUid: existing.ownerUid ?? null })
+  Object.assign(form, existing, {
+    sellerUid: existing.sellerUid ?? null,
+    sellerNombre: existing.sellerNombre ?? null,
+    ownerUid: existing.ownerUid ?? null,
+    revision: revisionDe(existing),
+    motivoRechazo: existing.motivoRechazo ?? null,
+    revisadaPor: existing.revisadaPor ?? null,
+    revisadaEn: existing.revisadaEn ?? null,
+  })
   loading.value = false
 })
 
+async function checkId() {
+  const candidato = form.id.trim()
+  idError.value = ''
+  if (!isNew || !candidato) return
+  if (await idExists('sales', candidato)) {
+    idError.value = `Ya hay una venta con el ID "${candidato}". Elegí otro.`
+  }
+}
+
+// Ver el comentario gemelo en rentals/[id].vue: el nombre del vendedor viaja
+// desnormalizado, así que reasignar la propiedad tiene que actualizarlo.
+function onSellerChange() {
+  const s = sellers.value.find((x) => x.id === form.sellerUid)
+  form.sellerNombre = s ? s.displayName || s.email || null : null
+}
+
+const totalFotos = computed(() => form.fotos.length + newFiles.value.length + newUrls.value.length)
+
 function onFilesChange(e: Event) {
   const files = Array.from((e.target as HTMLInputElement).files || [])
-  const room = MAX_FOTOS - form.fotos.length - newFiles.value.length
+  const room = MAX_FOTOS - totalFotos.value
   newFiles.value.push(...files.slice(0, Math.max(room, 0)))
+}
+
+function addUrl() {
+  const url = urlDraft.value.trim()
+  if (!url || totalFotos.value >= MAX_FOTOS) return
+  newUrls.value.push(url)
+  urlDraft.value = ''
 }
 
 function removeExistingPhoto(index: number) {
@@ -104,9 +184,15 @@ function removePendingFile(index: number) {
   newFiles.value.splice(index, 1)
 }
 
+function removePendingUrl(index: number) {
+  newUrls.value.splice(index, 1)
+}
+
 async function onSubmit() {
-  if (!form.superficie) {
-    alert('La superficie es obligatoria.')
+  formError.value = ''
+  // fotos[0] es la portada del catálogo: sin una foto no hay ficha que mostrar.
+  if (!totalFotos.value) {
+    formError.value = 'Falta la foto de portada: subí al menos una foto.'
     return
   }
   saving.value = true
@@ -114,31 +200,64 @@ async function onSubmit() {
   try {
     const docId = isNew ? form.id.trim() : id
     if (!docId) {
-      alert('El ID es obligatorio.')
+      formError.value = 'El ID es obligatorio.'
       return
     }
-    const { id: _drop, ...data } = form
+    // Editar manda de vuelta a revisión. firestore.rules exige lo mismo, así
+    // que sacarlo de acá no publica directo: hace fallar el guardado. Ver el
+    // comentario gemelo en rentals/[id].vue.
+    if (role.value === 'seller') form.revision = 'pendiente'
+
+    // lat/lng explícitos: si nunca se pudo ubicar la dirección van como null.
+    // Firestore tira error si le llega un undefined.
+    const { id: _drop, ...data } = { ...form, lat: form.lat ?? null, lng: form.lng ?? null }
     // Save first — firestore.rules needs the doc (with the right
     // sellerUid) to already exist before it'll allow uploads for it.
-    await saveOne('sales', docId, data)
+    //
+    // En un alta, createOne() en vez de saveOne(): rechaza el id repetido en
+    // vez de mezclarse con la propiedad que ya lo tenía (ver adminCrud.ts).
+    // Como el guardado va primero, corta antes de subir una sola foto.
+    if (isNew) await createOne('sales', docId, data)
+    else await saveOne('sales', docId, data)
 
-    if (newFiles.value.length) {
+    // Archivos primero y links después, el mismo orden en que se ven abajo en
+    // la grilla de pendientes. Las dos formas terminan igual: una URL de
+    // nuestro Storage adentro de form.fotos.
+    const pendientes = [
+      ...newFiles.value.map((file) => ({ file, url: '' })),
+      ...newUrls.value.map((url) => ({ file: null as File | null, url })),
+    ]
+    if (pendientes.length) {
       const startIndex = form.fotos.length
       const uploaded: string[] = []
-      const total = newFiles.value.length
-      for (let i = 0; i < total; i++) {
-        savingNote.value = `Subiendo foto ${i + 1} de ${total}…`
-        const file = newFiles.value[i]
-        const ext = file.name.split('.').pop() || 'jpg'
-        uploaded.push(await uploadPropertyImage('sales', docId, `${startIndex + i + 1}.${ext}`, file))
+      for (let i = 0; i < pendientes.length; i++) {
+        const item = pendientes[i]
+        const slot = startIndex + i + 1
+        savingNote.value = `${item.file ? 'Subiendo' : 'Copiando'} foto ${i + 1} de ${pendientes.length}…`
+        if (item.file) {
+          const ext = item.file.name.split('.').pop() || 'jpg'
+          uploaded.push(await uploadPropertyImage('sales', docId, `${slot}.${ext}`, item.file))
+        } else {
+          uploaded.push(await importPropertyImageFromUrl('sales', docId, String(slot), item.url))
+        }
       }
       savingNote.value = 'Guardando…'
       form.fotos.push(...uploaded)
       await saveOne('sales', docId, { fotos: form.fotos })
       newFiles.value = []
+      newUrls.value = []
     }
 
-    await navigateTo(listRoute.value)
+    // Vuelve a la lista marcando lo que se acaba de guardar: allá el cartel
+    // con el link a la ficha y la propiedad primera de la lista (useJustSaved).
+    await navigateTo({
+      path: listRoute.value,
+      query: { saved: docId, kind: 'sale', ...(isNew ? { new: '1' } : {}) },
+    })
+  } catch (e) {
+    if (!(e instanceof DuplicateIdError)) throw e
+    idError.value = `Ya hay una venta con el ID "${e.duplicatedId}". Elegí otro.`
+    alert(`${idError.value}\n\nNo se guardó nada: la propiedad que ya tenía ese ID quedó intacta.`)
   } finally {
     saving.value = false
     savingNote.value = ''
@@ -160,9 +279,16 @@ async function onDelete() {
     <form v-else @submit.prevent="onSubmit">
       <h1 class="h4 mb-3">{{ isNew ? 'Nueva venta' : `Editar: ${form.titulo}` }}</h1>
 
+      <RevisionNotice
+        v-if="!isNew"
+        :revision="form.revision"
+        :motivo-rechazo="form.motivoRechazo"
+        :is-admin="isAdmin"
+      />
+
       <AdminSection title="Identificación">
         <div class="mb-2">
-          <label class="form-label small">ID {{ !isNew ? '(no editable)' : '(slug único)' }}</label>
+          <label class="form-label small is-required">ID {{ !isNew ? '(no editable)' : '(slug único)' }}</label>
           <!-- Ver rentals/[id].vue: iOS capitaliza y autocorrige el ID del doc. -->
           <input
             v-model="form.id"
@@ -173,21 +299,24 @@ async function onDelete() {
             spellcheck="false"
             :disabled="!isNew"
             required
+            @input="idError = ''"
+            @blur="checkId"
           />
+          <p v-if="idError" class="text-danger small mt-1 mb-0">{{ idError }}</p>
         </div>
 
         <div class="mb-2">
-          <label class="form-label small">Título</label>
+          <label class="form-label small is-required">Título</label>
           <input v-model="form.titulo" type="text" class="form-control" required />
         </div>
 
         <div class="row g-2">
           <div class="col-12 col-sm-6">
-            <label class="form-label small">Barrio</label>
+            <label class="form-label small is-required">Barrio</label>
             <input v-model="form.barrio" type="text" class="form-control" required />
           </div>
           <div class="col-12 col-sm-6">
-            <label class="form-label small">Tipo</label>
+            <label class="form-label small is-required">Tipo</label>
             <select v-model="form.tipo" class="form-select">
               <option v-for="tp in TIPOS" :key="tp" :value="tp">{{ tp }}</option>
             </select>
@@ -198,8 +327,10 @@ async function onDelete() {
       <AdminSection title="Precio y disponibilidad">
         <div class="row g-2">
           <div class="col-6 col-sm-4">
-            <label class="form-label small">Precio (0 = consultar)</label>
-            <input v-model.number="form.precio" type="number" min="0" class="form-control" />
+            <!-- min=1: el 0 sigue siendo "Consultar precio" en el catálogo,
+                 pero desde acá ya no se publica sin precio. -->
+            <label class="form-label small is-required">Precio</label>
+            <input v-model.number="form.precio" type="number" min="1" class="form-control" required />
           </div>
           <div class="col-6 col-sm-4">
             <label class="form-label small">Moneda</label>
@@ -224,7 +355,7 @@ async function onDelete() {
              de 375px, con etiquetas como "Superficie cubierta". -->
         <div class="row g-2 mb-2">
           <div class="col-6 col-md-3">
-            <label class="form-label small">Superficie total (m²)</label>
+            <label class="form-label small is-required">Superficie total (m²)</label>
             <input v-model.number="form.superficie" type="number" min="1" class="form-control" required />
           </div>
           <div class="col-6 col-md-3">
@@ -279,14 +410,16 @@ async function onDelete() {
       </AdminSection>
 
       <AdminSection title="Descripción">
-        <textarea v-model="form.descripcion" class="form-control" rows="4"></textarea>
+        <textarea v-model="form.descripcion" class="form-control" rows="4" required></textarea>
       </AdminSection>
 
       <AdminSection title="Fotos">
-        <label class="form-label small d-block">Fotos ({{ form.fotos.length + newFiles.length }}/{{ MAX_FOTOS }})</label>
+        <label class="form-label small d-block is-required">
+          Fotos ({{ totalFotos }}/{{ MAX_FOTOS }}) — la primera es la portada
+        </label>
         <!-- Grid fluido en vez de un flex de miniaturas de 80px fijos: en un
              celular entran 3 por fila y se estiran a lo que haya. -->
-        <div v-if="form.fotos.length || newFiles.length" class="br-app-photos mb-2">
+        <div v-if="totalFotos" class="br-app-photos mb-2">
           <div v-for="(foto, i) in form.fotos" :key="foto" class="br-app-photo">
             <img :src="foto" alt="" />
             <button
@@ -309,30 +442,44 @@ async function onDelete() {
               ✕
             </button>
           </div>
+          <!-- Los links todavía apuntan afuera: se ven igual, pero recién al
+               guardar pasan a nuestro Storage. -->
+          <div v-for="(url, i) in newUrls" :key="url + i" class="br-app-photo">
+            <img :src="url" alt="" />
+            <button type="button" class="btn br-app-photo-del" :aria-label="`Quitar ${url}`" @click="removePendingUrl(i)">
+              ✕
+            </button>
+          </div>
         </div>
         <input type="file" accept="image/*" multiple class="form-control" @change="onFilesChange" />
+
+        <label class="form-label small mt-2 mb-1">…o pegá el link de una foto</label>
+        <div class="d-flex gap-2">
+          <input
+            v-model="urlDraft"
+            type="url"
+            inputmode="url"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            class="form-control"
+            placeholder="https://…"
+            :disabled="totalFotos >= MAX_FOTOS"
+            @keydown.enter.prevent="addUrl"
+          />
+          <button type="button" class="btn btn-outline-secondary" :disabled="totalFotos >= MAX_FOTOS" @click="addUrl">
+            Agregar
+          </button>
+        </div>
+        <p class="form-text small mb-0">Las copiamos a nuestro servidor al guardar.</p>
       </AdminSection>
 
-      <AdminSection title="Ubicación">
-        <div class="row g-2">
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Dirección</label>
-            <input v-model="form.direccion" type="text" class="form-control" />
-          </div>
-          <div class="col-12 col-sm-6">
-            <label class="form-label small">Link de Google Maps</label>
-            <input
-              v-model="form.direccionUrl"
-              type="url"
-              inputmode="url"
-              autocapitalize="none"
-              autocorrect="off"
-              spellcheck="false"
-              class="form-control"
-            />
-          </div>
-        </div>
-      </AdminSection>
+      <PropertyLocationFields
+        v-model:direccion="form.direccion"
+        v-model:direccionUrl="form.direccionUrl"
+        v-model:lat="form.lat"
+        v-model:lng="form.lng"
+      />
 
       <AdminSection title="WhatsApp y links externos">
         <div class="mb-2">
@@ -355,17 +502,21 @@ async function onDelete() {
 
       <AdminSection v-if="isAdmin" title="Vendedor">
         <label class="form-label small">Vendedor asignado</label>
-        <select v-model="form.sellerUid" class="form-select">
+        <!-- @change: reasignar tiene que actualizar el `sellerNombre`
+             desnormalizado. Ver el comentario gemelo en rentals/[id].vue. -->
+        <select v-model="form.sellerUid" class="form-select" @change="onSellerChange">
           <option :value="null">— (gestiona BairesRental)</option>
           <option v-for="s in sellers" :key="s.id" :value="s.id">{{ s.email || s.id }} ({{ s.id.slice(0, 8) }}…)</option>
         </select>
       </AdminSection>
 
+      <p v-if="formError" class="text-danger small mb-2">{{ formError }}</p>
+
       <!-- Pegajosa abajo en mobile — ver rentals/[id].vue. Acá importa todavía
            más: este formulario es más largo y el guardado puede tardar minutos
            si hay fotos, así que el estado tiene que quedar a la vista. -->
       <div class="br-app-form-actions">
-        <button type="submit" class="btn btn-primary" :disabled="saving">
+        <button type="submit" class="btn btn-primary" :disabled="saving || !!idError">
           {{ saving ? savingNote : '💾 Guardar' }}
         </button>
         <NuxtLink :to="listRoute" class="btn btn-outline-secondary">Cancelar</NuxtLink>

@@ -37,7 +37,7 @@
 // initialization, which this bare API route (outside the Vue render
 // pipeline) can't assume has already run.
 import { initializeApp, getApps, getApp } from 'firebase/app'
-import { collection, getDocs, getFirestore } from 'firebase/firestore'
+import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore'
 import type { SitemapUrlInput } from '#sitemap/types'
 
 const SITEMAP_APP_NAME = 'sitemap-source'
@@ -51,7 +51,13 @@ export default defineEventHandler(async (): Promise<SitemapUrlInput[]> => {
     : initializeApp(firebaseConfig, SITEMAP_APP_NAME)
   const db = getFirestore(app)
 
-  const [rentals, sales] = await Promise.all([getDocs(collection(db, 'rentals')), getDocs(collection(db, 'sales'))])
+  // Sólo lo aprobado. Este handler usa el SDK CLIENTE sin autenticar (igual que
+  // las páginas públicas en SSR), así que pasa por firestore.rules: sin el
+  // `where` la query no devuelve menos URLs, rebota entera y el sitemap se
+  // queda sin fichas. Ver el encabezado de app/utils/revision.ts.
+  const aprobadas = (nombre: 'rentals' | 'sales') =>
+    getDocs(query(collection(db, nombre), where('revision', '==', 'aprobada')))
+  const [rentals, sales] = await Promise.all([aprobadas('rentals'), aprobadas('sales')])
 
   return [
     ...rentals.docs.map((d) => ({ loc: `/departamentos/${d.id}`, _i18nTransform: true })),

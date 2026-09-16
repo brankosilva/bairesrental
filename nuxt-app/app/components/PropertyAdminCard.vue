@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { AVAILABILITY_OPTIONS, availabilityClass, type Availability, type PropertyKind } from '~/utils/availability'
+import { revisionClass, revisionLabel, type EstadoRevision } from '~/utils/revision'
 
 // Fila de propiedad del panel (N9). Reemplaza las tablas de 5-6 columnas
 // dentro de .table-responsive que usaban admin/rentals, admin/sales,
@@ -45,6 +46,14 @@ const props = withDefaults(
     shareTo?: string
     /** Línea accesoria: vendedor asignado (admin) o fecha de actualización (dueño). */
     extra?: string
+    /** Estado de revisión. Sólo se dibuja el chip cuando NO está publicada: en
+        una lista donde casi todo está aprobado, un chip "publicada" en cada
+        fila es ruido: lo que hay que ver de un vistazo es lo que falta revisar.
+        Sin pasar el prop, la card queda como antes. */
+    revision?: EstadoRevision
+    /** El motivo del rechazo, para que el vendedor sepa qué corregir sin tener
+        que entrar al formulario. */
+    motivoRechazo?: string | null
     /** Portal del dueño: chip estático en vez de <select>, y sin acciones. */
     readonly?: boolean
     /** Sólo congela la disponibilidad, pero deja las acciones. Es el caso del
@@ -52,9 +61,24 @@ const props = withDefaults(
         `firestore.rules` le rechazaría el update igual — mejor no ofrecer un
         <select> que va a fallar. */
     statusReadonly?: boolean
+    /** La que se acaba de guardar: viene primera de la lista y se marca, para
+        que el cartel de <SavedPropertyNotice> tenga a qué apuntar. */
+    highlight?: boolean
     saving?: boolean
   }>(),
-  { thumb: '', editTo: '', fichaTo: '', shareTo: '', extra: '', readonly: false, statusReadonly: false, saving: false },
+  {
+    thumb: '',
+    editTo: '',
+    fichaTo: '',
+    shareTo: '',
+    extra: '',
+    revision: 'aprobada',
+    motivoRechazo: null,
+    readonly: false,
+    statusReadonly: false,
+    highlight: false,
+    saving: false,
+  },
 )
 
 const emit = defineEmits<{ change: [value: Availability] }>()
@@ -105,7 +129,7 @@ function onChange(e: Event) {
 </script>
 
 <template>
-  <div class="br-app-card" :class="{ 'is-readonly': readonly, 'is-saving': saving }">
+  <div class="br-app-card" :class="{ 'is-readonly': readonly, 'is-saving': saving, 'is-highlight': highlight }">
     <div class="br-app-card-thumb">
       <img v-if="thumb" :src="thumb" :alt="titulo" loading="lazy" />
       <span v-else aria-hidden="true">📸</span>
@@ -115,6 +139,10 @@ function onChange(e: Event) {
       <div class="br-app-card-titulo">{{ titulo }}</div>
       <div class="br-app-card-meta">{{ barrio }} · {{ tipo }}</div>
       <div class="br-app-card-id">{{ id }}<template v-if="extra"> · {{ extra }}</template></div>
+      <div v-if="revision !== 'aprobada'" class="br-app-card-revision">
+        <span class="br-app-status-tag" :class="revisionClass(revision)">{{ revisionLabel(revision) }}</span>
+        <span v-if="revision === 'rechazada' && motivoRechazo" class="br-app-card-motivo">{{ motivoRechazo }}</span>
+      </div>
     </div>
 
     <div class="br-app-card-price">{{ formatPrice(precio, moneda) }}</div>

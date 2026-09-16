@@ -478,6 +478,18 @@
   max-width: 900px;
 }
 
+/* Operación y tipo comparten la fila de pills de la barra. El separador es lo
+   único que evita que "Venta" y "Mono" se lean como la misma tanda de
+   opciones. `flex: none` porque la fila tiene overflow-x y sin eso el
+   separador se aplasta a 0 al scrollear. */
+.br-quick-sep {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin: 3px 3px;
+  background: var(--br-gris-borde, #e4e4e7);
+}
+
 /* El panel del mapa se pega bajo las DOS barras y descuenta las dos del alto,
    si no la última fila de pines queda debajo del pliegue. */
 .br-brand-map-panel {

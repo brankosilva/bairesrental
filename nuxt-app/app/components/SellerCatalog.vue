@@ -294,12 +294,28 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
           <option v-for="b in barrios" :key="b" :value="b">{{ b }}</option>
         </select>
 
-        <div v-if="mostrarOperacion" class="br-quick-tipos">
-          <button type="button" class="br-pill-btn" :class="{ active: operacion === 'rental' }" @click="operacion = operacion === 'rental' ? '' : 'rental'">
-            Alquiler
-          </button>
-          <button type="button" class="br-pill-btn" :class="{ active: operacion === 'sale' }" @click="operacion = operacion === 'sale' ? '' : 'sale'">
-            Venta
+        <!-- Operación y tipo van en la barra, no sólo adentro del panel: los
+             grupos de abajo llevan `br-filtro-grupo-dup`, que en escritorio
+             los esconde justamente porque se asume que ya están acá. -->
+        <div v-if="mostrarOperacion || tipoOptions.length > 1" class="br-quick-tipos">
+          <template v-if="mostrarOperacion">
+            <button type="button" class="br-pill-btn" :class="{ active: operacion === 'rental' }" @click="operacion = operacion === 'rental' ? '' : 'rental'">
+              Alquiler
+            </button>
+            <button type="button" class="br-pill-btn" :class="{ active: operacion === 'sale' }" @click="operacion = operacion === 'sale' ? '' : 'sale'">
+              Venta
+            </button>
+            <span v-if="tipoOptions.length > 1" class="br-quick-sep" aria-hidden="true"></span>
+          </template>
+          <button
+            v-for="tp in tipoOptions"
+            :key="tp"
+            type="button"
+            class="br-pill-btn"
+            :class="{ active: tipos.includes(tp) }"
+            @click="toggleIn(tipos, tp)"
+          >
+            {{ TIPO_LABELS[tp] || tp }}
           </button>
         </div>
 
@@ -351,7 +367,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                 <input v-model="search" type="search" class="br-filtro-search" placeholder="Título, barrio, descripción..." autocomplete="off" />
               </div>
 
-              <div v-if="mostrarOperacion" class="br-filtro-grupo">
+              <div v-if="mostrarOperacion" class="br-filtro-grupo br-filtro-grupo-dup">
                 <span class="br-filtro-label">Operación</span>
                 <div class="br-filtro-pills">
                   <button type="button" class="br-pill-btn" :class="{ active: operacion === 'rental' }" @click="operacion = operacion === 'rental' ? '' : 'rental'">Alquiler</button>

@@ -109,7 +109,11 @@ async function initMap() {
     style: MAP_STYLE,
     center: BA_CENTER,
     zoom: 11,
-    scrollZoom: false,
+    // Zoom con la rueda del mouse / el trackpad habilitado (el default de
+    // MapLibre). No se roba el scroll de la página porque en la vista "Mapa"
+    // la lista se esconde: el panel ocupa casi todo el alto y abajo no queda
+    // nada para scrollear. En touch el pinch ya venía andando.
+    scrollZoom: true,
     // El style ya declara la atribucion de OpenStreetMap/OpenFreeMap/
     // OpenMapTiles, asi que no se agrega ninguna propia (se duplicaba). En
     // compacto queda como el boton (i) en vez de una barra que cruza el panel.

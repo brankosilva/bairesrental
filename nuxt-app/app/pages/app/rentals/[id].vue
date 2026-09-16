@@ -228,6 +228,17 @@ async function onSubmit() {
     formError.value = 'Falta la foto de portada: subí un archivo o pegá el link de una foto.'
     return
   }
+
+  if (form.direccion.trim()) {
+    const dup = await findDuplicateAddress<RentalRow>('rentals', form.direccion, isNew ? undefined : id)
+    if (dup) {
+      const seguir = confirm(
+        `Ya hay un alquiler cargado con esta misma dirección: "${dup.titulo}" (id: ${dup.id}).\n\n¿Es una propiedad distinta y querés continuar de todos modos?`,
+      )
+      if (!seguir) return
+    }
+  }
+
   saving.value = true
   savingNote.value = 'Guardando…'
   saveError.value = ''

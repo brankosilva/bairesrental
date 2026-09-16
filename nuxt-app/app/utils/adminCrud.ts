@@ -108,3 +108,28 @@ export async function idExists(collectionName: string, id: string): Promise<bool
 export async function removeOne(collectionName: string, id: string): Promise<void> {
   await deleteDoc(doc(useFirestore(), collectionName, id))
 }
+
+function normalizeAddress(str: string): string {
+  return str
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+// Mismo criterio de comparación que scripts/add-property.js (sin acentos,
+// mayúsculas ni espacios de más), para avisar antes de cargar dos veces la
+// misma propiedad con IDs distintos. Es sólo un aviso — no bloquea el
+// guardado como createOne() con el ID, porque dos unidades de un mismo
+// edificio pueden compartir dirección legítimamente.
+export async function findDuplicateAddress<T extends { direccion?: string }>(
+  collectionName: string,
+  direccion: string,
+  excludeId?: string,
+): Promise<(T & { id: string }) | null> {
+  const target = normalizeAddress(direccion)
+  if (!target) return null
+  const all = await listAll<T>(collectionName)
+  return all.find((p) => p.id !== excludeId && p.direccion && normalizeAddress(p.direccion) === target) ?? null
+}

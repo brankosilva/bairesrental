@@ -56,9 +56,12 @@ interface Row {
   haystack: string
   href: string
   direccion: string
+  direccionUrl: string
   disponibleDesde: string
   /** Sólo alquileres: null en ventas, para no dibujar el tag. */
   serviciosIncluidos: boolean | null
+  /** Sólo alquileres con mínimo > 1 mes: 0 en ventas, para no dibujar el tag. */
+  minimoMeses: number
 }
 
 function toRow(p: Record<string, unknown>, kind: Kind): Row {
@@ -82,8 +85,10 @@ function toRow(p: Record<string, unknown>, kind: Kind): Row {
     haystack: [r.titulo, r.barrio, r.tipo, r.descripcion, r.direccion].filter(Boolean).join(' ').toLowerCase(),
     href: `/l/${props.code}/${encodeURIComponent(r.id)}`,
     direccion: r.direccion || '',
+    direccionUrl: r.direccionUrl || '',
     disponibleDesde: kind === 'rental' && r.disponibilidad === 'disponible' ? r.disponibleDesde || '' : '',
     serviciosIncluidos: kind === 'rental' ? !!r.serviciosIncluidos : null,
+    minimoMeses: kind === 'rental' && Number(r.minimoMeses) > 1 ? Number(r.minimoMeses) : 0,
   }
 }
 
@@ -553,7 +558,14 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
               </div>
               <div class="br-brand-card-body">
                 <span class="br-brand-card-loc">{{ [p.barrio, p.tipo].filter(Boolean).join(' · ') }}</span>
-                <span v-if="p.direccion" class="br-brand-card-direccion">{{ p.direccion }}</span>
+                <div v-if="p.direccion && p.direccionUrl" class="br-brand-card-direccion">
+                  <a :href="p.direccionUrl" target="_blank" rel="noopener" class="br-btn-ver-mapa" @click.stop>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+                    </svg>
+                    {{ p.direccion }} — Ver mapa
+                  </a>
+                </div>
                 <strong class="br-brand-card-title">{{ p.titulo }}</strong>
                 <span v-if="disponibleDesdeLabel(p)" class="br-brand-card-desde">Disponible desde {{ disponibleDesdeLabel(p) }}</span>
                 <span class="br-brand-card-price-row">
@@ -563,7 +575,10 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                     v-if="p.serviciosIncluidos !== null"
                     :class="p.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'"
                   >
-                    {{ p.serviciosIncluidos ? 'Servicios incluidos' : 'Servicios aparte' }}
+                    {{ p.serviciosIncluidos ? 'Expensas y servicios incluidos!' : 'Servicios aparte' }}
+                  </span>
+                  <span v-if="p.minimoMeses > 0" class="br-tag-minimo">
+                    Mínimo {{ p.minimoMeses }} {{ p.minimoMeses === 1 ? 'mes' : 'meses' }}
                   </span>
                 </span>
               </div>

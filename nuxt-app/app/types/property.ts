@@ -29,8 +29,12 @@ export interface OrigenImport {
   fuente: string
   /** La URL canónica, sin el cache-buster. */
   url: string
-  /** Cuándo se leyó la ficha por última vez, en ISO. */
-  leidoEn: string
+  /**
+   * Cuándo se leyó la ficha por última vez, en ISO. Falta en las propiedades
+   * que completó `scripts/backfill-origen.js`: ahí el link se dedujo de lo que
+   * ya estaba guardado, sin leer nada.
+   */
+  leidoEn?: string
 }
 
 export interface ListingMeta {

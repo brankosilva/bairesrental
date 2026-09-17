@@ -19,20 +19,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const { getDb } = require('./lib/firestore');
 const { nombreColeccion } = require('./lib/catalogo');
+// El bucket, los content-types y la URL pública viven en lib/storage.js, que es
+// lo que usan también los importadores de fichas.
+const { TIPO_POR_EXT, subirArchivo } = require('./lib/storage');
 
-const BUCKET = 'bairesrental.firebasestorage.app';
-const EXTENSIONES = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
-
-const TIPOS = {
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
-  '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif',
-};
-
-function urlPublica(rutaEnStorage) {
-  return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(rutaEnStorage)}?alt=media`;
-}
+const EXTENSIONES = new Set(Object.keys(TIPO_POR_EXT));
 
 function expandir(entradas) {
   const archivos = [];
@@ -75,9 +67,6 @@ async function main() {
     }
   }
 
-  getDb(); // inicializa firebase-admin con las credenciales
-  const bucket = require('firebase-admin').storage().bucket(BUCKET);
-
   console.log(`\nSubiendo ${archivos.length} foto(s) a ${coleccion}/${id}/\n`);
 
   const urls = [];
@@ -86,12 +75,9 @@ async function main() {
     // Nombre estable y ordenado: 1.jpg, 2.jpg… y cover para la portada de un
     // alquiler, que es como están nombradas las que ya hay en Storage.
     const nombre = cual === 'alquileres' ? `cover${ext}` : `${i + 1}${ext}`;
-    const destino = `${coleccion}/${id}/${nombre}`;
 
-    await bucket.upload(local, { destination: destino, metadata: { contentType: TIPOS[ext] } });
-    const url = urlPublica(destino);
-    urls.push(url);
-    console.log(`  ✅ ${path.basename(local)} → ${destino}`);
+    urls.push(await subirArchivo(cual, id, nombre, local));
+    console.log(`  ✅ ${path.basename(local)} → ${coleccion}/${id}/${nombre}`);
   }
 
   console.log('\n=== URLs para el catálogo ===');

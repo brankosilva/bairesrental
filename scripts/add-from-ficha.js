@@ -10,7 +10,9 @@
 //                                  de su API (ver lib/fichaprop.js) con el
 //                                  schema que ya mapea add-from-tencery.js.
 //
-// En los dos casos acá solo se completa lo que la ficha permite afinar.
+// En los dos casos acá solo se completa lo que la ficha permite afinar, y la
+// foto de portada se copia a nuestro Storage antes de guardar: el CDN de la
+// otra inmobiliaria se cae el día que dan de baja la publicación.
 //
 // Uso:
 //   node scripts/add-from-ficha.js <url>
@@ -30,6 +32,7 @@ const fs = require('fs');
 const { leerCatalogo, guardarPropiedad } = require('./lib/catalogo');
 const { fetchFicha, urlCanonica, esUrlDeFicha, esDisponibleSegunTokko, estadoDeFicha, MI_INMOBILIARIA_TOKKO } = require('./lib/ficha');
 const { esUrlDeFichaprop, urlCanonica: urlCanonicaFichaprop, fetchFichaprop } = require('./lib/fichaprop');
+const { esNuestra, importarDesdeUrl } = require('./lib/storage');
 const { tokkoToProperty } = require('./add-from-tokko');
 const { tenceryToProperty } = require('./add-from-tencery');
 const { validate, findDuplicates, prompt } = require('./add-property');
@@ -187,7 +190,6 @@ function fichaToProperty(ficha) {
   }
 
   if (!prop.imagen) avisos.push('la ficha no trae foto de portada (--imagen <url>, o subila con upload-fotos.js)');
-  else avisos.push('imagen: URL del CDN de Tokko — se cae si dan de baja el listado');
 
   return { prop, avisos };
 }
@@ -273,7 +275,6 @@ function fichapropToProperty(ficha) {
   }
 
   if (!prop.imagen) avisos.push('la ficha no trae foto de portada (--imagen <url>, o subila con upload-fotos.js)');
-  else avisos.push('imagen: URL del storage de fichaprop — se cae si dan de baja el listado');
 
   return { prop, avisos };
 }
@@ -430,6 +431,21 @@ async function main() {
   } else if (!existente && !yes) {
     const r = await prompt('\n¿Agregar al catálogo? (S/n): ');
     if (/^n/i.test(r)) { console.log('Cancelado.'); return; }
+  }
+
+  // La portada viene del CDN de la otra inmobiliaria y se cae el día que dan de
+  // baja la publicación. Se copia a nuestro Storage, que es lo mismo que hace el
+  // panel con `importListingImage`. Si falla, la propiedad se carga igual con la
+  // URL de ellos: perder la foto no puede costar la carga entera.
+  if (prop.imagen && !esNuestra(prop.imagen)) {
+    process.stdout.write('\nCopiando la portada a nuestro Storage… ');
+    try {
+      prop.imagen = await importarDesdeUrl('alquileres', prop.id, 'cover', prop.imagen);
+      console.log('ok');
+    } catch (e) {
+      console.log(`no se pudo (${e.message})`);
+      console.log('   Queda apuntando al CDN de ellos. Se puede reintentar con migrar-imagenes.js.');
+    }
   }
 
   await guardarPropiedad('alquileres', prop);

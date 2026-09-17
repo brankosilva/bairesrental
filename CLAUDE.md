@@ -225,6 +225,8 @@ Hay dos caminos:
 | `scripts/resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa |
 | `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
 | `scripts/backfill-revision.js` | Marca `revision: 'aprobada'` en las propiedades viejas (dry-run; escribe con `--apply`) |
+| `scripts/backfill-origen.js` | Completa `origen` en las propiedades cargadas antes de que el campo existiera, deduciendo el link de `fotos`/`fichaUrl` (dry-run; escribe con `--apply`) |
+| `scripts/migrar-imagenes.js` | Copia a nuestro Storage las fotos que todavía cuelgan del CDN de otra inmobiliaria (dry-run; escribe con `--apply`) |
 | `scripts/reset-link-stats.js` | Deja en cero la actividad de los links de vendedores — contadores y eventos, nunca los leads (dry-run; escribe con `--apply`) |
 
 Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`.
@@ -264,7 +266,9 @@ coordenadas suelen ser el placeholder del Obelisco, así que el pin queda para
 importar del panel— guarda `origen: { fuente, url, leidoEn }` en el documento, para poder volver a
 leer la ficha y refrescar precio y disponibilidad más adelante. No alcanzaba con `fotos`: en
 alquileres guarda la misma URL pero es editable, y en venta `fotos` son las fotos, así que el link
-no quedaba en ningún lado. Por ahora no hay un script que lo consuma — refrescar es volver a correr
+no quedaba en ningún lado. Lo que se cargó antes de que el campo existiera lo completa
+`scripts/backfill-origen.js`, deduciendo el link de `fotos`/`fichaUrl` (sin `leidoEn`: ahí no se
+leyó ninguna ficha). Por ahora no hay un script que lo consuma — refrescar es volver a correr
 `add-from-ficha.js <url> --id <id> --update`. El formulario del panel muestra el link y lo reenvía
 tal cual: no se edita a mano.
 
@@ -400,10 +404,16 @@ Notas:
 
 Las fotos viven en **Firebase Storage**, con el layout que declara `nuxt-app/storage.rules`: `rentals/<id>/<archivo>` y `sales/<id>/<archivo>`, de lectura pública.
 
+Las fotos que entran por una ficha **se copian a nuestro Storage al cargarlas**: el panel lo hace con
+el callable `importListingImage` y `add-from-ficha.js`, con `scripts/lib/storage.js`. Una URL del CDN
+de la otra inmobiliaria vive mientras ellos mantengan publicada la propiedad; el día que la dan de
+baja el card queda con el placeholder 📸 y nada avisa. Para lo que ya está cargado apuntando afuera
+está `scripts/migrar-imagenes.js`.
+
 | Caso | Acción |
 |---|---|
 | Usuario adjunta foto al chat | Guardarla en el scratchpad y subirla con `scripts/upload-fotos.js` |
-| URL externa (Tokko CDN, Airbnb, etc.) | Usarla directamente (puede expirar si dan de baja el listado) |
+| URL externa (Tokko CDN, Airbnb, etc.) | Copiarla a Storage (`migrar-imagenes.js` o el importador); usarla directo sólo como último recurso |
 | Link a álbum de Google Photos | Va al campo `fotos`, no en `imagen` |
 | Sin imagen | Dejar `imagen: ""` (el card muestra un placeholder 📸) |
 

@@ -554,7 +554,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
 
           <div v-else class="br-brand-grid">
             <div v-for="p in filtered" :key="`${p.kind}-${p.id}`" class="br-prop-card">
-              <div class="br-prop-img" @click="goTo(p)">
+              <NuxtLink :to="p.href" class="br-prop-img">
                 <img v-if="p.imagen" :src="p.imagen" :alt="p.titulo" loading="lazy" />
                 <div v-else class="br-prop-img-placeholder">📸</div>
                 <div class="br-prop-badges">
@@ -569,7 +569,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                     {{ p.disponibilidad === 'reservado' ? '● Reservado' : '● Disponible' }}
                   </span>
                 </div>
-              </div>
+              </NuxtLink>
               <div class="br-prop-body">
                 <div class="br-prop-clickzone" @click="goTo(p)">
                   <div class="br-prop-location">
@@ -583,7 +583,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                       {{ p.direccion }} — Ver mapa
                     </a>
                   </div>
-                  <h2 class="br-prop-titulo">{{ p.titulo }}</h2>
+                  <h2 class="br-prop-titulo"><NuxtLink :to="p.href">{{ p.titulo }}</NuxtLink></h2>
                   <div class="br-prop-precio-row">
                     <span class="br-precio">{{ precioLabel(p) }}</span>
                     <span v-if="p.kind === 'rental' && p.precio > 0" class="br-precio-sub">

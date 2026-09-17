@@ -723,11 +723,14 @@ input[type="range"].br-range::-webkit-slider-thumb {
 .br-prop-card:hover { box-shadow: var(--br-sombra-h); transform: translateY(-3px); }
 
 .br-prop-img {
+  display: block;
   position: relative;
   height: var(--br-card-img-h);
   background: #e9eaf0;
   overflow: hidden;
   flex-shrink: 0;
+  color: inherit;
+  text-decoration: none;
 }
 .br-prop-img img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -787,6 +790,8 @@ input[type="range"].br-range::-webkit-slider-thumb {
   letter-spacing: -.01em;
   margin: 0 0 5.5px; color: #111; line-height: 1.3;
 }
+.br-prop-titulo a { color: inherit; text-decoration: none; }
+.br-prop-titulo a:hover { text-decoration: underline; }
 .br-prop-precio-row {
   display: flex; align-items: baseline;
   gap: 4px; flex-wrap: wrap; margin-bottom: 5px;

@@ -5,6 +5,11 @@ import { useCollection } from 'vuefire'
 import type { RentalProperty } from '~/types/property'
 import { coordsFor } from '~/utils/geo'
 
+// keepalive: al entrar a una ficha y volver, esta página no se vuelve a
+// montar desde cero — mantiene los filtros, la búsqueda y el scroll tal
+// como quedaron, en vez de perderlos y obligar a rehacer la búsqueda.
+definePageMeta({ keepalive: true })
+
 // Ported from app/src/pages/Departamentos.vue. The one real change vs. the
 // old file: getAllRentals() (a one-time SSR-admin-SDK/client-SDK fetch
 // split, see app/src/data/properties.ts) is replaced by useCollection
@@ -487,7 +492,7 @@ async function share(r: RentalProperty) {
 
           <div v-else id="catalogo-grid">
         <div v-for="r in filtered" :key="r.id" class="br-prop-card">
-          <div class="br-prop-img" @click="goTo(r)">
+          <NuxtLink :to="detailHref(r)" class="br-prop-img">
             <img v-if="r.imagen" :src="r.imagen" :alt="r.titulo" loading="lazy" />
             <div v-else class="br-prop-img-placeholder">📸</div>
             <div class="br-prop-badges">
@@ -511,7 +516,7 @@ async function share(r: RentalProperty) {
                 }}
               </span>
             </div>
-          </div>
+          </NuxtLink>
           <div class="br-prop-body">
             <div class="br-prop-clickzone" @click="goTo(r)">
               <div class="br-prop-location">
@@ -525,7 +530,7 @@ async function share(r: RentalProperty) {
                   {{ r.direccion }} — {{ t('departamentos.card.verMapa') }}
                 </a>
               </div>
-              <h2 class="br-prop-titulo">{{ r.titulo }}</h2>
+              <h2 class="br-prop-titulo"><NuxtLink :to="detailHref(r)">{{ r.titulo }}</NuxtLink></h2>
               <div class="br-prop-precio-row">
                 <template v-if="r.precio > 0">
                   <span class="br-precio">{{ r.moneda || 'USD' }} {{ r.precio.toLocaleString('es-AR') }}</span>

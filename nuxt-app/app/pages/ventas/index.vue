@@ -5,6 +5,11 @@ import { useCollection } from 'vuefire'
 import type { SaleProperty } from '~/types/property'
 import { coordsFor } from '~/utils/geo'
 
+// keepalive: al entrar a una ficha y volver, esta página no se vuelve a
+// montar desde cero — mantiene los filtros, la búsqueda y el scroll tal
+// como quedaron, en vez de perderlos y obligar a rehacer la búsqueda.
+definePageMeta({ keepalive: true })
+
 // Reescrita sobre el sistema `br-*`, en paralelo a pages/departamentos/index.vue.
 // Antes eran 118 líneas de utilidades de Bootstrap (container/row/card/h3) contra
 // las 722 del ventas.html original: sin hero oscuro, sin las cards del catálogo,
@@ -427,7 +432,7 @@ async function share(s: SaleProperty) {
 
           <div v-else id="catalogo-grid">
             <div v-for="s in filtered" :key="s.id" class="br-prop-card">
-              <div class="br-prop-img" @click="goTo(s)">
+              <NuxtLink :to="detailHref(s)" class="br-prop-img">
                 <img v-if="s.fotos?.[0]" :src="s.fotos[0]" :alt="s.titulo" loading="lazy" />
                 <div v-else class="br-prop-img-placeholder">📸</div>
                 <div class="br-prop-badges">
@@ -452,7 +457,7 @@ async function share(s: SaleProperty) {
                     }}
                   </span>
                 </div>
-              </div>
+              </NuxtLink>
               <div class="br-prop-body">
                 <div class="br-prop-clickzone" @click="goTo(s)">
                   <div class="br-prop-location">
@@ -466,7 +471,7 @@ async function share(s: SaleProperty) {
                       {{ s.direccion }} — {{ t('ventas.card.verMapa') }}
                     </a>
                   </div>
-                  <h2 class="br-prop-titulo">{{ s.titulo }}</h2>
+                  <h2 class="br-prop-titulo"><NuxtLink :to="detailHref(s)">{{ s.titulo }}</NuxtLink></h2>
                   <div class="br-prop-precio-row">
                     <span v-if="s.precio > 0" class="br-precio">{{ s.moneda || 'USD' }} {{ s.precio.toLocaleString('es-AR') }}</span>
                     <span v-else class="br-precio" style="font-size: 1rem; font-weight: 700">{{ t('ventas.card.consultarPrecio') }}</span>

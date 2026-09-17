@@ -15,7 +15,10 @@ import type { SellerProfile } from '~/types/link'
 // visitante vive en su localStorage: el middleware no lo ve, y contar por
 // request convertía una sola persona recargando en cinco aperturas. Ver
 // app/utils/linkVisitor.ts.
-definePageMeta({ layout: 'branded' })
+// keepalive: al entrar a una ficha del catálogo compartido y volver, esta
+// página no se vuelve a montar desde cero — mantiene los filtros, la
+// búsqueda y el scroll de SellerCatalog.vue tal como quedaron.
+definePageMeta({ layout: 'branded', keepalive: true })
 
 const route = useRoute()
 const code = route.params.code as string

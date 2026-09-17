@@ -20,7 +20,8 @@ Si en vez del link te pegan el JSON de Tokko, usá `/agregar-depto`.
 node scripts/add-from-ficha.js "<url>" --out scripts/temp-ficha.json
 ```
 
-El script imprime la propiedad mapeada, el id `alq-NN` que le tocó y una lista de ⚠️ con lo que
+El script imprime la propiedad mapeada, el id que le tocó (`alq-NN` si la ficha es de ficha.info,
+`tenc-NN` si es de fichaprop.tech) y una lista de ⚠️ con lo que
 no pudo deducir. **No hace falta que leas el JSON de Tokko ni el HTML de la ficha**: alcanza con
 lo que imprime el script.
 
@@ -67,13 +68,14 @@ Después:
 - Si corta con `❌ El ID "..." ya existe`: **no agregues `--update` por tu cuenta**. Decile al
   usuario con qué propiedad choca y preguntale si es la misma (ahí sí, `--update`) o si es otra
   (entonces pasá otro `--id`).
-- El id sale del catálogo: `alq-NN`, rellenando el primer número libre de la serie.
+- El id sale del catálogo y de la serie de la ficha: `alq-NN` para ficha.info y `tenc-NN` para
+  fichaprop.tech, rellenando el primer número libre de esa serie.
 - La URL de la ficha queda en el campo `fotos`. `fichaUrl` es solo para links de Airbnb/Booking.
 - La portada queda apuntando al CDN de la otra inmobiliaria (Tokko o el storage de fichaprop).
   Si el usuario quiere una foto propia, subila con
   `node scripts/upload-fotos.js alquileres <id> <foto>` y pasá la URL con `--imagen`.
 - Lo mismo se puede hacer sin Claude desde el panel: `/app/rentals/new` tiene un campo para pegar
-  el link de la ficha — pero solo entiende las de ficha.info; las de fichaprop.tech, por ahora,
-  solo entran por este script.
+  el link de la ficha, y entiende las dos. El de ventas (`/app/sales/new`) solo acepta ficha.info:
+  fichaprop.tech no publica ventas.
 - Nunca escribir en Firestore a mano — siempre a través de los scripts, que validan tipos, monedas,
   disponibilidad y amenities antes de guardar.

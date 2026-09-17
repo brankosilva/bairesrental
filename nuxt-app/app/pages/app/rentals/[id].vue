@@ -183,11 +183,13 @@ async function checkId() {
   }
 }
 
-// Alta desde el link para colegas de Tokko. `importFromFicha` baja la ficha en
-// el server (ficha.info no manda CORS) y devuelve los campos ya mapeados más el
-// próximo id `alq-NN` libre. Solo completa el formulario: guardar sigue siendo
-// el mismo botón de siempre, así que lo importado se puede revisar y corregir
-// antes de publicarlo.
+// Alta desde el link para colegas: el de Tokko (ficha.info) o el de Tencery
+// (fichaprop.tech). `importFromFicha` lee la ficha en el server —ninguna de las
+// dos manda CORS, y la de Tencery además necesita pegarle a su API— y devuelve
+// los campos ya mapeados más el próximo id libre de la serie que le toca
+// (`alq-NN` las de Tokko, `tenc-NN` las de Tencery). Solo completa el
+// formulario: guardar sigue siendo el mismo botón de siempre, así que lo
+// importado se puede revisar y corregir antes de publicarlo.
 const fichaUrlInput = ref('')
 const importando = ref(false)
 const importAvisos = ref<string[]>([])
@@ -364,16 +366,17 @@ async function onDelete() {
         :is-admin="isAdmin"
       />
 
-      <AdminSection v-if="isNew" title="Importar desde ficha.info">
+      <AdminSection v-if="isNew" title="Importar desde una ficha">
         <p class="small text-muted mb-2">
-          Pegá el link para colegas de Tokko y se completa solo. Después revisá y corregí lo que haga falta.
+          Pegá el link para colegas —de Tokko (ficha.info) o de Tencery (fichaprop.tech)— y se completa
+          solo. Después revisá y corregí lo que haga falta.
         </p>
         <div class="input-group">
           <input
             v-model="fichaUrlInput"
             type="url"
             class="form-control"
-            placeholder="https://ficha.info/p/..."
+            placeholder="https://ficha.info/p/... o https://www.fichaprop.tech/ficha/..."
             autocapitalize="none"
             autocorrect="off"
             spellcheck="false"

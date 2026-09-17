@@ -20,7 +20,7 @@
 //   node scripts/add-from-ficha.js <url> --update           (pisar un ID existente)
 //
 // Overrides de los campos que la ficha no dice (o dice mal):
-//   --id alq-07       --precio 550        --minimo 3
+//   --id alq-07       --precio 550        --minimo 3   (--id tenc-03 en Tencery)
 //   --mascotas        --sin-mascotas      --servicios       --sin-servicios
 //   --barrio "..."    --titulo "..."      --propio
 //   --desde 2026-09-01                    --imagen <url>
@@ -34,21 +34,24 @@ const { tokkoToProperty } = require('./add-from-tokko');
 const { tenceryToProperty } = require('./add-from-tencery');
 const { validate, findDuplicates, prompt } = require('./add-property');
 
-// ─── ID: el próximo `alq-NN` libre ───────────────────────────────────────────
+// ─── ID: el próximo `<serie>-NN` libre ───────────────────────────────────────
 
-// La convención del catálogo es `alq-NN`. Los números en uso salen de los docs
-// cuyo id es exactamente `alq-<dígitos>`; los históricos sucios (`alq-8315-`,
+// Cada ficha tiene su serie: `alq-NN` para lo que entra por ficha.info (Tokko)
+// y `tenc-NN` para lo de fichaprop.tech (Tencery), así el id dice de dónde
+// salió la propiedad. Los números en uso salen de los docs cuyo id es
+// exactamente `<serie>-<dígitos>`; los históricos sucios (`alq-8315-`,
 // `alq-PEDRO6767`, `alq-marie-11`) no matchean y quedan afuera del conteo.
 // Se rellenan los huecos: si están el 01..05 y el 07, el próximo es el 06.
-function proximoIdAlq(catalogo) {
+function proximoId(catalogo, serie) {
+  const re = new RegExp(`^${serie}-(\\d+)$`);
   const usados = new Set();
   for (const p of catalogo) {
-    const m = /^alq-(\d+)$/.exec(p.id || '');
+    const m = re.exec(p.id || '');
     if (m) usados.add(parseInt(m[1], 10));
   }
   let n = 1;
   while (usados.has(n)) n++;
-  return `alq-${String(n).padStart(2, '0')}`;
+  return `${serie}-${String(n).padStart(2, '0')}`;
 }
 
 // ─── Fecha de disponibilidad ─────────────────────────────────────────────────
@@ -350,11 +353,12 @@ async function main() {
     process.exit(1);
   }
 
-  // Cada ficha se lee distinto, pero de acá para abajo el flujo es el mismo.
+  // Cada ficha se lee distinto y tiene su propia serie de ids, pero de acá para
+  // abajo el flujo es el mismo.
   const fuente = esUrlDeFicha(url)
-    ? { nombre: 'ficha.info', canonica: urlCanonica(url), leer: async () => fichaToProperty(await fetchFicha(url)) }
+    ? { nombre: 'ficha.info', serie: 'alq', canonica: urlCanonica(url), leer: async () => fichaToProperty(await fetchFicha(url)) }
     : esUrlDeFichaprop(url)
-      ? { nombre: 'fichaprop.tech', canonica: urlCanonicaFichaprop(url), leer: async () => fichapropToProperty(await fetchFichaprop(url)) }
+      ? { nombre: 'fichaprop.tech', serie: 'tenc', canonica: urlCanonicaFichaprop(url), leer: async () => fichapropToProperty(await fetchFichaprop(url)) }
       : null;
 
   if (!fuente) {
@@ -378,8 +382,9 @@ async function main() {
 
   const catalogo = await leerCatalogo('alquileres');
 
-  // El id sale del catálogo, salvo que lo pisen con --id.
-  prop.id = proximoIdAlq(catalogo);
+  // El id sale del catálogo y de la serie de la ficha, salvo que lo pisen
+  // con --id.
+  prop.id = proximoId(catalogo, fuente.serie);
   aplicarOverrides(prop, args);
 
   mostrar(prop, avisosPendientes(avisos, args), fuente.nombre);
@@ -436,4 +441,4 @@ if (require.main === module) {
   main().catch(err => { console.error('Error:', err.message); process.exit(1); });
 }
 
-module.exports = { fichaToProperty, fichapropToProperty, proximoIdAlq, extraerDisponibleDesde };
+module.exports = { fichaToProperty, fichapropToProperty, proximoId, extraerDisponibleDesde };

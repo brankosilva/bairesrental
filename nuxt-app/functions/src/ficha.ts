@@ -417,14 +417,24 @@ export function fichaToRental(ficha: Ficha): { prop: RentalFields; avisos: strin
 // (`alq-8315-`, `alq-PEDRO6767`, `alq-marie-11`) no matchean y quedan afuera.
 // Se rellenan los huecos: si están el 01..05 y el 07, el próximo es el 06.
 export function proximoIdAlq(ids: string[]): string {
+  return proximoIdDeSerie(ids, 'alq')
+}
+
+// Las series del catálogo: `alq-NN` para los alquileres que entran por una
+// ficha de ficha.info, `tenc-NN` para los de fichaprop.tech (Tencery) y
+// `ven-NN` para las ventas. Se rellena el primer número libre, así que con
+// alq-01..05 y alq-07 tomados el próximo es alq-06. Los ids históricos sucios
+// (`alq-8315-`, `alq-PEDRO6767`) no matchean y quedan afuera del conteo.
+export function proximoIdDeSerie(ids: string[], serie: string): string {
+  const re = new RegExp(`^${serie}-(\\d+)$`)
   const usados = new Set<number>()
   for (const id of ids) {
-    const m = /^alq-(\d+)$/.exec(id || '')
+    const m = re.exec(id || '')
     if (m) usados.add(parseInt(m[1], 10))
   }
   let n = 1
   while (usados.has(n)) n++
-  return `alq-${String(n).padStart(2, '0')}`
+  return `${serie}-${String(n).padStart(2, '0')}`
 }
 
 // ─── Mapeo a SaleProperty ────────────────────────────────────────────────────
@@ -628,12 +638,5 @@ export function fichaToSale(ficha: Ficha): { prop: SaleFields; avisos: string[] 
 // Igual que `proximoIdAlq` pero para la serie `ven-NN` de `sales`. Los ids
 // históricos (`lafinur-3000`, `poli-venta-01`) no matchean y quedan afuera.
 export function proximoIdVen(ids: string[]): string {
-  const usados = new Set<number>()
-  for (const id of ids) {
-    const m = /^ven-(\d+)$/.exec(id || '')
-    if (m) usados.add(parseInt(m[1], 10))
-  }
-  let n = 1
-  while (usados.has(n)) n++
-  return `ven-${String(n).padStart(2, '0')}`
+  return proximoIdDeSerie(ids, 'ven')
 }

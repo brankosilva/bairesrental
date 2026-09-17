@@ -127,9 +127,9 @@ clave inexistente en Rules es un **error**, no `false`.
    TypeScript, en `nuxt-app/functions/src/ficha.ts` — `functions/` es un paquete
    aparte y no puede importar de `scripts/`. El mapeo tiene que dar lo mismo
    desde la terminal que desde el panel. El de **venta** (`fichaToSale`) existe
-   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres. Al revés pasa con
-   fichaprop.tech (`scripts/lib/fichaprop.js`): existe sólo del lado de los scripts, el panel no
-   lo importa todavía.
+   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres. Lo de **fichaprop.tech**
+   vive dos veces igual: `scripts/lib/fichaprop.js` + el mapeo de `add-from-tencery.js` de un lado,
+   y `nuxt-app/functions/src/fichaprop.ts` —que trae las dos cosas juntas— del otro.
 3. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
    en `createTrackableLink` y en la página compartida. `functions/` es un
    paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.
@@ -268,17 +268,21 @@ no quedaba en ningún lado. Por ahora no hay un script que lo consuma — refres
 `add-from-ficha.js <url> --id <id> --update`. El formulario del panel muestra el link y lo reenvía
 tal cual: no se edita a mano.
 
-**El id que genera es `alq-NN`**, rellenando el primer número libre de la serie: se miran los docs
-de `rentals` cuyo id es exactamente `alq-<dígitos>` y se busca el hueco más bajo (con `alq-01`…
-`alq-05` y `alq-07` ocupados, el próximo es `alq-06`). Los ids históricos sucios (`alq-8315-`,
-`alq-PEDRO6767`, `alq-marie-11`) no matchean y quedan afuera del conteo.
+**Cada ficha tiene su serie de ids**, así el id dice de dónde salió la propiedad: `alq-NN` para lo
+que entra por ficha.info (Tokko) y `tenc-NN` para lo de fichaprop.tech (Tencery). Se rellena el
+primer número libre de la serie: se miran los docs de `rentals` cuyo id es exactamente
+`<serie>-<dígitos>` y se busca el hueco más bajo (con `alq-01`… `alq-05` y `alq-07` ocupados, el
+próximo es `alq-06`). Los ids históricos sucios (`alq-8315-`, `alq-PEDRO6767`, `alq-marie-11`) no
+matchean y quedan afuera del conteo.
 
 Lo que la ficha **no** dice y hay que preguntar: `mascotas`, `minimoMeses` y, a veces,
 `serviciosIncluidos` y `esPropio`. El script los lista con ⚠️.
 
 Lo mismo se puede hacer **sin Claude** desde el panel: `/app/rentals/new` tiene un campo para pegar
-el link, que llama al callable `importFromFicha` y autocompleta el formulario. `/app/sales/new` tiene
-el mismo campo para el catálogo de ventas — ver abajo.
+el link —de ficha.info o de fichaprop.tech—, que llama al callable `importFromFicha` y autocompleta
+el formulario. `/app/sales/new` tiene el mismo campo para el catálogo de ventas, pero sólo acepta
+ficha.info: fichaprop.tech es el catálogo de alquiler temporario de Tencery y no publica ventas, así
+que ese link se rechaza con un mensaje en vez de mapear una propiedad a medias.
 
 ---
 
@@ -429,7 +433,7 @@ pendientes: al guardar, `importListingImage` las baja una por una a nuestro Stor
 nativa no queda colgada de un CDN ajeno. Son hasta 20 requests en serie — el botón va contando
 ("Copiando foto 3 de 19…") y puede tardar minutos con datos móviles.
 
-El id que sugiere es `ven-NN`, la serie nueva; los ids históricos (`lafinur-3000`, `poli-venta-01`)
+El id que sugiere es `ven-NN`, la serie nueva (las series salen todas de `proximoIdDeSerie()`); los ids históricos (`lafinur-3000`, `poli-venta-01`)
 no matchean y quedan afuera del conteo. Hay que confirmar a mano `aptoCredito` (Tokko casi siempre
 dice "No especificado") y, si la ficha es de alquiler y no de venta, el precio: el aviso lo marca.
 

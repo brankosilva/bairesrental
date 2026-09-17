@@ -492,6 +492,8 @@ async function share(r: RentalProperty) {
             <div v-else class="br-prop-img-placeholder">📸</div>
             <div class="br-prop-badges">
               <span v-if="r.esPropio" class="br-badge br-badge-propio">{{ t('departamentos.card.propio') }}</span>
+            </div>
+            <div class="br-prop-badges-right">
               <span
                 class="br-badge"
                 :class="{

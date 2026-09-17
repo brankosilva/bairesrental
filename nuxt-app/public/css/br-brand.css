@@ -528,7 +528,7 @@
 }
 
 .br-brand-catalog {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 20px 16px 40px;
 }
@@ -539,151 +539,13 @@
   font-weight: 800;
 }
 
+/* La card en sí es .br-prop-card (br-catalog.css) — la misma que
+   /departamentos y /ventas, para que un cambio de estilo de card no haya que
+   hacerlo en tres lugares. Acá sólo queda el contenedor de la grilla. */
 .br-brand-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
-}
-
-.br-brand-card {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--br-brand-borde);
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  color: inherit;
-  text-decoration: none;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
-}
-.br-brand-card:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-  color: inherit;
-}
-
-.br-brand-card-img {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 4 / 3;
-  max-width: 100%;
-  background: #f4f4f6;
-  font-size: 28px;
-}
-.br-brand-card-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Etiquetas sobre la portada. En esta grilla conviven alquiler y venta (es
-   el catálogo entero del vendedor, no el de una operación), así que la card
-   tiene que decir cuál es sin obligar a abrirla. Lo mismo con "reservado":
-   la lista lo incluye salvo que el visitante filtre por disponibles. */
-.br-brand-card-tags {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.br-brand-tag {
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: #fff;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
-}
-.br-brand-tag-venta {
-  background: color-mix(in srgb, var(--br-brand-accent) 88%, transparent);
-}
-.br-brand-tag-propio {
-  background: var(--br-brand-accent);
-}
-/* Blancas con el texto de color, no rellenas: sobre una foto un pill sólido
-   saturado grita más de lo que hace falta para decir "disponible". */
-.br-brand-tag-disponible {
-  background: rgba(255, 255, 255, 0.92);
-  color: #15803d;
-}
-.br-brand-tag-reservado {
-  background: rgba(255, 255, 255, 0.92);
-  color: #b45309;
-}
-
-/* Círculo de compartir sobre la portada, opuesto a los tags (arriba a la
-   derecha). Va dentro del <NuxtLink> de la card — @click.stop.prevent en el
-   template evita que ese click también navegue a la ficha. */
-.br-brand-card-share {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(17, 17, 17, 0.55);
-  color: #fff;
-  backdrop-filter: blur(4px);
-  cursor: pointer;
-}
-.br-brand-card-share:hover {
-  background: rgba(17, 17, 17, 0.75);
-}
-
-.br-brand-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 10px 12px 12px;
-}
-
-.br-brand-card-loc {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--br-brand-mute);
-}
-
-.br-brand-card-direccion {
-  margin-bottom: 1px;
-}
-
-.br-brand-card-title {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  color: #111;
-}
-
-.br-brand-card-price-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  margin-top: 2px;
-}
-
-.br-brand-card-price {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #111;
-}
-
-.br-brand-card-price-suffix {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--br-brand-mute);
 }
 
 /* ── Estados ─────────────────────────────────────────── */

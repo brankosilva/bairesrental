@@ -137,7 +137,7 @@ const sales = computed(() => data.value?.catalog?.sales ?? [])
          vendedor comparte una lista que puede tener 80 propiedades, y sin
          filtros el cliente tiene que scrollearlas todas. Ver
          components/SellerCatalog.vue. -->
-    <SellerCatalog v-else :rentals="rentals" :sales="sales" :code="code" />
+    <SellerCatalog v-else :rentals="rentals" :sales="sales" :code="code" :seller-whatsapp="seller?.whatsapp" />
 
     <!-- El cierre de la página: el cliente terminó de mirar y acá tiene todos
          los datos del vendedor juntos, no sólo el botón de la barra de

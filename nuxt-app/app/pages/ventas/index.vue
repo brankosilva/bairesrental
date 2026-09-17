@@ -432,6 +432,9 @@ async function share(s: SaleProperty) {
                 <div v-else class="br-prop-img-placeholder">📸</div>
                 <div class="br-prop-badges">
                   <span v-if="s.esPropio" class="br-badge br-badge-propio">{{ t('ventas.card.propio') }}</span>
+                  <span v-if="(s.fotos?.length ?? 0) > 1" class="br-badge br-fotos-count">📷 {{ s.fotos.length }}</span>
+                </div>
+                <div class="br-prop-badges-right">
                   <span
                     class="br-badge"
                     :class="{
@@ -448,7 +451,6 @@ async function share(s: SaleProperty) {
                           : t('ventas.card.vendido')
                     }}
                   </span>
-                  <span v-if="(s.fotos?.length ?? 0) > 1" class="br-badge br-fotos-count">📷 {{ s.fotos.length }}</span>
                 </div>
               </div>
               <div class="br-prop-body">

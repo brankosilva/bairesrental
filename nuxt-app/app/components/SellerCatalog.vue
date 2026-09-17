@@ -28,7 +28,19 @@ const props = defineProps<{
   rentals: (RentalProperty & { id: string })[]
   sales: (SaleProperty & { id: string })[]
   code: string
+  sellerWhatsapp?: string | null
 }>()
+
+const router = useRouter()
+function goTo(p: { href: string }) {
+  router.push(p.href)
+}
+
+// Mismo dominio que usan departamentos/index.vue y ventas/index.vue para
+// armar el link absoluto del mensaje de WhatsApp — hace falta que sea
+// absoluto y fijo (no window.location.origin) porque este link se renderiza
+// también en el servidor.
+const SITE_URL = 'https://www.bairesrental.com.ar'
 
 type Kind = 'rental' | 'sale'
 
@@ -62,6 +74,10 @@ interface Row {
   serviciosIncluidos: boolean | null
   /** Sólo alquileres con mínimo > 1 mes: 0 en ventas, para no dibujar el tag. */
   minimoMeses: number
+  /** Sólo ventas: 0 en alquileres. */
+  ambientes: number
+  /** Sólo ventas: 0 en alquileres o si no hay más de 1 foto. */
+  fotosCount: number
 }
 
 function toRow(p: Record<string, unknown>, kind: Kind): Row {
@@ -89,7 +105,14 @@ function toRow(p: Record<string, unknown>, kind: Kind): Row {
     esPropio: !!r.esPropio,
     serviciosIncluidos: kind === 'rental' ? !!r.serviciosIncluidos : null,
     minimoMeses: kind === 'rental' && Number(r.minimoMeses) > 1 ? Number(r.minimoMeses) : 0,
+    ambientes: kind === 'sale' ? Number(r.ambientes) || 0 : 0,
+    fotosCount: kind === 'sale' && Array.isArray(r.fotos) ? r.fotos.length : 0,
   }
+}
+
+function waMessageFor(p: Row) {
+  const link = `${SITE_URL}${p.href}`
+  return `Hola! Me interesa "${p.titulo}"${p.barrio ? ` en ${p.barrio}` : ''}.\n\n${link}`
 }
 
 // El orden que trae el payload ya pone primero lo de BairesRental y después
@@ -123,6 +146,9 @@ const AMENITY_LABELS: Record<string, string> = {
   jacuzzi: '🛁 Jacuzzi',
 }
 const AMENITY_FILTERS = Object.keys(AMENITY_LABELS)
+function amenityLabel(a: string) {
+  return AMENITY_LABELS[a] || `✦ ${a}`
+}
 
 const TIPOS = ['monoambiente', '2 ambientes', '3 ambientes', '4+ ambientes', 'casa', 'PH']
 const TIPO_LABELS: Record<string, string> = {
@@ -527,59 +553,92 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
           </div>
 
           <div v-else class="br-brand-grid">
-            <NuxtLink v-for="p in filtered" :key="`${p.kind}-${p.id}`" :to="p.href" class="br-brand-card">
-              <div class="br-brand-card-img">
+            <div v-for="p in filtered" :key="`${p.kind}-${p.id}`" class="br-prop-card">
+              <div class="br-prop-img" @click="goTo(p)">
                 <img v-if="p.imagen" :src="p.imagen" :alt="p.titulo" loading="lazy" />
-                <span v-else>📷</span>
-                <div class="br-brand-card-tags">
-                  <span v-if="p.esPropio" class="br-brand-tag br-brand-tag-propio">★ BairesRental</span>
-                  <span v-if="p.kind === 'sale'" class="br-brand-tag br-brand-tag-venta">Venta</span>
+                <div v-else class="br-prop-img-placeholder">📸</div>
+                <div class="br-prop-badges">
+                  <span v-if="p.esPropio" class="br-badge br-badge-propio">★ BairesRental</span>
+                  <span v-if="p.fotosCount > 1" class="br-badge br-fotos-count">📷 {{ p.fotosCount }}</span>
+                </div>
+                <div class="br-prop-badges-right">
                   <span
-                    class="br-brand-tag"
-                    :class="p.disponibilidad === 'reservado' ? 'br-brand-tag-reservado' : 'br-brand-tag-disponible'"
+                    class="br-badge"
+                    :class="p.disponibilidad === 'reservado' ? 'br-badge-reservado' : 'br-badge-disponible'"
                   >
                     {{ p.disponibilidad === 'reservado' ? '● Reservado' : '● Disponible' }}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  class="br-brand-card-share"
-                  :aria-label="`Compartir ${p.titulo}`"
-                  title="Compartir"
-                  @click.stop.prevent="onShare(p)"
-                >
-                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-                    <line x1="8.6" y1="10.6" x2="15.4" y2="6.4" /><line x1="8.6" y1="13.4" x2="15.4" y2="17.6" />
-                  </svg>
-                </button>
               </div>
-              <div class="br-brand-card-body">
-                <span class="br-brand-card-loc">{{ [p.barrio, p.tipo].filter(Boolean).join(' · ') }}</span>
-                <div v-if="p.direccion && p.direccionUrl" class="br-brand-card-direccion">
-                  <a :href="p.direccionUrl" target="_blank" rel="noopener" class="br-btn-ver-mapa" @click.stop>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
-                    </svg>
-                    {{ p.direccion }} — Ver mapa
-                  </a>
+              <div class="br-prop-body">
+                <div class="br-prop-clickzone" @click="goTo(p)">
+                  <div class="br-prop-location">
+                    {{ [p.barrio, p.tipo, p.kind === 'sale' ? 'Venta' : null].filter(Boolean).join(' · ') }}
+                  </div>
+                  <div v-if="p.direccion && p.direccionUrl" class="br-prop-direccion">
+                    <a :href="p.direccionUrl" target="_blank" rel="noopener" class="br-btn-ver-mapa" @click.stop>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+                      </svg>
+                      {{ p.direccion }} — Ver mapa
+                    </a>
+                  </div>
+                  <h2 class="br-prop-titulo">{{ p.titulo }}</h2>
+                  <div class="br-prop-precio-row">
+                    <span class="br-precio">{{ precioLabel(p) }}</span>
+                    <span v-if="p.kind === 'rental' && p.precio > 0" class="br-precio-sub">
+                      /mes
+                      <span :class="p.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'">
+                        {{ p.serviciosIncluidos ? 'Paquete completo' : 'Servicios aparte' }}
+                      </span>
+                      <span v-if="p.minimoMeses > 0" class="br-tag-minimo">
+                        Mínimo {{ p.minimoMeses }} {{ p.minimoMeses === 1 ? 'mes' : 'meses' }}
+                      </span>
+                    </span>
+                    <span v-if="p.kind === 'sale'" class="br-precio-sub">
+                      <span v-if="p.superficie" class="br-tag-servicios">{{ p.superficie }} m²</span>
+                      <span v-if="p.ambientes" class="br-tag-minimo">{{ p.ambientes }} amb.</span>
+                      <span v-if="p.aptoCredito" class="br-tag-servicios">🏦 Apto crédito</span>
+                    </span>
+                  </div>
+                  <div class="br-amenities-row">
+                    <span v-if="p.mascotas" class="br-amenity-tag">🐾 Acepta mascotas</span>
+                    <span v-for="a in p.amenities.slice(0, 4)" :key="a" class="br-amenity-tag">{{ amenityLabel(a) }}</span>
+                  </div>
                 </div>
-                <strong class="br-brand-card-title">{{ p.titulo }}</strong>
-                <span class="br-brand-card-price-row">
-                  <span class="br-brand-card-price">{{ precioLabel(p) }}</span>
-                  <span v-if="p.kind === 'rental' && p.precio > 0" class="br-brand-card-price-suffix">/mes</span>
-                  <span
-                    v-if="p.serviciosIncluidos !== null"
-                    :class="p.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'"
-                  >
-                    {{ p.serviciosIncluidos ? 'Paquete completo' : 'Servicios aparte' }}
-                  </span>
-                  <span v-if="p.minimoMeses > 0" class="br-tag-minimo">
-                    Mínimo {{ p.minimoMeses }} {{ p.minimoMeses === 1 ? 'mes' : 'meses' }}
-                  </span>
-                </span>
+                <div class="br-prop-actions">
+                  <div class="br-btn-detalle-row">
+                    <a
+                      :href="whatsappUrl(waMessageFor(p), sellerWhatsapp)"
+                      target="_blank"
+                      rel="noopener"
+                      class="br-btn-wa-outline"
+                      @click.stop
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                          d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"
+                        />
+                      </svg>
+                      Consultar por WhatsApp
+                    </a>
+                    <button
+                      type="button"
+                      class="br-btn-compartir"
+                      :aria-label="`Compartir ${p.titulo}`"
+                      title="Compartir"
+                      @click.stop="onShare(p)"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                          d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </NuxtLink>
+            </div>
           </div>
         </div>
 

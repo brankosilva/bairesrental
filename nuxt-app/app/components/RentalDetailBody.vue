@@ -134,7 +134,7 @@ function onShare() {
           {{ rental.serviciosIncluidos ? t('detail.servicesIncluded') : t('detail.servicesNotIncluded') }}
         </p>
 
-        <p v-if="disponibleDesdeLabel" class="depto-desde">📅 {{ t('detail.availableFrom', { date: disponibleDesdeLabel }) }}</p>
+        <p v-if="disponibleDesdeLabel" class="depto-desde">{{ t('detail.availableFrom', { date: disponibleDesdeLabel }) }}</p>
 
         <p class="depto-desc">{{ rental.descripcion }}</p>
 

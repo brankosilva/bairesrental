@@ -228,15 +228,6 @@ async function share(r: RentalProperty) {
     showToast(locale.value === 'en' ? 'Link copied ✓' : 'Link copiado al portapapeles ✓')
   }
 }
-
-const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
-const MESES_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-function formatFecha(fecha?: string) {
-  if (!fecha) return ''
-  const [, mes, dia] = fecha.split('-')
-  const idx = parseInt(mes, 10) - 1
-  return locale.value === 'en' ? `${MESES_EN[idx]} ${parseInt(dia, 10)}` : `${parseInt(dia, 10)} de ${MESES_ES[idx]}`
-}
 </script>
 
 <template>
@@ -533,9 +524,6 @@ function formatFecha(fecha?: string) {
                 </a>
               </div>
               <h2 class="br-prop-titulo">{{ r.titulo }}</h2>
-              <div v-if="r.disponibilidad === 'disponible' && r.disponibleDesde" class="br-prop-desde">
-                {{ t('departamentos.card.disponibleDesde') }} <strong>{{ formatFecha(r.disponibleDesde) }}</strong>
-              </div>
               <div class="br-prop-precio-row">
                 <template v-if="r.precio > 0">
                   <span class="br-precio">{{ r.moneda || 'USD' }} {{ r.precio.toLocaleString('es-AR') }}</span>

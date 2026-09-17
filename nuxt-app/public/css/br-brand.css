@@ -604,7 +604,7 @@
   background: color-mix(in srgb, var(--br-brand-accent) 88%, transparent);
 }
 .br-brand-tag-propio {
-  background: rgba(17, 17, 17, 0.72);
+  background: var(--br-brand-accent);
 }
 /* Blancas con el texto de color, no rellenas: sobre una foto un pill sólido
    saturado grita más de lo que hace falta para decir "disponible". */

@@ -532,7 +532,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                 <img v-if="p.imagen" :src="p.imagen" :alt="p.titulo" loading="lazy" />
                 <span v-else>📷</span>
                 <div class="br-brand-card-tags">
-                  <span v-if="p.esPropio" class="br-brand-tag br-brand-tag-propio">BairesRental</span>
+                  <span v-if="p.esPropio" class="br-brand-tag br-brand-tag-propio">★ BairesRental</span>
                   <span v-if="p.kind === 'sale'" class="br-brand-tag br-brand-tag-venta">Venta</span>
                   <span
                     class="br-brand-tag"

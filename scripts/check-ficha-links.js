@@ -172,7 +172,7 @@ async function main() {
     for (const { campo, url } of links) {
       const { estado, motivo } = await estadoDeEnlace(url);
       if (estado === 'roto' || estado === 'sospechoso') {
-        problemas.push(`${ETIQUETA_CAMPO[campo]} ${estado === 'roto' ? 'no responde' : 'quedó raro'}: ${motivo} — ${url}`);
+        problemas.push(`${ETIQUETA_CAMPO[campo]} ${estado === 'roto' ? 'está caído' : 'quedó raro'}: ${motivo} — ${url}`);
       }
       await sleep(DELAY_MS);
     }

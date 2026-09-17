@@ -75,7 +75,13 @@ async function estadoDeEnlace(url) {
     } catch (e) {
       // DNS que no resuelve, TLS que no cierra, timeout. Acá cae el dominio
       // vencido cuando se lo pide por https.
-      return { estado: 'roto', motivo: `no responde (${e.message})` };
+      //
+      // `e.message` del fetch de Node es siempre "fetch failed", que no dice
+      // nada: el motivo real está en `e.cause` ("certificate has expired",
+      // "getaddrinfo ENOTFOUND", "The operation was aborted"). Sin esto el
+      // Issue de los lunes no alcanza para saber si hay que salir a arreglar
+      // algo o el link se cayó por un minuto.
+      return { estado: 'roto', motivo: `no responde (${e.cause?.message || e.message})` };
     }
   }
 

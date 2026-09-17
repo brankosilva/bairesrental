@@ -21,7 +21,7 @@ import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
 import { esUrlDeFicha, fetchFicha, fichaToRental, fichaToSale, proximoIdAlq, proximoIdDeSerie, proximoIdVen, urlCanonica } from './ficha'
-import { esUrlDeFichaprop, fetchFichaprop, fichapropToRental } from './fichaprop'
+import { esUrlDeFichaprop, fetchFichaprop, fichapropToRental, fichapropToSale } from './fichaprop'
 
 initializeApp()
 const db = getFirestore()
@@ -955,17 +955,14 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
     throw new HttpsError('invalid-argument', 'collectionName debe ser "rentals" o "sales".')
   }
 
-  // fichaprop.tech es el catálogo de alquiler temporario de Tencery: no publica
-  // operaciones de venta, así que el formulario de ventas rechaza el link en
-  // vez de mapear una propiedad a medias. Y tiene serie de ids propia.
+  // Las fichas de fichaprop van a la serie `tenc-NN` en los dos catálogos, así
+  // el id dice de dónde salió la propiedad.
+  //
+  // Una ficha de Tencery cargada como venta se mapea igual que una de alquiler:
+  // lo único que no existe en sus datos es la operación de venta, así que el
+  // precio queda en 0 y avisado, el mismo camino que ya hace fichaToSale()
+  // cuando la ficha de Tokko tampoco trae precio de venta.
   if (esUrlDeFichaprop(url)) {
-    if (collectionName === 'sales') {
-      throw new HttpsError(
-        'invalid-argument',
-        'Las fichas de fichaprop.tech son de alquiler temporario: cargala desde el catálogo de alquileres.',
-      )
-    }
-
     let ficha
     try {
       ficha = await fetchFichaprop(url)
@@ -973,10 +970,10 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
       throw new HttpsError('failed-precondition', `No se pudo leer la ficha: ${(e as Error).message}`)
     }
 
-    const { prop, avisos } = fichapropToRental(ficha)
+    const { prop, avisos } = collectionName === 'sales' ? fichapropToSale(ficha) : fichapropToRental(ficha)
     prop.origen = { fuente: 'fichaprop.tech', url: ficha.url, leidoEn: new Date().toISOString() }
 
-    const snap = await db.collection('rentals').select().get()
+    const snap = await db.collection(collectionName).select().get()
     return { prop, avisos, sugerencias: { id: proximoIdDeSerie(snap.docs.map((d) => d.id), 'tenc') } }
   }
 

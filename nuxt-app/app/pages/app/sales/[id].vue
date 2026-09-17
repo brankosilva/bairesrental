@@ -172,10 +172,15 @@ async function checkId() {
   }
 }
 
-// Alta desde el link para colegas de Tokko, igual que en rentals/[id].vue.
-// `importFromFicha` baja la ficha en el server (ficha.info no manda CORS) y la
-// mapea al catálogo de ventas: precio de venta, metros, ambientes, baños,
-// expensas y antigüedad, más el próximo id `ven-NN` libre.
+// Alta desde el link para colegas, igual que en rentals/[id].vue: el de Tokko
+// (ficha.info) o el de Tencery (fichaprop.tech). `importFromFicha` lee la ficha
+// en el server y la mapea al catálogo de ventas: precio de venta, metros,
+// ambientes, baños, expensas y antigüedad, más el próximo id libre de la serie
+// que le toca (`ven-NN` las de Tokko, `tenc-NN` las de Tencery).
+//
+// Ojo con las de Tencery: su catálogo es de alquiler temporario y no tiene
+// operación de venta, así que el precio viene en 0 y hay que cargarlo a mano.
+// El aviso lo dice.
 //
 // La diferencia con alquileres es la galería: la ficha trae hasta 20 fotos y
 // caen todas en la lista de links pendientes, así que al guardar terminan en
@@ -376,17 +381,17 @@ async function onDelete() {
         :is-admin="isAdmin"
       />
 
-      <AdminSection v-if="isNew" title="Importar desde ficha.info">
+      <AdminSection v-if="isNew" title="Importar desde una ficha">
         <p class="small text-muted mb-2">
-          Pegá el link para colegas de Tokko y se completa solo, fotos incluidas. Después revisá y corregí lo que
-          haga falta.
+          Pegá el link para colegas —de Tokko (ficha.info) o de Tencery (fichaprop.tech)— y se completa solo,
+          fotos incluidas. Después revisá y corregí lo que haga falta.
         </p>
         <div class="input-group">
           <input
             v-model="fichaUrlInput"
             type="url"
             class="form-control"
-            placeholder="https://ficha.info/p/..."
+            placeholder="https://ficha.info/p/... o https://www.fichaprop.tech/ficha/..."
             autocapitalize="none"
             autocorrect="off"
             spellcheck="false"

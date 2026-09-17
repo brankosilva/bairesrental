@@ -280,9 +280,8 @@ Lo que la ficha **no** dice y hay que preguntar: `mascotas`, `minimoMeses` y, a 
 
 Lo mismo se puede hacer **sin Claude** desde el panel: `/app/rentals/new` tiene un campo para pegar
 el link —de ficha.info o de fichaprop.tech—, que llama al callable `importFromFicha` y autocompleta
-el formulario. `/app/sales/new` tiene el mismo campo para el catálogo de ventas, pero sólo acepta
-ficha.info: fichaprop.tech es el catálogo de alquiler temporario de Tencery y no publica ventas, así
-que ese link se rechaza con un mensaje en vez de mapear una propiedad a medias.
+el formulario. `/app/sales/new` tiene el mismo campo para el catálogo de ventas y también acepta las
+dos fichas — ver abajo.
 
 ---
 
@@ -418,11 +417,19 @@ Flujo **independiente** del de alquileres — propiedades en venta, con hasta **
 
 `/agregar-depto-venta` — guía el flujo completo: recibe texto (PDF o descripción manual) + fotos adjuntadas en el chat, las sube a Storage, arma el JSON y lo agrega al catálogo.
 
-### Alta pegando el link de una ficha de ficha.info
+### Alta pegando el link de una ficha
 
-`/app/sales/new` tiene el mismo campo que `/app/rentals/new`: se pega el link para colegas de Tokko,
-el callable `importFromFicha` (con `collectionName: 'sales'`) lee la ficha en el server y completa el
-formulario. El mapeo de venta es `fichaToSale()` en `nuxt-app/functions/src/ficha.ts`.
+`/app/sales/new` tiene el mismo campo que `/app/rentals/new`: se pega el link para colegas —de Tokko
+o de Tencery—, el callable `importFromFicha` (con `collectionName: 'sales'`) lee la ficha en el
+server y completa el formulario. El mapeo de venta es `fichaToSale()` en
+`nuxt-app/functions/src/ficha.ts` y `fichapropToSale()` en `functions/src/fichaprop.ts`.
+
+**Una ficha de Tencery cargada como venta entra igual que una de alquiler**, con una salvedad: su
+catálogo es de alquiler temporario y no tiene operación de venta, así que el `precio` queda en 0
+("Consultar precio") y se carga a mano, lo mismo que ya hace `fichaToSale()` con una ficha de Tokko
+sin operación de venta. La antigüedad y el apto crédito tampoco vienen. Todo lo demás sí: metros,
+ambientes (dormitorios + 1), baños, expensas, amenities, descripción y las hasta 20 fotos. Los
+avisos lo marcan uno por uno. El id sugerido es `tenc-NN` en los dos catálogos.
 
 Lo que sale de la ficha y el alquiler no usa: `precio` (de `operations.Sale`, en formato "USD 120.000"),
 `superficie` y `superficieCubierta` (de `measurement`), `ambientes` / `banios` / `antiguedad` /

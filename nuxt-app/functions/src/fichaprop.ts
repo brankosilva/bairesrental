@@ -1,6 +1,6 @@
 // Lee una ficha pública de fichaprop.tech — el "link para colegas" de Tencery,
-// el equivalente al de ficha.info de Tokko — y la mapea al formato del catálogo
-// de alquileres.
+// el equivalente al de ficha.info de Tokko — y la mapea al catálogo, de
+// alquiler o de venta.
 //
 // Acá no hay nada para scrapear como en ficha.ts: fichaprop.tech es un SPA de
 // Vite, el HTML viene vacío y los datos los pide el navegador a Supabase. Así
@@ -17,7 +17,7 @@
 // aparte que no puede importar de scripts/. Si tocás una, tocá la otra: el
 // mapeo tiene que dar lo mismo desde el panel que desde la terminal.
 
-import type { RentalFields } from './ficha'
+import type { RentalFields, SaleFields } from './ficha'
 
 const TIMEOUT_MS = 15000
 
@@ -58,6 +58,10 @@ export interface FichapropProperty {
   latitude?: number | null
   longitude?: number | null
   bedrooms?: number | null
+  bathrooms?: number | null
+  /** m² totales. En venta es obligatorio; en alquiler no se usa. */
+  area?: number | null
+  expenses_amount?: number | null
   cover_image_url?: string | null
   status?: string | null
   rented_at?: string | null
@@ -193,14 +197,75 @@ function esPlaceholder(lat: number, lng: number): boolean {
   return Math.abs(lat - CENTRO_CABA[0]) < 1e-4 && Math.abs(lng - CENTRO_CABA[1]) < 1e-4
 }
 
+// Lo que sale igual para los dos catálogos. La ficha es una sola: lo único que
+// cambia entre alquiler y venta es qué campos se miran y cómo se arma el precio.
+interface Comun {
+  direccion: string
+  barrio: string
+  tipo: string
+  descripcion: string
+  amenities: string[]
+  amueblado: boolean
+  /** La portada primero y después el resto, sin repetirla, con el tope de 20. */
+  fotos: string[]
+  lat: number
+  lng: number
+  tieneCoords: boolean
+  direccionUrl: string
+}
+
+function comunDeFicha(p: FichapropProperty): Comun {
+  const direccion = (p.address || '').trim()
+  const descripcion = p.description || ''
+
+  const ordenadas = [...(p.property_images || [])]
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    .map((f) => f.image_url || '')
+  const fotos = [...new Set([p.cover_image_url || '', ...ordenadas].filter(Boolean))].slice(0, 20)
+
+  // Pines del mapa, salvo que la ficha traiga el placeholder del Obelisco: en
+  // ese caso el link de Maps apunta a la dirección escrita, que es lo único
+  // cierto, y el pin lo resuelve después el formulario con resolverPin().
+  const lat = Number(p.latitude)
+  const lng = Number(p.longitude)
+  const tieneCoords = Number.isFinite(lat) && Number.isFinite(lng) && !esPlaceholder(lat, lng)
+
+  return {
+    direccion,
+    barrio: (p.neighborhoods?.name || '').trim(),
+    tipo: mapTipo(p.bedrooms ?? 0),
+    descripcion,
+    amenities: mapAmenities(descripcion),
+    // Las fichas de alquiler temporario vienen amobladas salvo aviso, pero el
+    // texto rara vez dice "amoblado": dice "completamente equipado".
+    amueblado: /amoblad|amueblad|mobiliad|equipad/i.test(descripcion),
+    fotos,
+    lat,
+    lng,
+    tieneCoords,
+    direccionUrl: tieneCoords
+      ? `https://www.google.com/maps?q=${lat},${lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, CABA, Argentina`)}`,
+  }
+}
+
+// Los avisos que valen para los dos catálogos.
+function avisosComunes(p: FichapropProperty, c: Comun): string[] {
+  const avisos: string[] = []
+  if (!c.tieneCoords) {
+    avisos.push('la ficha no trae coordenadas propias: el pin sale de la dirección, revisalo en el mapa')
+  }
+  const agencia = p.agencies?.name
+  if (agencia) {
+    avisos.push(`la ficha está publicada bajo "${agencia}" — si igual es propiedad propia, marcá "es propia"`)
+  }
+  return avisos
+}
+
 export function fichapropToRental(ficha: Fichaprop): { prop: RentalFields; avisos: string[] } {
   const p = ficha.property
+  const c = comunDeFicha(p)
   const avisos: string[] = []
-
-  const direccion = (p.address || '').trim()
-  const barrio = (p.neighborhoods?.name || '').trim()
-  const tipo = mapTipo(p.bedrooms ?? 0)
-  const descripcion = p.description || ''
 
   // Estado: Tencery lo publica en `status` y marca `rented_at` cuando se
   // alquila. `available_from` en el futuro es una propiedad que todavía no se
@@ -228,49 +293,34 @@ export function fichapropToRental(ficha: Fichaprop): { prop: RentalFields; aviso
     avisos.push('serviciosIncluidos: la ficha no lista servicios — confirmalo')
   }
 
-  const fotos = [...(p.property_images || [])].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
-  const imagen = p.cover_image_url || fotos[0]?.image_url || ''
-
-  // Pines del mapa, salvo que la ficha traiga el placeholder del Obelisco: en
-  // ese caso el link de Maps apunta a la dirección escrita, que es lo único
-  // cierto, y el pin lo resuelve después el formulario con resolverPin().
-  const lat = Number(p.latitude)
-  const lng = Number(p.longitude)
-  const tieneCoords = Number.isFinite(lat) && Number.isFinite(lng) && !esPlaceholder(lat, lng)
-  const direccionUrl = tieneCoords
-    ? `https://www.google.com/maps?q=${lat},${lng}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, CABA, Argentina`)}`
-
-  const minimoMeses = extraerMinimoMeses(descripcion)
+  const minimoMeses = extraerMinimoMeses(c.descripcion)
 
   const prop: RentalFields = {
-    titulo: `${capitalize(tipo)} en ${barrio}`,
-    barrio,
-    tipo,
+    titulo: `${capitalize(c.tipo)} en ${c.barrio}`,
+    barrio: c.barrio,
+    tipo: c.tipo,
     precio: p.price || 0,
     moneda: p.currency === 'ARS' ? 'ARS' : 'USD',
     disponibilidad,
     disponibleDesde,
-    // Las fichas de alquiler temporario vienen amobladas salvo aviso, pero el
-    // texto rara vez dice "amoblado": dice "completamente equipado".
-    amueblado: /amoblad|amueblad|mobiliad|equipad/i.test(descripcion),
+    amueblado: c.amueblado,
     mascotas:
       p.pet_friendly === true ||
-      (/mascota/i.test(descripcion) &&
-        !/(no\s+se\s+aceptan?|sin|no\s+admite)[^\n.]*mascota/i.test(descripcion.toLowerCase())),
+      (/mascota/i.test(c.descripcion) &&
+        !/(no\s+se\s+aceptan?|sin|no\s+admite)[^\n.]*mascota/i.test(c.descripcion.toLowerCase())),
     serviciosIncluidos,
     minimoMeses,
-    amenities: mapAmenities(descripcion),
-    descripcion,
-    imagen,
+    amenities: c.amenities,
+    descripcion: c.descripcion,
+    imagen: c.fotos[0] || '',
     // La ficha ES el álbum de fotos para colegas, igual que en ficha.info: va
     // en `fotos`; `fichaUrl` es sólo para links de Airbnb o Booking.
     fotos: ficha.url,
     fichaUrl: '',
-    direccion,
-    direccionUrl,
-    ...(tieneCoords ? { lat, lng } : {}),
-    whatsappMsg: `Hola! Me interesa el ${tipo} en ${barrio} (${direccion}). ¿Podría darme más información?`,
+    direccion: c.direccion,
+    direccionUrl: c.direccionUrl,
+    ...(c.tieneCoords ? { lat: c.lat, lng: c.lng } : {}),
+    whatsappMsg: `Hola! Me interesa el ${c.tipo} en ${c.barrio} (${c.direccion}). ¿Podría darme más información?`,
     esPropio: false,
   }
 
@@ -280,20 +330,86 @@ export function fichapropToRental(ficha: Fichaprop): { prop: RentalFields; aviso
   if (disponibleDesde) {
     avisos.push(`disponible desde ${disponibleDesde} — sale de la ficha, confirmalo`)
   }
-  if (p.pet_friendly !== true && !/mascota/i.test(descripcion)) {
+  if (p.pet_friendly !== true && !/mascota/i.test(c.descripcion)) {
     avisos.push('mascotas: la ficha no dice nada — confirmalo con el propietario')
   }
-  if (minimoMeses === 1 && !/m[ií]nim/i.test(descripcion)) {
+  if (minimoMeses === 1 && !/m[ií]nim/i.test(c.descripcion)) {
     avisos.push('plazo mínimo: quedó en 1 mes porque la ficha no lo aclara')
   }
-  if (!tieneCoords) {
-    avisos.push('la ficha no trae coordenadas propias: el pin sale de la dirección, revisalo en el mapa')
+  avisos.push(...avisosComunes(p, c))
+  if (!prop.imagen) avisos.push('la ficha no trae foto de portada: subí una')
+
+  return { prop, avisos }
+}
+
+// La misma ficha, cargada como venta. fichaprop.tech es un catálogo de alquiler
+// temporario: no hay operación de venta en sus datos, así que lo que no existe
+// —precio de venta, antigüedad, apto crédito— queda vacío y avisado, como hace
+// fichaToSale() cuando la ficha de Tokko no trae operación de venta. Todo lo
+// demás (dirección, barrio, metros, ambientes, baños, expensas, amenities,
+// descripción y las hasta 20 fotos de la galería) sale igual que en alquiler.
+export function fichapropToSale(ficha: Fichaprop): { prop: SaleFields; avisos: string[] } {
+  const p = ficha.property
+  const c = comunDeFicha(p)
+  const avisos: string[] = []
+
+  // El `price` de la ficha es el valor POR MES del alquiler temporario. Meterlo
+  // como precio de venta sería publicar un número inventado, así que va en 0
+  // ("Consultar precio" en el catálogo) y se carga a mano.
+  const porMes = p.price ? `${p.currency || 'USD'} ${p.price}` : 'sin precio'
+  avisos.push(`precio: la ficha es de alquiler temporario (${porMes} por mes) y no trae valor de venta — cargalo a mano`)
+
+  const superficie = Number(p.area) || 0
+  if (!superficie) avisos.push('superficie: la ficha no trae los m² y son obligatorios — cargalos a mano')
+
+  // Cualquier cosa que no sea publicada queda fuera del catálogo público, que
+  // es el default seguro: que no se publique sola una propiedad que ya no está.
+  const disponibilidad: SaleFields['disponibilidad'] =
+    p.rented_at || (p.status && p.status !== 'published') ? 'vendido' : 'disponible'
+
+  const prop: SaleFields = {
+    titulo: `${capitalize(c.tipo)} en ${c.barrio}`,
+    barrio: c.barrio,
+    tipo: c.tipo,
+    precio: 0,
+    moneda: 'USD',
+    disponibilidad,
+    superficie,
+    antiguedad: '',
+    // La ficha no dice nada del crédito: se deja en false y se avisa, en vez de
+    // publicar "apto crédito" sobre algo que nadie confirmó.
+    aptoCredito: false,
+    amueblado: c.amueblado,
+    amenities: c.amenities,
+    descripcion: c.descripcion,
+    fotos: c.fotos,
+    direccion: c.direccion,
+    direccionUrl: c.direccionUrl,
+    whatsappMsg: `Hola! Me interesa el ${c.tipo} en venta en ${c.barrio} (${c.direccion}). ¿Podría darme más información?`,
+    // El link para colegas no va como "Ver publicación completa", que es un
+    // botón público: eso es para Zonaprop/Argenprop y se carga a mano. El link
+    // de la ficha igual queda guardado en `origen`, que lo sella el callable.
+    fichaUrl: '',
+    esPropio: false,
   }
-  const agencia = p.agencies?.name
-  if (agencia) {
-    avisos.push(`la ficha está publicada bajo "${agencia}" — si igual es propiedad propia, marcá "es propia"`)
+
+  // Tencery cuenta dormitorios; el catálogo, ambientes: un 3 dormitorios es un
+  // 4 ambientes, el mismo criterio que usa mapTipo().
+  if (p.bedrooms != null) prop.ambientes = p.bedrooms + 1
+  if (p.bathrooms != null) prop.banios = p.bathrooms
+  if (p.expenses_amount) prop.expensas = p.expenses_amount
+  if (c.tieneCoords) {
+    prop.lat = c.lat
+    prop.lng = c.lng
   }
-  if (!imagen) avisos.push('la ficha no trae foto de portada: subí una')
+
+  if (disponibilidad === 'vendido') {
+    avisos.push(`la ficha está "${p.status}" en fichaprop → quedó "vendido" y no se publica`)
+  }
+  avisos.push('antigüedad y apto crédito: la ficha no los trae — completalos si los sabés')
+  avisos.push(...avisosComunes(p, c))
+  if (!c.fotos.length) avisos.push('la ficha no trae fotos — subilas desde el formulario')
+  else avisos.push(`${c.fotos.length} foto${c.fotos.length === 1 ? '' : 's'} de fichaprop: las copiamos a nuestro Storage al guardar`)
 
   return { prop, avisos }
 }

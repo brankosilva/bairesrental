@@ -75,7 +75,7 @@ Después:
   Si el usuario quiere una foto propia, subila con
   `node scripts/upload-fotos.js alquileres <id> <foto>` y pasá la URL con `--imagen`.
 - Lo mismo se puede hacer sin Claude desde el panel: `/app/rentals/new` tiene un campo para pegar
-  el link de la ficha, y entiende las dos. El de ventas (`/app/sales/new`) solo acepta ficha.info:
-  fichaprop.tech no publica ventas.
+  el link de la ficha, y entiende las dos. El de ventas (`/app/sales/new`) también, aunque una ficha
+  de Tencery no trae precio de venta (su catálogo es de alquiler temporario) y hay que cargarlo.
 - Nunca escribir en Firestore a mano — siempre a través de los scripts, que validan tipos, monedas,
   disponibilidad y amenities antes de guardar.

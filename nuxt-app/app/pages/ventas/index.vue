@@ -480,13 +480,6 @@ async function share(s: SaleProperty) {
                   <p class="br-prop-desc">{{ truncate(s.descripcion, 120) }}</p>
                 </div>
                 <div class="br-prop-actions">
-                  <NuxtLink :to="detailHref(s)" class="br-btn-detalle-primary w-100 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
-                      <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-                    </svg>
-                    {{ t('ventas.card.verDetalles') }}
-                  </NuxtLink>
                   <div class="br-btn-detalle-row">
                     <a :href="whatsappUrl(waMessageFor(s))" target="_blank" rel="noopener" class="br-btn-wa-outline" @click.stop>
                       <IconWhatsapp :size="15" />

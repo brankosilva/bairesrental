@@ -57,7 +57,6 @@ interface Row {
   href: string
   direccion: string
   direccionUrl: string
-  disponibleDesde: string
   esPropio: boolean
   /** Sólo alquileres: null en ventas, para no dibujar el tag. */
   serviciosIncluidos: boolean | null
@@ -87,7 +86,6 @@ function toRow(p: Record<string, unknown>, kind: Kind): Row {
     href: `/l/${props.code}/${encodeURIComponent(r.id)}`,
     direccion: r.direccion || '',
     direccionUrl: r.direccionUrl || '',
-    disponibleDesde: kind === 'rental' && r.disponibilidad === 'disponible' ? r.disponibleDesde || '' : '',
     esPropio: !!r.esPropio,
     serviciosIncluidos: kind === 'rental' ? !!r.serviciosIncluidos : null,
     minimoMeses: kind === 'rental' && Number(r.minimoMeses) > 1 ? Number(r.minimoMeses) : 0,
@@ -260,10 +258,6 @@ const activeFilterCount = computed(() => {
 
 function precioLabel(r: Row) {
   return r.precio > 0 ? `${r.moneda} ${r.precio.toLocaleString('es-AR')}` : 'Consultar precio'
-}
-
-function disponibleDesdeLabel(r: Row) {
-  return r.disponibleDesde ? formatLongDate(r.disponibleDesde, 'es') : ''
 }
 
 // Compartir UNA propiedad puntual del catálogo — share nativo si el
@@ -544,7 +538,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                     class="br-brand-tag"
                     :class="p.disponibilidad === 'reservado' ? 'br-brand-tag-reservado' : 'br-brand-tag-disponible'"
                   >
-                    {{ p.disponibilidad === 'reservado' ? 'Reservado' : 'Disponible' }}
+                    {{ p.disponibilidad === 'reservado' ? '● Reservado' : '● Disponible' }}
                   </span>
                 </div>
                 <button
@@ -571,7 +565,6 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                   </a>
                 </div>
                 <strong class="br-brand-card-title">{{ p.titulo }}</strong>
-                <span v-if="disponibleDesdeLabel(p)" class="br-brand-card-desde">Disponible desde {{ disponibleDesdeLabel(p) }}</span>
                 <span class="br-brand-card-price-row">
                   <span class="br-brand-card-price">{{ precioLabel(p) }}</span>
                   <span v-if="p.kind === 'rental' && p.precio > 0" class="br-brand-card-price-suffix">/mes</span>

@@ -541,8 +541,8 @@
 
 .br-brand-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
 }
 
 .br-brand-card {
@@ -598,6 +598,7 @@
   letter-spacing: 0.03em;
   color: #fff;
   backdrop-filter: blur(4px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
 }
 .br-brand-tag-venta {
   background: color-mix(in srgb, var(--br-brand-accent) 88%, transparent);
@@ -605,11 +606,15 @@
 .br-brand-tag-propio {
   background: rgba(17, 17, 17, 0.72);
 }
+/* Blancas con el texto de color, no rellenas: sobre una foto un pill sólido
+   saturado grita más de lo que hace falta para decir "disponible". */
 .br-brand-tag-disponible {
-  background: rgba(22, 163, 74, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  color: #15803d;
 }
 .br-brand-tag-reservado {
-  background: rgba(217, 119, 6, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  color: #b45309;
 }
 
 /* Círculo de compartir sobre la portada, opuesto a los tags (arriba a la
@@ -658,22 +663,6 @@
   letter-spacing: -0.01em;
   line-height: 1.3;
   color: #111;
-}
-
-/* Mismo color de marca para las dos, en vez del verde/rojo/amarillo del
-   catálogo público: acá ya conviven los tags de Venta/Disponible/Reservado
-   sobre la portada, y sumarle una paleta distinta en el precio quedaba
-   sobrecargado. */
-.br-brand-card-price-row .br-tag-servicios,
-.br-brand-card-price-row .br-tag-servicios-aparte,
-.br-brand-card-price-row .br-tag-minimo {
-  background: var(--br-brand-accent-soft, #eef4ff);
-  color: var(--br-brand-accent, #1a6fe8);
-}
-
-.br-brand-card-desde {
-  font-size: 11.5px;
-  color: var(--br-brand-mute);
 }
 
 .br-brand-card-price-row {

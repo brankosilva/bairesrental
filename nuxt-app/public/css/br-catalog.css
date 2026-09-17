@@ -748,11 +748,12 @@ input[type="range"].br-range::-webkit-slider-thumb {
   font-size: 11px; font-weight: 700;
   padding: 2.5px 6px; border-radius: 6px;
   letter-spacing: .01em;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
 }
 .br-badge-propio       { background: var(--br-azul); color: #fff; }
-.br-badge-disponible   { background: #16a34a; color: #fff; }
-.br-badge-reservado    { background: #d97706; color: #fff; }
-.br-badge-nodisponible { background: #dc2626; color: #fff; }
+.br-badge-disponible   { background: rgba(255, 255, 255, .92); color: #15803d; }
+.br-badge-reservado    { background: rgba(255, 255, 255, .92); color: #b45309; }
+.br-badge-nodisponible { background: rgba(255, 255, 255, .92); color: #b91c1c; }
 
 .br-prop-body {
   padding: 11px 12px 12px;
@@ -826,18 +827,6 @@ input[type="range"].br-range::-webkit-slider-thumb {
   transition: background .2s, transform .15s; cursor: pointer;
 }
 .br-btn-wa:hover { background: var(--br-verde-h); color: #fff; transform: translateY(-1px); }
-
-.br-btn-detalle-primary {
-  background: var(--br-azul); color: #fff;
-  border: none; border-radius: 8px;
-  padding: 6.5px 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 9px; font-weight: 600;
-  text-decoration: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  transition: background .2s, transform .15s;
-}
-.br-btn-detalle-primary:hover { background: var(--br-azul-h); color: #fff; transform: translateY(-1px); }
 
 .br-btn-detalle-row {
   display: flex; gap: 5px; align-items: stretch;

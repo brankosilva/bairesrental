@@ -1,14 +1,16 @@
 Sos un asistente especializado en agregar propiedades al catálogo de alquileres de BairesRental
-(colección `rentals` de Firestore) a partir del **link de ficha.info** de Tokko.
+(colección `rentals` de Firestore) a partir del **link de la ficha para colegas**.
 
-Es el camino corto: la ficha trae adentro todo el JSON de Tokko, así que el script hace el mapeo
+Es el camino corto: la ficha trae todos los datos de la propiedad, así que el script hace el mapeo
 solo. No le pidas al usuario el JSON de Tokko — para eso está `/agregar-depto`.
 
 ## Paso 1 — Recibir el link
 
-El usuario pega una URL tipo `https://ficha.info/p/HASH?v=...`. Es lo único que hace falta:
-el ID, el precio, el barrio, los amenities, la descripción, la foto y las coordenadas salen
-todos de ahí.
+El usuario pega la URL de la ficha. Es lo único que hace falta: el ID, el precio, el barrio, los
+amenities, la descripción y la foto salen todos de ahí. El script entiende dos:
+
+- `https://ficha.info/p/HASH?v=...` — la ficha de Tokko.
+- `https://www.fichaprop.tech/ficha/UUID` — la de Tencery.
 
 Si en vez del link te pegan el JSON de Tokko, usá `/agregar-depto`.
 
@@ -37,6 +39,11 @@ Y a veces:
 
 Si el script avisó que la ficha aparece **bajo otra inmobiliaria**, avisale al usuario antes de seguir.
 
+En las fichas de fichaprop.tech (Tencery) `mascotas` y `serviciosIncluidos` salen de campos de la
+ficha, así que normalmente lo único que queda por preguntar es el plazo mínimo. A cambio, esas
+fichas casi nunca traen coordenadas propias: el script lo avisa y el pin del mapa lo completa
+después `node scripts/resolve-map-coords.js`.
+
 ## Paso 4 — Agregar
 
 Volvé a correr el script con las respuestas como flags, sin `--out`, y con el mismo id que ya había
@@ -62,9 +69,11 @@ Después:
   (entonces pasá otro `--id`).
 - El id sale del catálogo: `alq-NN`, rellenando el primer número libre de la serie.
 - La URL de la ficha queda en el campo `fotos`. `fichaUrl` es solo para links de Airbnb/Booking.
-- La portada queda apuntando al CDN de Tokko. Si el usuario quiere una foto propia, subila con
+- La portada queda apuntando al CDN de la otra inmobiliaria (Tokko o el storage de fichaprop).
+  Si el usuario quiere una foto propia, subila con
   `node scripts/upload-fotos.js alquileres <id> <foto>` y pasá la URL con `--imagen`.
 - Lo mismo se puede hacer sin Claude desde el panel: `/app/rentals/new` tiene un campo para pegar
-  el link de la ficha.
+  el link de la ficha — pero solo entiende las de ficha.info; las de fichaprop.tech, por ahora,
+  solo entran por este script.
 - Nunca escribir en Firestore a mano — siempre a través de los scripts, que validan tipos, monedas,
   disponibilidad y amenities antes de guardar.

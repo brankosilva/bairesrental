@@ -271,4 +271,10 @@ async function main() {
   console.log('   Guardado en Firestore (rentals) — ya está publicado en el sitio.');
 }
 
-main().catch(err => { console.error('Error:', err.message); process.exit(1); });
+// También se usa como módulo: add-from-ficha.js reusa el mapeo para las fichas
+// de fichaprop.tech, que devuelven este mismo schema de Tencery.
+if (require.main === module) {
+  main().catch(err => { console.error('Error:', err.message); process.exit(1); });
+}
+
+module.exports = { tenceryToProperty, findDuplicates, slugify, capitalize, AMENITIES_MAP };

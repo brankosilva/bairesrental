@@ -127,7 +127,9 @@ clave inexistente en Rules es un **error**, no `false`.
    TypeScript, en `nuxt-app/functions/src/ficha.ts` — `functions/` es un paquete
    aparte y no puede importar de `scripts/`. El mapeo tiene que dar lo mismo
    desde la terminal que desde el panel. El de **venta** (`fichaToSale`) existe
-   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres.
+   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres. Al revés pasa con
+   fichaprop.tech (`scripts/lib/fichaprop.js`): existe sólo del lado de los scripts, el panel no
+   lo importa todavía.
 3. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
    en `createTrackableLink` y en la página compartida. `functions/` es un
    paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.
@@ -213,7 +215,7 @@ Hay dos caminos:
 
 | Script | Uso |
 |---|---|
-| `scripts/add-from-ficha.js` | **El camino corto**: recibe la URL de una ficha de ficha.info, la lee y agrega la propiedad a `rentals` |
+| `scripts/add-from-ficha.js` | **El camino corto**: recibe la URL de una ficha —de ficha.info (Tokko) o de fichaprop.tech (Tencery)—, la lee y agrega la propiedad a `rentals` |
 | `scripts/add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega a `rentals` |
 | `scripts/add-from-tencery.js` | Lo mismo desde un JSON exportado de Tencery |
 | `scripts/add-property.js` | Valida y agrega/actualiza una propiedad de alquiler ya en formato BairesRental |
@@ -231,8 +233,10 @@ Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las crede
 
 ### Flujo 1: Import desde ficha.info (el camino corto)
 
-El usuario pega la URL de la ficha para colegas (`https://ficha.info/p/HASH?v=…`) y nada más.
-Guiado por el comando `/agregar-depto-ficha`.
+El usuario pega la URL de la ficha para colegas y nada más. Guiado por el comando
+`/agregar-depto-ficha`. El script entiende las dos fichas que usan las inmobiliarias con las que
+trabajamos: `https://ficha.info/p/HASH?v=…` (Tokko) y `https://www.fichaprop.tech/ficha/UUID`
+(Tencery).
 
 ficha.info es una app Next.js que trae **el JSON completo de Tokko embebido en el HTML**, así que
 una URL alcanza: el `id`, el precio, el barrio, el tipo, los amenities, la descripción, la portada
@@ -246,6 +250,15 @@ node scripts/add-from-ficha.js "<url>" --id alq-06 --minimo 3 --sin-mascotas --y
 
 Flags de override: `--id`, `--precio`, `--minimo`, `--mascotas` / `--sin-mascotas`,
 `--servicios` / `--sin-servicios`, `--barrio`, `--titulo`, `--imagen`, `--desde`, `--propio`.
+
+**fichaprop.tech (Tencery)** es un SPA: el HTML viene vacío y los datos los pide el navegador a
+Supabase. `scripts/lib/fichaprop.js` hace esas mismas dos requests con la clave publishable que
+trae el bundle del sitio, y el schema que devuelve es el de Tencery, así que el mapeo lo hace
+`tenceryToProperty()` de `add-from-tencery.js`. Lo que la ficha de Tencery da mejor que la de
+Tokko: los servicios vienen listados uno por uno (de ahí sale `serviciosIncluidos`, que es luz +
+wifi) y `pet_friendly` es un campo, no una frase en la descripción. Lo que da peor: las
+coordenadas suelen ser el placeholder del Obelisco, así que el pin queda para
+`resolve-map-coords.js`.
 
 **El id que genera es `alq-NN`**, rellenando el primer número libre de la serie: se miran los docs
 de `rentals` cuyo id es exactamente `alq-<dígitos>` y se busca el hueco más bajo (con `alq-01`…

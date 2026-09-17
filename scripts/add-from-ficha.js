@@ -1,8 +1,16 @@
 #!/usr/bin/env node
-// Carga una propiedad de alquiler al catálogo a partir de la URL de su ficha
-// pública de ficha.info. Una sola URL alcanza: la ficha trae adentro el mismo
-// JSON de Tokko que add-from-tokko.js recibe pegado a mano, así que el mapeo se
-// reusa tal cual y acá solo se completa lo que la ficha permite afinar.
+// Carga una propiedad de alquiler al catálogo a partir de la URL de la ficha
+// pública que comparte la inmobiliaria. Una sola URL alcanza. Entiende dos:
+//
+//   ficha.info/p/HASH            → el "link para colegas" de Tokko. La ficha
+//                                  trae adentro el mismo JSON de Tokko que
+//                                  add-from-tokko.js recibe pegado a mano, así
+//                                  que se reusa ese mapeo.
+//   www.fichaprop.tech/ficha/ID  → el equivalente de Tencery. Los datos salen
+//                                  de su API (ver lib/fichaprop.js) con el
+//                                  schema que ya mapea add-from-tencery.js.
+//
+// En los dos casos acá solo se completa lo que la ficha permite afinar.
 //
 // Uso:
 //   node scripts/add-from-ficha.js <url>
@@ -21,7 +29,9 @@ const fs = require('fs');
 
 const { leerCatalogo, guardarPropiedad } = require('./lib/catalogo');
 const { fetchFicha, urlCanonica, esUrlDeFicha, esDisponibleSegunTokko, estadoDeFicha, MI_INMOBILIARIA_TOKKO } = require('./lib/ficha');
+const { esUrlDeFichaprop, urlCanonica: urlCanonicaFichaprop, fetchFichaprop } = require('./lib/fichaprop');
 const { tokkoToProperty } = require('./add-from-tokko');
+const { tenceryToProperty } = require('./add-from-tencery');
 const { validate, findDuplicates, prompt } = require('./add-property');
 
 // ─── ID: el próximo `alq-NN` libre ───────────────────────────────────────────
@@ -179,6 +189,92 @@ function fichaToProperty(ficha) {
   return { prop, avisos };
 }
 
+// ─── Mapeo de fichaprop.tech (Tencery) ───────────────────────────────────────
+
+// El centro de CABA que fichaprop deja como coordenada cuando nadie movió el
+// pin. Ver esPlaceholder() en resolve-map-coords.js: si se dibuja, la propiedad
+// queda parada sobre el Obelisco.
+const CENTRO_CABA = [-34.6037, -58.3816];
+function esPlaceholder(lat, lng) {
+  return Math.abs(lat - CENTRO_CABA[0]) < 1e-4 && Math.abs(lng - CENTRO_CABA[1]) < 1e-4;
+}
+
+// La fila de `properties` que devuelve fichaprop es el mismo objeto que
+// add-from-tencery.js recibe como JSON, así que el mapeo pesado ya está hecho.
+// Acá se agrega lo que la ficha trae y ese importador no mira: las fotos, los
+// servicios declarados uno por uno y la inmobiliaria dueña de la publicación.
+function fichapropToProperty(ficha) {
+  const property = ficha.property;
+  const avisos = [];
+
+  const prop = tenceryToProperty(property);
+
+  // La ficha es justamente el álbum de fotos para colegas, igual que en
+  // ficha.info: va en `fotos`, no en `fichaUrl`.
+  prop.fotos = ficha.url;
+
+  const fotos = [...(property.property_images || [])]
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+  prop.imagen = property.cover_image_url || fotos[0]?.image_url || '';
+
+  const texto = `${prop.descripcion}\n${prop.titulo}`;
+
+  // El importador de Tencery pide "amoblado" literal; las fichas suelen decir
+  // "completamente equipado". Mismo criterio que el de ficha.info.
+  if (/amoblad|amueblad|equipad/i.test(texto)) prop.amueblado = true;
+
+  // `serviciosIncluidos` del catálogo es "incluye luz Y wifi". La ficha los
+  // lista uno por uno, que es más confiable que el `full_package` de Tencery
+  // ("todo incluido" puede ser expensas y nada más).
+  const incluidos = (property.property_services || [])
+    .filter(s => s.is_included)
+    .map(s => (s.services?.name || '').toLowerCase());
+  if (incluidos.length) {
+    prop.serviciosIncluidos =
+      incluidos.some(s => /luz|electricidad/.test(s)) &&
+      incluidos.some(s => /internet|wifi/.test(s));
+  } else {
+    avisos.push('serviciosIncluidos: la ficha no lista servicios (--servicios / --sin-servicios)');
+  }
+
+  // Pines del mapa, salvo que la ficha traiga el placeholder del Obelisco: en
+  // ese caso el link de Maps apunta a la dirección escrita, que es lo único
+  // cierto, y el pin lo completa después resolve-map-coords.js.
+  const lat = parseFloat(property.latitude);
+  const lng = parseFloat(property.longitude);
+  if (Number.isFinite(lat) && Number.isFinite(lng) && !esPlaceholder(lat, lng)) {
+    prop.lat = lat;
+    prop.lng = lng;
+    prop.direccionUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+  } else {
+    prop.direccionUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${prop.direccion}, CABA, Argentina`)}`;
+    avisos.push('la ficha no trae coordenadas propias — corré resolve-map-coords.js para el pin del mapa');
+  }
+
+  if (prop.disponibilidad !== 'disponible') {
+    avisos.push(`la ficha está "${property.status}" en fichaprop → quedó "${prop.disponibilidad}"`);
+  }
+  if (prop.disponibleDesde) {
+    avisos.push(`disponibleDesde: ${prop.disponibleDesde} — sale de la ficha, confirmalo`);
+  }
+  if (property.pet_friendly !== true && !/mascota/i.test(texto)) {
+    avisos.push('mascotas: la ficha no dice nada (--mascotas / --sin-mascotas)');
+  }
+  if (prop.minimoMeses === 1 && !/m[ií]nim/i.test(texto)) {
+    avisos.push('minimoMeses: quedó en 1 porque la ficha no aclara el plazo (--minimo N)');
+  }
+
+  const agencia = property.agencies?.name;
+  if (agencia) {
+    avisos.push(`la ficha está publicada bajo "${agencia}" — si igual es propiedad propia, pasá --propio`);
+  }
+
+  if (!prop.imagen) avisos.push('la ficha no trae foto de portada (--imagen <url>, o subila con upload-fotos.js)');
+  else avisos.push('imagen: URL del storage de fichaprop — se cae si dan de baja el listado');
+
+  return { prop, avisos };
+}
+
 // ─── CLI ─────────────────────────────────────────────────────────────────────
 
 function valorDe(args, flag) {
@@ -231,8 +327,8 @@ function aplicarOverrides(prop, args) {
   return prop;
 }
 
-function mostrar(prop, avisos) {
-  console.log('\n=== Propiedad mapeada desde ficha.info ===');
+function mostrar(prop, avisos, fuente) {
+  console.log(`\n=== Propiedad mapeada desde ${fuente} ===`);
   console.log(JSON.stringify(prop, null, 2));
 
   if (avisos.length) {
@@ -250,17 +346,25 @@ async function main() {
   const outFile = valorDe(args, '--out');
 
   if (!url) {
-    console.error('Uso: node scripts/add-from-ficha.js <url de ficha.info> [--id alq-07] [--dry-run] [--out mapped.json] [--yes]');
-    process.exit(1);
-  }
-  if (!esUrlDeFicha(url)) {
-    console.error(`❌ "${url}" no es una URL de ficha.info (se espera https://ficha.info/p/HASH).`);
+    console.error('Uso: node scripts/add-from-ficha.js <url de la ficha> [--id alq-07] [--dry-run] [--out mapped.json] [--yes]');
     process.exit(1);
   }
 
-  console.log(`Leyendo ${urlCanonica(url)} …`);
-  const ficha = await fetchFicha(url);
-  const { prop, avisos } = fichaToProperty(ficha);
+  // Cada ficha se lee distinto, pero de acá para abajo el flujo es el mismo.
+  const fuente = esUrlDeFicha(url)
+    ? { nombre: 'ficha.info', canonica: urlCanonica(url), leer: async () => fichaToProperty(await fetchFicha(url)) }
+    : esUrlDeFichaprop(url)
+      ? { nombre: 'fichaprop.tech', canonica: urlCanonicaFichaprop(url), leer: async () => fichapropToProperty(await fetchFichaprop(url)) }
+      : null;
+
+  if (!fuente) {
+    console.error(`❌ "${url}" no es una URL de ficha conocida.`);
+    console.error('   Se esperan https://ficha.info/p/HASH o https://www.fichaprop.tech/ficha/UUID.');
+    process.exit(1);
+  }
+
+  console.log(`Leyendo ${fuente.canonica} …`);
+  const { prop, avisos } = await fuente.leer();
 
   const catalogo = await leerCatalogo('alquileres');
 
@@ -268,7 +372,7 @@ async function main() {
   prop.id = proximoIdAlq(catalogo);
   aplicarOverrides(prop, args);
 
-  mostrar(prop, avisosPendientes(avisos, args));
+  mostrar(prop, avisosPendientes(avisos, args), fuente.nombre);
 
   const errores = validate(prop);
   if (errores.length) {
@@ -322,4 +426,4 @@ if (require.main === module) {
   main().catch(err => { console.error('Error:', err.message); process.exit(1); });
 }
 
-module.exports = { fichaToProperty, proximoIdAlq, extraerDisponibleDesde };
+module.exports = { fichaToProperty, fichapropToProperty, proximoIdAlq, extraerDisponibleDesde };

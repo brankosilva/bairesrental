@@ -260,6 +260,14 @@ wifi) y `pet_friendly` es un campo, no una frase en la descripción. Lo que da p
 coordenadas suelen ser el placeholder del Obelisco, así que el pin queda para
 `resolve-map-coords.js`.
 
+**De qué link salió queda guardado.** Todo lo que entra por un link —el script o el campo de
+importar del panel— guarda `origen: { fuente, url, leidoEn }` en el documento, para poder volver a
+leer la ficha y refrescar precio y disponibilidad más adelante. No alcanzaba con `fotos`: en
+alquileres guarda la misma URL pero es editable, y en venta `fotos` son las fotos, así que el link
+no quedaba en ningún lado. Por ahora no hay un script que lo consuma — refrescar es volver a correr
+`add-from-ficha.js <url> --id <id> --update`. El formulario del panel muestra el link y lo reenvía
+tal cual: no se edita a mano.
+
 **El id que genera es `alq-NN`**, rellenando el primer número libre de la serie: se miran los docs
 de `rentals` cuyo id es exactamente `alq-<dígitos>` y se busca el hueco más bajo (con `alq-01`…
 `alq-05` y `alq-07` ocupados, el próximo es `alq-06`). Los ids históricos sucios (`alq-8315-`,
@@ -381,6 +389,7 @@ Notas:
 - `serviciosIncluidos: true` = incluye luz **y** wifi
 - Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en lugar de la ficha interna
 - `lat`/`lng` son los pines del mapa. Si no los ponés, `scripts/resolve-map-coords.js` los completa después
+- `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
 
 ---
 
@@ -466,6 +475,7 @@ Notas:
 - `disponibilidad: "vendido"` se mantiene para uso interno pero no se muestra en el catálogo público (igual que "no disponible" en alquileres)
 - `fichaUrl` es opcional y solo agrega un botón secundario "Ver publicación completa" — no reemplaza la galería nativa
 - Reutiliza el mismo catálogo de `amenities` que los alquileres
+- `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
 
 ---
 

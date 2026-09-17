@@ -366,6 +366,16 @@ async function main() {
   console.log(`Leyendo ${fuente.canonica} …`);
   const { prop, avisos } = await fuente.leer();
 
+  // De qué link salió, para poder volver a leerlo y refrescar la propiedad más
+  // adelante. No alcanza con `fotos`: guarda la misma URL sólo en alquileres, y
+  // es un campo editable que puede terminar apuntando a un álbum de Google
+  // Photos. En venta ni siquiera existe — ahí `fotos` son las fotos.
+  prop.origen = {
+    fuente: fuente.nombre,
+    url: fuente.canonica,
+    leidoEn: new Date().toISOString(),
+  };
+
   const catalogo = await leerCatalogo('alquileres');
 
   // El id sale del catálogo, salvo que lo pisen con --id.

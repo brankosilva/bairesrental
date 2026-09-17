@@ -20,7 +20,7 @@ import { initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
-import { esUrlDeFicha, fetchFicha, fichaToRental, fichaToSale, proximoIdAlq, proximoIdVen } from './ficha'
+import { esUrlDeFicha, fetchFicha, fichaToRental, fichaToSale, proximoIdAlq, proximoIdVen, urlCanonica } from './ficha'
 
 initializeApp()
 const db = getFirestore()
@@ -957,6 +957,10 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
   }
 
   const { prop, avisos } = collectionName === 'sales' ? fichaToSale(ficha) : fichaToRental(ficha)
+
+  // De qué link salió, para poder volver a leerlo y refrescar la propiedad más
+  // adelante. Lo guarda el formulario junto con el resto de los campos.
+  prop.origen = { fuente: 'ficha.info', url: urlCanonica(url), leidoEn: new Date().toISOString() }
 
   // select() sin campos trae solo los ids, que es lo único que hace falta para
   // saber qué números de la serie están tomados.

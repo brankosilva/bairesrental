@@ -69,6 +69,26 @@ export interface Ficha {
 
 // Los campos que el formulario de /app/rentals/new sabe llenar. No incluye `id`:
 // ese lo sugiere el callable aparte, mirando el catálogo.
+/**
+ * De qué link salió la propiedad. Se guarda en el documento para poder volver a
+ * leer la ficha y refrescar precio y disponibilidad más adelante.
+ *
+ * No alcanza con `fotos`: en alquileres guarda la misma URL pero es un campo
+ * editable (puede terminar apuntando a un álbum de Google Photos), y en venta
+ * `fotos` son las fotos de verdad, así que el link no quedaba en ningún lado.
+ *
+ * Gemelo de lo que escribe scripts/add-from-ficha.js y de `OrigenImport` en
+ * app/types/property.ts.
+ */
+export interface OrigenImport {
+  /** Qué ficha: 'ficha.info' (Tokko) o 'fichaprop.tech' (Tencery). */
+  fuente: string
+  /** La URL canónica, sin el cache-buster. */
+  url: string
+  /** Cuándo se leyó la ficha por última vez, en ISO. */
+  leidoEn: string
+}
+
 export interface RentalFields {
   titulo: string
   barrio: string
@@ -92,6 +112,8 @@ export interface RentalFields {
   lng?: number
   whatsappMsg: string
   esPropio: boolean
+  /** Lo completa el callable, que es el que sabe de qué URL salió el pedido. */
+  origen?: OrigenImport
 }
 
 // ─── URL ─────────────────────────────────────────────────────────────────────
@@ -438,6 +460,8 @@ export interface SaleFields {
   whatsappMsg: string
   fichaUrl: string
   esPropio: boolean
+  /** Lo completa el callable, que es el que sabe de qué URL salió el pedido. */
+  origen?: OrigenImport
 }
 
 function basico(property: FichaProperty, key: string): unknown {

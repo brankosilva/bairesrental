@@ -2,7 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { AMENITY_EMOJI } from '~/utils/amenities'
 import { DuplicateIdError } from '~/utils/adminCrud'
-import type { SaleProperty, SaleRow } from '~/types/property'
+import type { SaleProperty, SaleRow, OrigenImport } from '~/types/property'
 import { revisionDe, type EstadoRevision } from '~/utils/revision'
 import { resolverPin } from '~/utils/pin'
 
@@ -62,6 +62,10 @@ const form = reactive<
     sellerUid: string | null
     sellerNombre: string | null
     ownerUid: string | null
+    // De qué ficha salió. No se edita: se reenvía tal cual vino para que una
+    // edición a mano no le borre a la propiedad el link con el que se la puede
+    // volver a leer.
+    origen: OrigenImport | null
     revision: EstadoRevision
     // Round-trip, igual que ownerUid: el formulario los reenvía tal cual
     // vinieron. Ver el comentario gemelo en rentals/[id].vue.
@@ -98,11 +102,22 @@ const form = reactive<
   sellerUid: null,
   sellerNombre: null,
   ownerUid: null,
+  origen: null,
   // Default de admin; si el que entra es vendedor, el onMounted lo baja.
   revision: 'aprobada',
   motivoRechazo: null,
   revisadaPor: null,
   revisadaEn: null,
+})
+
+// La fecha en la que se leyó la ficha, para mostrarla en el formulario. Se
+// arma a mano desde el ISO y no con toLocaleDateString(): el panel es SSR y el
+// server no tiene por qué compartir zona horaria ni locale con el navegador.
+const origenLeidoEn = computed(() => {
+  const iso = form.origen?.leidoEn
+  return typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}/.test(iso)
+    ? iso.slice(0, 10).split('-').reverse().join('/')
+    : ''
 })
 
 const isAdmin = computed(() => role.value === 'admin')
@@ -139,6 +154,7 @@ onMounted(async () => {
     sellerUid: existing.sellerUid ?? null,
     sellerNombre: existing.sellerNombre ?? null,
     ownerUid: existing.ownerUid ?? null,
+    origen: existing.origen ?? null,
     revision: revisionDe(existing),
     motivoRechazo: existing.motivoRechazo ?? null,
     revisadaPor: existing.revisadaPor ?? null,
@@ -344,6 +360,14 @@ async function onDelete() {
 
     <form v-else @submit.prevent="onSubmit">
       <h1 class="h4 mb-3">{{ isNew ? 'Nueva venta' : `Editar: ${form.titulo}` }}</h1>
+
+      <!-- De dónde salió la propiedad. Se muestra y no se edita: es el link con
+           el que se la va a poder volver a leer para refrescar los datos. -->
+      <p v-if="!isNew && form.origen" class="small text-muted mb-3">
+        Importada de
+        <a :href="form.origen.url" target="_blank" rel="noopener">{{ form.origen.fuente }}</a>
+        <span v-if="origenLeidoEn"> el {{ origenLeidoEn }}</span>
+      </p>
 
       <RevisionNotice
         v-if="!isNew"

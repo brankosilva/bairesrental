@@ -1,0 +1,105 @@
+# Corre a mano un script de mantenimiento del catálogo contra Firestore, desde
+# Actions → "Catálogo — mantenimiento" → Run workflow.
+#
+# POR QUÉ EXISTE. Los scripts de scripts/ necesitan credenciales de Firebase, y
+# el único lado donde están es el secret FIREBASE_SERVICE_ACCOUNT (el mismo de
+# deploy-nuxt.yml). Sin esto, correrlos implica tener la service account bajada
+# en una máquina.
+#
+# ARRANCA SIEMPRE EN DRY-RUN. Ninguno de estos scripts escribe si no le pasan
+# --apply, y el checkbox "apply" viene destildado: la corrida por default sólo
+# mira y cuenta. La salida completa queda en el resumen del run, así que la
+# manera de usarlo es correrlo una vez para leer qué iba a hacer y otra con
+# apply tildado. No tiene schedule a propósito: una escritura masiva se dispara
+# cuando alguien la mira, no un lunes a la mañana.
+
+name: Catálogo — mantenimiento
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Qué script correr
+        type: choice
+        default: backfill-origen
+        options:
+          - backfill-origen      # completa `origen` deduciendo el link de la ficha
+          - migrar-imagenes      # copia a nuestro Storage las fotos que cuelgan de otro CDN
+          - backfill-revision    # marca `revision: aprobada` en las propiedades viejas
+          - resolve-map-coords   # completa lat/lng para los pines del mapa
+      apply:
+        description: Escribir de verdad (destildado = dry-run)
+        type: boolean
+        default: false
+      extra:
+        description: 'Flags extra, opcional (ej: --solo=ventas --limite 10)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+# Dos escrituras masivas al mismo catálogo a la vez no tienen ningún sentido.
+concurrency:
+  group: catalogo-mantenimiento
+  cancel-in-progress: false
+
+jobs:
+  correr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Los inputs van por `env` y no interpolados en el script: así el shell
+      # los ve como datos y no como comandos.
+      - name: Correr el script
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SCRIPT: ${{ inputs.script }}
+          APPLY: ${{ inputs.apply }}
+          EXTRA: ${{ inputs.extra }}
+        run: |
+          set -o pipefail
+          FLAGS=""
+          [ "$APPLY" = "true" ] && FLAGS="--apply"
+          echo "→ node scripts/$SCRIPT.js $FLAGS $EXTRA"
+          echo ""
+          node "scripts/$SCRIPT.js" $FLAGS $EXTRA 2>&1 | tee salida.txt
+
+      - name: Dejar la salida en el resumen del run
+        if: always()
+        env:
+          SCRIPT: ${{ inputs.script }}
+          APPLY: ${{ inputs.apply }}
+        run: |
+          MODO=$([ "$APPLY" = "true" ] && echo "escribió (--apply)" || echo "dry-run, no escribió nada")
+          {
+            echo "## $SCRIPT — $MODO"
+            echo ""
+            echo '```'
+            tail -c 60000 salida.txt 2>/dev/null || echo "(sin salida: el script no llegó a correr)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # resolve-map-coords deja un JSON para revisar antes de aplicar; sin esto
+      # se perdería con la máquina del runner.
+      - name: Guardar los archivos de revisión
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salida-${{ inputs.script }}
+          path: |
+            salida.txt
+            scripts/temp-*.json
+          if-no-files-found: ignore
+          retention-days: 14

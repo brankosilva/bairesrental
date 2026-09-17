@@ -69,6 +69,30 @@ export interface Ficha {
 
 // Los campos que el formulario de /app/rentals/new sabe llenar. No incluye `id`:
 // ese lo sugiere el callable aparte, mirando el catálogo.
+/**
+ * De qué link salió la propiedad. Se guarda en el documento para poder volver a
+ * leer la ficha y refrescar precio y disponibilidad más adelante.
+ *
+ * No alcanza con `fotos`: en alquileres guarda la misma URL pero es un campo
+ * editable (puede terminar apuntando a un álbum de Google Photos), y en venta
+ * `fotos` son las fotos de verdad, así que el link no quedaba en ningún lado.
+ *
+ * Gemelo de lo que escribe scripts/add-from-ficha.js y de `OrigenImport` en
+ * app/types/property.ts.
+ */
+export interface OrigenImport {
+  /** Qué ficha: 'ficha.info' (Tokko) o 'fichaprop.tech' (Tencery). */
+  fuente: string
+  /** La URL canónica, sin el cache-buster. */
+  url: string
+  /**
+   * Cuándo se leyó la ficha por última vez, en ISO. Falta en las propiedades
+   * que completó `scripts/backfill-origen.js`: ahí el link se dedujo de lo que
+   * ya estaba guardado, sin leer nada.
+   */
+  leidoEn?: string
+}
+
 export interface RentalFields {
   titulo: string
   barrio: string
@@ -92,6 +116,8 @@ export interface RentalFields {
   lng?: number
   whatsappMsg: string
   esPropio: boolean
+  /** Lo completa el callable, que es el que sabe de qué URL salió el pedido. */
+  origen?: OrigenImport
 }
 
 // ─── URL ─────────────────────────────────────────────────────────────────────
@@ -395,14 +421,24 @@ export function fichaToRental(ficha: Ficha): { prop: RentalFields; avisos: strin
 // (`alq-8315-`, `alq-PEDRO6767`, `alq-marie-11`) no matchean y quedan afuera.
 // Se rellenan los huecos: si están el 01..05 y el 07, el próximo es el 06.
 export function proximoIdAlq(ids: string[]): string {
+  return proximoIdDeSerie(ids, 'alq')
+}
+
+// Las series del catálogo: `alq-NN` para los alquileres que entran por una
+// ficha de ficha.info, `tenc-NN` para los de fichaprop.tech (Tencery) y
+// `ven-NN` para las ventas. Se rellena el primer número libre, así que con
+// alq-01..05 y alq-07 tomados el próximo es alq-06. Los ids históricos sucios
+// (`alq-8315-`, `alq-PEDRO6767`) no matchean y quedan afuera del conteo.
+export function proximoIdDeSerie(ids: string[], serie: string): string {
+  const re = new RegExp(`^${serie}-(\\d+)$`)
   const usados = new Set<number>()
   for (const id of ids) {
-    const m = /^alq-(\d+)$/.exec(id || '')
+    const m = re.exec(id || '')
     if (m) usados.add(parseInt(m[1], 10))
   }
   let n = 1
   while (usados.has(n)) n++
-  return `alq-${String(n).padStart(2, '0')}`
+  return `${serie}-${String(n).padStart(2, '0')}`
 }
 
 // ─── Mapeo a SaleProperty ────────────────────────────────────────────────────
@@ -438,6 +474,8 @@ export interface SaleFields {
   whatsappMsg: string
   fichaUrl: string
   esPropio: boolean
+  /** Lo completa el callable, que es el que sabe de qué URL salió el pedido. */
+  origen?: OrigenImport
 }
 
 function basico(property: FichaProperty, key: string): unknown {
@@ -604,12 +642,5 @@ export function fichaToSale(ficha: Ficha): { prop: SaleFields; avisos: string[] 
 // Igual que `proximoIdAlq` pero para la serie `ven-NN` de `sales`. Los ids
 // históricos (`lafinur-3000`, `poli-venta-01`) no matchean y quedan afuera.
 export function proximoIdVen(ids: string[]): string {
-  const usados = new Set<number>()
-  for (const id of ids) {
-    const m = /^ven-(\d+)$/.exec(id || '')
-    if (m) usados.add(parseInt(m[1], 10))
-  }
-  let n = 1
-  while (usados.has(n)) n++
-  return `ven-${String(n).padStart(2, '0')}`
+  return proximoIdDeSerie(ids, 'ven')
 }

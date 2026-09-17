@@ -20,7 +20,8 @@ import { initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
-import { esUrlDeFicha, fetchFicha, fichaToRental, fichaToSale, proximoIdAlq, proximoIdVen } from './ficha'
+import { esUrlDeFicha, fetchFicha, fichaToRental, fichaToSale, proximoIdAlq, proximoIdDeSerie, proximoIdVen, urlCanonica } from './ficha'
+import { esUrlDeFichaprop, fetchFichaprop, fichapropToRental, fichapropToSale } from './fichaprop'
 
 initializeApp()
 const db = getFirestore()
@@ -913,10 +914,14 @@ interface ImportFromFichaRequest {
   collectionName?: 'rentals' | 'sales'
 }
 
-// Callable, admin/seller. Lee una ficha pública de ficha.info (el "link para
-// colegas" de Tokko) y devuelve los campos ya mapeados para el formulario de
-// alta, más el próximo id libre de la serie (`alq-NN` o `ven-NN`). No escribe
-// nada: el alta la sigue haciendo el formulario por el camino de siempre.
+// Callable, admin/seller. Lee la ficha pública que comparte la inmobiliaria y
+// devuelve los campos ya mapeados para el formulario de alta, más el próximo id
+// libre de la serie. No escribe nada: el alta la sigue haciendo el formulario
+// por el camino de siempre.
+//
+// Entiende las dos fichas que usan las inmobiliarias con las que trabajamos:
+// ficha.info (Tokko), que va a las series `alq-NN`/`ven-NN`, y fichaprop.tech
+// (Tencery), que va a la suya, `tenc-NN`.
 //
 // La misma ficha se puede leer como alquiler o como venta: Tokko publica las
 // dos operaciones en el mismo documento, así que lo que decide qué campos se
@@ -938,13 +943,38 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
   }
 
   const url = (request.data?.url || '').trim()
-  if (!esUrlDeFicha(url)) {
-    throw new HttpsError('invalid-argument', 'Pegá el link de una ficha de ficha.info (https://ficha.info/p/…).')
+  if (!esUrlDeFicha(url) && !esUrlDeFichaprop(url)) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Pegá el link de una ficha de ficha.info (https://ficha.info/p/…) o de fichaprop.tech (https://www.fichaprop.tech/ficha/…).',
+    )
   }
 
   const collectionName = request.data?.collectionName || 'rentals'
   if (collectionName !== 'rentals' && collectionName !== 'sales') {
     throw new HttpsError('invalid-argument', 'collectionName debe ser "rentals" o "sales".')
+  }
+
+  // Las fichas de fichaprop van a la serie `tenc-NN` en los dos catálogos, así
+  // el id dice de dónde salió la propiedad.
+  //
+  // Una ficha de Tencery cargada como venta se mapea igual que una de alquiler:
+  // lo único que no existe en sus datos es la operación de venta, así que el
+  // precio queda en 0 y avisado, el mismo camino que ya hace fichaToSale()
+  // cuando la ficha de Tokko tampoco trae precio de venta.
+  if (esUrlDeFichaprop(url)) {
+    let ficha
+    try {
+      ficha = await fetchFichaprop(url)
+    } catch (e) {
+      throw new HttpsError('failed-precondition', `No se pudo leer la ficha: ${(e as Error).message}`)
+    }
+
+    const { prop, avisos } = collectionName === 'sales' ? fichapropToSale(ficha) : fichapropToRental(ficha)
+    prop.origen = { fuente: 'fichaprop.tech', url: ficha.url, leidoEn: new Date().toISOString() }
+
+    const snap = await db.collection(collectionName).select().get()
+    return { prop, avisos, sugerencias: { id: proximoIdDeSerie(snap.docs.map((d) => d.id), 'tenc') } }
   }
 
   let ficha
@@ -957,6 +987,10 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
   }
 
   const { prop, avisos } = collectionName === 'sales' ? fichaToSale(ficha) : fichaToRental(ficha)
+
+  // De qué link salió, para poder volver a leerlo y refrescar la propiedad más
+  // adelante. Lo guarda el formulario junto con el resto de los campos.
+  prop.origen = { fuente: 'ficha.info', url: urlCanonica(url), leidoEn: new Date().toISOString() }
 
   // select() sin campos trae solo los ids, que es lo único que hace falta para
   // saber qué números de la serie están tomados.

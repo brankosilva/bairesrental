@@ -13,6 +13,30 @@ import type { EstadoRevision } from '~/utils/revision'
 // `RentalProperty & { id: string; sellerUid?: string | null }`, repetido en seis
 // archivos y por lo tanto siempre a medias — ninguno declaraba `ownerUid`
 // aunque el formulario lo guarda.
+/**
+ * De qué link salió la propiedad, cuando entró por el campo "importar desde
+ * ficha" (panel) o por `scripts/add-from-ficha.js`. Queda guardado para poder
+ * volver a leer la ficha y refrescar precio y disponibilidad más adelante.
+ *
+ * No alcanza con `fotos`: en alquileres guarda la misma URL pero es un campo
+ * editable (puede terminar apuntando a un álbum de Google Photos), y en venta
+ * `fotos` son las fotos de verdad, así que el link no quedaba en ningún lado.
+ *
+ * Gemelo de `OrigenImport` en functions/src/ficha.ts.
+ */
+export interface OrigenImport {
+  /** Qué ficha: 'ficha.info' (Tokko) o 'fichaprop.tech' (Tencery). */
+  fuente: string
+  /** La URL canónica, sin el cache-buster. */
+  url: string
+  /**
+   * Cuándo se leyó la ficha por última vez, en ISO. Falta en las propiedades
+   * que completó `scripts/backfill-origen.js`: ahí el link se dedujo de lo que
+   * ya estaba guardado, sin leer nada.
+   */
+  leidoEn?: string
+}
+
 export interface ListingMeta {
   /** Quién la cargó. Ausente en las ~88 que cargó el admin por script. */
   sellerUid?: string | null
@@ -32,6 +56,8 @@ export interface ListingMeta {
   sellerNombre?: string | null
   /** El propietario (portal de dueños, sólo lectura). */
   ownerUid?: string | null
+  /** El link del que se importó, si entró por una ficha. Ver OrigenImport. */
+  origen?: OrigenImport | null
   revision?: EstadoRevision
   /** Lo que el admin le escribe al vendedor al rechazar. Lo limpia al aprobar. */
   motivoRechazo?: string | null

@@ -2,7 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { AMENITY_EMOJI } from '~/utils/amenities'
 import { DuplicateIdError } from '~/utils/adminCrud'
-import type { SaleProperty, SaleRow } from '~/types/property'
+import type { SaleProperty, SaleRow, OrigenImport } from '~/types/property'
 import { revisionDe, type EstadoRevision } from '~/utils/revision'
 import { resolverPin } from '~/utils/pin'
 
@@ -62,6 +62,10 @@ const form = reactive<
     sellerUid: string | null
     sellerNombre: string | null
     ownerUid: string | null
+    // De qué ficha salió. No se edita: se reenvía tal cual vino para que una
+    // edición a mano no le borre a la propiedad el link con el que se la puede
+    // volver a leer.
+    origen: OrigenImport | null
     revision: EstadoRevision
     // Round-trip, igual que ownerUid: el formulario los reenvía tal cual
     // vinieron. Ver el comentario gemelo en rentals/[id].vue.
@@ -98,11 +102,22 @@ const form = reactive<
   sellerUid: null,
   sellerNombre: null,
   ownerUid: null,
+  origen: null,
   // Default de admin; si el que entra es vendedor, el onMounted lo baja.
   revision: 'aprobada',
   motivoRechazo: null,
   revisadaPor: null,
   revisadaEn: null,
+})
+
+// La fecha en la que se leyó la ficha, para mostrarla en el formulario. Se
+// arma a mano desde el ISO y no con toLocaleDateString(): el panel es SSR y el
+// server no tiene por qué compartir zona horaria ni locale con el navegador.
+const origenLeidoEn = computed(() => {
+  const iso = form.origen?.leidoEn
+  return typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}/.test(iso)
+    ? iso.slice(0, 10).split('-').reverse().join('/')
+    : ''
 })
 
 const isAdmin = computed(() => role.value === 'admin')
@@ -139,6 +154,7 @@ onMounted(async () => {
     sellerUid: existing.sellerUid ?? null,
     sellerNombre: existing.sellerNombre ?? null,
     ownerUid: existing.ownerUid ?? null,
+    origen: existing.origen ?? null,
     revision: revisionDe(existing),
     motivoRechazo: existing.motivoRechazo ?? null,
     revisadaPor: existing.revisadaPor ?? null,
@@ -156,10 +172,15 @@ async function checkId() {
   }
 }
 
-// Alta desde el link para colegas de Tokko, igual que en rentals/[id].vue.
-// `importFromFicha` baja la ficha en el server (ficha.info no manda CORS) y la
-// mapea al catálogo de ventas: precio de venta, metros, ambientes, baños,
-// expensas y antigüedad, más el próximo id `ven-NN` libre.
+// Alta desde el link para colegas, igual que en rentals/[id].vue: el de Tokko
+// (ficha.info) o el de Tencery (fichaprop.tech). `importFromFicha` lee la ficha
+// en el server y la mapea al catálogo de ventas: precio de venta, metros,
+// ambientes, baños, expensas y antigüedad, más el próximo id libre de la serie
+// que le toca (`ven-NN` las de Tokko, `tenc-NN` las de Tencery).
+//
+// Ojo con las de Tencery: su catálogo es de alquiler temporario y no tiene
+// operación de venta, así que el precio viene en 0 y hay que cargarlo a mano.
+// El aviso lo dice.
 //
 // La diferencia con alquileres es la galería: la ficha trae hasta 20 fotos y
 // caen todas en la lista de links pendientes, así que al guardar terminan en
@@ -345,6 +366,14 @@ async function onDelete() {
     <form v-else @submit.prevent="onSubmit">
       <h1 class="h4 mb-3">{{ isNew ? 'Nueva venta' : `Editar: ${form.titulo}` }}</h1>
 
+      <!-- De dónde salió la propiedad. Se muestra y no se edita: es el link con
+           el que se la va a poder volver a leer para refrescar los datos. -->
+      <p v-if="!isNew && form.origen" class="small text-muted mb-3">
+        Importada de
+        <a :href="form.origen.url" target="_blank" rel="noopener">{{ form.origen.fuente }}</a>
+        <span v-if="origenLeidoEn"> el {{ origenLeidoEn }}</span>
+      </p>
+
       <RevisionNotice
         v-if="!isNew"
         :revision="form.revision"
@@ -352,17 +381,17 @@ async function onDelete() {
         :is-admin="isAdmin"
       />
 
-      <AdminSection v-if="isNew" title="Importar desde ficha.info">
+      <AdminSection v-if="isNew" title="Importar desde una ficha">
         <p class="small text-muted mb-2">
-          Pegá el link para colegas de Tokko y se completa solo, fotos incluidas. Después revisá y corregí lo que
-          haga falta.
+          Pegá el link para colegas —de Tokko (ficha.info) o de Tencery (fichaprop.tech)— y se completa solo,
+          fotos incluidas. Después revisá y corregí lo que haga falta.
         </p>
         <div class="input-group">
           <input
             v-model="fichaUrlInput"
             type="url"
             class="form-control"
-            placeholder="https://ficha.info/p/..."
+            placeholder="https://ficha.info/p/... o https://www.fichaprop.tech/ficha/..."
             autocapitalize="none"
             autocorrect="off"
             spellcheck="false"

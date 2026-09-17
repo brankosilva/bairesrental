@@ -45,8 +45,9 @@ Las URLs viejas del sitio estático (`/departamentos.html`, `/departamento.html?
 ├── docs/           # Documentación del negocio y la marca
 ├── marketing/      # Brand guide y estrategia de Meta Ads
 └── .github/workflows/
-    ├── deploy-nuxt.yml        # deploy a Firebase (se dispara con un tag v*)
-    └── check-ficha-links.yml  # auditoría semanal de fichas de Tokko
+    ├── deploy-nuxt.yml             # deploy a Firebase (se dispara con un tag v*)
+    ├── check-ficha-links.yml       # auditoría semanal de fichas de Tokko
+    └── catalogo-mantenimiento.yml  # corre a mano un script de scripts/ contra Firestore
 ```
 
 ## Panel interno (`/app/*`) y links de vendedores
@@ -127,7 +128,9 @@ clave inexistente en Rules es un **error**, no `false`.
    TypeScript, en `nuxt-app/functions/src/ficha.ts` — `functions/` es un paquete
    aparte y no puede importar de `scripts/`. El mapeo tiene que dar lo mismo
    desde la terminal que desde el panel. El de **venta** (`fichaToSale`) existe
-   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres.
+   sólo del lado de `functions/`: de la terminal se cargan sólo alquileres. Lo de **fichaprop.tech**
+   vive dos veces igual: `scripts/lib/fichaprop.js` + el mapeo de `add-from-tencery.js` de un lado,
+   y `nuxt-app/functions/src/fichaprop.ts` —que trae las dos cosas juntas— del otro.
 3. **`isShareableBySeller()`** se aplica en el panel, en el selector de links,
    en `createTrackableLink` y en la página compartida. `functions/` es un
    paquete TypeScript aparte y **no importa** ese módulo: tiene su copia.
@@ -213,7 +216,7 @@ Hay dos caminos:
 
 | Script | Uso |
 |---|---|
-| `scripts/add-from-ficha.js` | **El camino corto**: recibe la URL de una ficha de ficha.info, la lee y agrega la propiedad a `rentals` |
+| `scripts/add-from-ficha.js` | **El camino corto**: recibe la URL de una ficha —de ficha.info (Tokko) o de fichaprop.tech (Tencery)—, la lee y agrega la propiedad a `rentals` |
 | `scripts/add-from-tokko.js` | Convierte un JSON de Tokko Broker al formato BairesRental y lo agrega a `rentals` |
 | `scripts/add-from-tencery.js` | Lo mismo desde un JSON exportado de Tencery |
 | `scripts/add-property.js` | Valida y agrega/actualiza una propiedad de alquiler ya en formato BairesRental |
@@ -223,16 +226,27 @@ Hay dos caminos:
 | `scripts/resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa |
 | `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
 | `scripts/backfill-revision.js` | Marca `revision: 'aprobada'` en las propiedades viejas (dry-run; escribe con `--apply`) |
+| `scripts/backfill-origen.js` | Completa `origen` en las propiedades cargadas antes de que el campo existiera, deduciendo el link de `fotos`/`fichaUrl` (dry-run; escribe con `--apply`) |
+| `scripts/migrar-imagenes.js` | Copia a nuestro Storage las fotos que todavía cuelgan del CDN de otra inmobiliaria (dry-run; escribe con `--apply`) |
 | `scripts/reset-link-stats.js` | Deja en cero la actividad de los links de vendedores — contadores y eventos, nunca los leads (dry-run; escribe con `--apply`) |
 
 Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`.
+
+**Sin la service account bajada también se pueden correr**: Actions → *Catálogo — mantenimiento* →
+*Run workflow* elige el script, y el checkbox `apply` viene destildado, o sea que la corrida por
+default es dry-run. La salida completa queda en el resumen del run, así que el uso normal es
+correrlo una vez para leer qué iba a hacer y otra con `apply` tildado. El workflow
+(`.github/workflows/catalogo-mantenimiento.yml`) no tiene schedule a propósito: una escritura
+masiva se dispara cuando alguien la está mirando.
 
 ---
 
 ### Flujo 1: Import desde ficha.info (el camino corto)
 
-El usuario pega la URL de la ficha para colegas (`https://ficha.info/p/HASH?v=…`) y nada más.
-Guiado por el comando `/agregar-depto-ficha`.
+El usuario pega la URL de la ficha para colegas y nada más. Guiado por el comando
+`/agregar-depto-ficha`. El script entiende las dos fichas que usan las inmobiliarias con las que
+trabajamos: `https://ficha.info/p/HASH?v=…` (Tokko) y `https://www.fichaprop.tech/ficha/UUID`
+(Tencery).
 
 ficha.info es una app Next.js que trae **el JSON completo de Tokko embebido en el HTML**, así que
 una URL alcanza: el `id`, el precio, el barrio, el tipo, los amenities, la descripción, la portada
@@ -247,17 +261,39 @@ node scripts/add-from-ficha.js "<url>" --id alq-06 --minimo 3 --sin-mascotas --y
 Flags de override: `--id`, `--precio`, `--minimo`, `--mascotas` / `--sin-mascotas`,
 `--servicios` / `--sin-servicios`, `--barrio`, `--titulo`, `--imagen`, `--desde`, `--propio`.
 
-**El id que genera es `alq-NN`**, rellenando el primer número libre de la serie: se miran los docs
-de `rentals` cuyo id es exactamente `alq-<dígitos>` y se busca el hueco más bajo (con `alq-01`…
-`alq-05` y `alq-07` ocupados, el próximo es `alq-06`). Los ids históricos sucios (`alq-8315-`,
-`alq-PEDRO6767`, `alq-marie-11`) no matchean y quedan afuera del conteo.
+**fichaprop.tech (Tencery)** es un SPA: el HTML viene vacío y los datos los pide el navegador a
+Supabase. `scripts/lib/fichaprop.js` hace esas mismas dos requests con la clave publishable que
+trae el bundle del sitio, y el schema que devuelve es el de Tencery, así que el mapeo lo hace
+`tenceryToProperty()` de `add-from-tencery.js`. Lo que la ficha de Tencery da mejor que la de
+Tokko: los servicios vienen listados uno por uno (de ahí sale `serviciosIncluidos`, que es luz +
+wifi) y `pet_friendly` es un campo, no una frase en la descripción. Lo que da peor: las
+coordenadas suelen ser el placeholder del Obelisco, así que el pin queda para
+`resolve-map-coords.js`.
+
+**De qué link salió queda guardado.** Todo lo que entra por un link —el script o el campo de
+importar del panel— guarda `origen: { fuente, url, leidoEn }` en el documento, para poder volver a
+leer la ficha y refrescar precio y disponibilidad más adelante. No alcanzaba con `fotos`: en
+alquileres guarda la misma URL pero es editable, y en venta `fotos` son las fotos, así que el link
+no quedaba en ningún lado. Lo que se cargó antes de que el campo existiera lo completa
+`scripts/backfill-origen.js`, deduciendo el link de `fotos`/`fichaUrl` (sin `leidoEn`: ahí no se
+leyó ninguna ficha). Por ahora no hay un script que lo consuma — refrescar es volver a correr
+`add-from-ficha.js <url> --id <id> --update`. El formulario del panel muestra el link y lo reenvía
+tal cual: no se edita a mano.
+
+**Cada ficha tiene su serie de ids**, así el id dice de dónde salió la propiedad: `alq-NN` para lo
+que entra por ficha.info (Tokko) y `tenc-NN` para lo de fichaprop.tech (Tencery). Se rellena el
+primer número libre de la serie: se miran los docs de `rentals` cuyo id es exactamente
+`<serie>-<dígitos>` y se busca el hueco más bajo (con `alq-01`… `alq-05` y `alq-07` ocupados, el
+próximo es `alq-06`). Los ids históricos sucios (`alq-8315-`, `alq-PEDRO6767`, `alq-marie-11`) no
+matchean y quedan afuera del conteo.
 
 Lo que la ficha **no** dice y hay que preguntar: `mascotas`, `minimoMeses` y, a veces,
 `serviciosIncluidos` y `esPropio`. El script los lista con ⚠️.
 
 Lo mismo se puede hacer **sin Claude** desde el panel: `/app/rentals/new` tiene un campo para pegar
-el link, que llama al callable `importFromFicha` y autocompleta el formulario. `/app/sales/new` tiene
-el mismo campo para el catálogo de ventas — ver abajo.
+el link —de ficha.info o de fichaprop.tech—, que llama al callable `importFromFicha` y autocompleta
+el formulario. `/app/sales/new` tiene el mismo campo para el catálogo de ventas y también acepta las
+dos fichas — ver abajo.
 
 ---
 
@@ -368,6 +404,7 @@ Notas:
 - `serviciosIncluidos: true` = incluye luz **y** wifi
 - Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en lugar de la ficha interna
 - `lat`/`lng` son los pines del mapa. Si no los ponés, `scripts/resolve-map-coords.js` los completa después
+- `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
 
 ---
 
@@ -375,10 +412,16 @@ Notas:
 
 Las fotos viven en **Firebase Storage**, con el layout que declara `nuxt-app/storage.rules`: `rentals/<id>/<archivo>` y `sales/<id>/<archivo>`, de lectura pública.
 
+Las fotos que entran por una ficha **se copian a nuestro Storage al cargarlas**: el panel lo hace con
+el callable `importListingImage` y `add-from-ficha.js`, con `scripts/lib/storage.js`. Una URL del CDN
+de la otra inmobiliaria vive mientras ellos mantengan publicada la propiedad; el día que la dan de
+baja el card queda con el placeholder 📸 y nada avisa. Para lo que ya está cargado apuntando afuera
+está `scripts/migrar-imagenes.js`.
+
 | Caso | Acción |
 |---|---|
 | Usuario adjunta foto al chat | Guardarla en el scratchpad y subirla con `scripts/upload-fotos.js` |
-| URL externa (Tokko CDN, Airbnb, etc.) | Usarla directamente (puede expirar si dan de baja el listado) |
+| URL externa (Tokko CDN, Airbnb, etc.) | Copiarla a Storage (`migrar-imagenes.js` o el importador); usarla directo sólo como último recurso |
 | Link a álbum de Google Photos | Va al campo `fotos`, no en `imagen` |
 | Sin imagen | Dejar `imagen: ""` (el card muestra un placeholder 📸) |
 
@@ -392,11 +435,19 @@ Flujo **independiente** del de alquileres — propiedades en venta, con hasta **
 
 `/agregar-depto-venta` — guía el flujo completo: recibe texto (PDF o descripción manual) + fotos adjuntadas en el chat, las sube a Storage, arma el JSON y lo agrega al catálogo.
 
-### Alta pegando el link de una ficha de ficha.info
+### Alta pegando el link de una ficha
 
-`/app/sales/new` tiene el mismo campo que `/app/rentals/new`: se pega el link para colegas de Tokko,
-el callable `importFromFicha` (con `collectionName: 'sales'`) lee la ficha en el server y completa el
-formulario. El mapeo de venta es `fichaToSale()` en `nuxt-app/functions/src/ficha.ts`.
+`/app/sales/new` tiene el mismo campo que `/app/rentals/new`: se pega el link para colegas —de Tokko
+o de Tencery—, el callable `importFromFicha` (con `collectionName: 'sales'`) lee la ficha en el
+server y completa el formulario. El mapeo de venta es `fichaToSale()` en
+`nuxt-app/functions/src/ficha.ts` y `fichapropToSale()` en `functions/src/fichaprop.ts`.
+
+**Una ficha de Tencery cargada como venta entra igual que una de alquiler**, con una salvedad: su
+catálogo es de alquiler temporario y no tiene operación de venta, así que el `precio` queda en 0
+("Consultar precio") y se carga a mano, lo mismo que ya hace `fichaToSale()` con una ficha de Tokko
+sin operación de venta. La antigüedad y el apto crédito tampoco vienen. Todo lo demás sí: metros,
+ambientes (dormitorios + 1), baños, expensas, amenities, descripción y las hasta 20 fotos. Los
+avisos lo marcan uno por uno. El id sugerido es `tenc-NN` en los dos catálogos.
 
 Lo que sale de la ficha y el alquiler no usa: `precio` (de `operations.Sale`, en formato "USD 120.000"),
 `superficie` y `superficieCubierta` (de `measurement`), `ambientes` / `banios` / `antiguedad` /
@@ -407,7 +458,7 @@ pendientes: al guardar, `importListingImage` las baja una por una a nuestro Stor
 nativa no queda colgada de un CDN ajeno. Son hasta 20 requests en serie — el botón va contando
 ("Copiando foto 3 de 19…") y puede tardar minutos con datos móviles.
 
-El id que sugiere es `ven-NN`, la serie nueva; los ids históricos (`lafinur-3000`, `poli-venta-01`)
+El id que sugiere es `ven-NN`, la serie nueva (las series salen todas de `proximoIdDeSerie()`); los ids históricos (`lafinur-3000`, `poli-venta-01`)
 no matchean y quedan afuera del conteo. Hay que confirmar a mano `aptoCredito` (Tokko casi siempre
 dice "No especificado") y, si la ficha es de alquiler y no de venta, el precio: el aviso lo marca.
 
@@ -453,6 +504,7 @@ Notas:
 - `disponibilidad: "vendido"` se mantiene para uso interno pero no se muestra en el catálogo público (igual que "no disponible" en alquileres)
 - `fichaUrl` es opcional y solo agrega un botón secundario "Ver publicación completa" — no reemplaza la galería nativa
 - Reutiliza el mismo catálogo de `amenities` que los alquileres
+- `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
 
 ---
 

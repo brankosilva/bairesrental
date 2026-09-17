@@ -6,6 +6,12 @@
 # deploy-nuxt.yml). Sin esto, correrlos implica tener la service account bajada
 # en una máquina.
 #
+# `check-ficha-links` es la excepción de solo lectura: no escribe nunca, ignora
+# `apply` y **sale con código 1 cuando encuentra algo para revisar**, así que el
+# run queda rojo aunque el script haya andado perfecto. La lista está en el
+# resumen. Su corrida automática es la de los lunes (check-ficha-links.yml), que
+# además abre el Issue; acá está para poder pedirla a mano.
+#
 # ARRANCA SIEMPRE EN DRY-RUN. Ninguno de estos scripts escribe si no le pasan
 # --apply, y el checkbox "apply" viene destildado: la corrida por default sólo
 # mira y cuenta. La salida completa queda en el resumen del run, así que la
@@ -27,6 +33,7 @@ on:
           - migrar-imagenes      # copia a nuestro Storage las fotos que cuelgan de otro CDN
           - backfill-revision    # marca `revision: aprobada` en las propiedades viejas
           - resolve-map-coords   # completa lat/lng para los pines del mapa
+          - check-ficha-links    # solo lectura: audita fichas y links caídos
       apply:
         description: Escribir de verdad (destildado = dry-run)
         type: boolean

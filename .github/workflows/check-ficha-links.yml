@@ -1,6 +1,7 @@
-# Audita las fichas de Tokko (ficha.info) enlazadas en el catálogo y abre/actualiza
-# un Issue con las que haya que revisar: las que Tokko marca como no disponibles y
-# las que pasaron a otra inmobiliaria.
+# Audita los links del catálogo de alquileres y abre/actualiza un Issue con lo que
+# haya que revisar: las fichas que Tokko o Tencery marcan como no disponibles, las
+# que pasaron a otra inmobiliaria, y los álbumes, avisos y portadas que dejaron de
+# responder (ver scripts/lib/enlaces.js).
 #
 # Lee el catálogo de Firestore (colección `rentals`), que es lo que sirve el sitio.
 # Antes leía data/departamentos.json, que se había quedado atrás respecto de
@@ -35,7 +36,7 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Ejecutar chequeo de fichas
+      - name: Ejecutar chequeo de fichas y links
         id: check
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -81,7 +82,7 @@ jobs:
             const cuerpo = [
               `Chequeo automático del ${report.generadoEn}.`,
               '',
-              `Se encontraron **${aRevisar.length}** ficha(s) de Tokko con algo para revisar:`,
+              `Se encontraron **${aRevisar.length}** propiedad(es) con algo para revisar:`,
               '',
               ...aRevisar.map(r =>
                 `- **${r.id}** — "${r.titulo}" (${r.barrio})\n` +
@@ -89,7 +90,7 @@ jobs:
                 `  - ${r.url}`
               ),
               '',
-              'Revisá cada una manualmente: si la propiedad ya no está disponible, marcala como "no disponible" en el admin, o reemplazá el link de fotos por un álbum propio (Drive/Fotos).'
+              'Revisá cada una manualmente: si la propiedad ya no está disponible, marcala como "no disponible" en el admin. Si lo que se cayó es un link —el álbum de fotos, el aviso de otro portal o la portada—, reemplazalo o vacialo desde el panel; una portada rota deja el card con el placeholder 📸.'
             ].join('\n');
 
             if (existente) {

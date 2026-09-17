@@ -1,7 +1,14 @@
 #!/usr/bin/env node
-// Revisa las fichas de Tokko (ficha.info) enlazadas en el catálogo y detecta
-// si Tokko las marca como no disponibles o si pasaron a otra inmobiliaria.
-// Es de solo lectura: genera un reporte para revisión manual, no toca el catálogo.
+// Revisa los links del catálogo de alquileres y arma un reporte para revisión
+// manual. Es de solo lectura: no toca el catálogo. Tres pasadas:
+//
+//   1. Fichas de Tokko (ficha.info) — se lee la ficha entera, así que se puede
+//      detectar que Tokko la marcó no disponible o que pasó a otra agencia.
+//   2. Fichas de Tencery (fichaprop.tech) — lo mismo contra su API: si la
+//      propiedad ya no es pública o figura alquilada.
+//   3. Todo el resto de los links (álbumes, avisos de otros portales y la
+//      portada de cada propiedad) — de esos no se puede leer un estado, sólo
+//      si siguen en pie. Ver lib/enlaces.js: un status 200 no alcanza.
 //
 // Leía data/departamentos.json, que alimentaba el sitio estático. Ese sitio se
 // dio de baja y el archivo se había quedado atrás (le faltaban propiedades que
@@ -15,7 +22,9 @@
 const fs = require('fs');
 
 const { leerCatalogo } = require('./lib/catalogo');
-const { fetchFicha, estadoDeFicha, esDisponibleSegunTokko, MI_INMOBILIARIA_TOKKO } = require('./lib/ficha');
+const { fetchFicha, estadoDeFicha, esDisponibleSegunTokko, esUrlDeFicha, MI_INMOBILIARIA_TOKKO } = require('./lib/ficha');
+const { esUrlDeFichaprop, fetchFichaprop } = require('./lib/fichaprop');
+const { estadoDeEnlace } = require('./lib/enlaces');
 
 const DELAY_MS = 400; // pausa entre requests para no saturar ficha.info
 
@@ -56,22 +65,49 @@ async function revisarFicha(url, disponibilidadLocal) {
   }
 }
 
+// Las fichas de Tencery no tienen HTML que parsear, pero a su API se le puede
+// preguntar lo mismo que a Tokko: si la propiedad sigue publicada y si ya se
+// alquiló.
+async function revisarFichaprop(url, disponibilidadLocal) {
+  try {
+    const { property } = await fetchFichaprop(url);
+    const problemas = [];
+    const enFichaprop = property.rented_at ? 'alquilada' : property.status;
+    if ((property.rented_at || property.status !== 'published') && disponibilidadLocal === 'disponible') {
+      problemas.push(`estado desactualizado: local="${disponibilidadLocal}" pero fichaprop dice "${enFichaprop}"`);
+    }
+    return { ok: true, status: enFichaprop, company: property.agencies?.name || null, problemas };
+  } catch (e) {
+    return { ok: false, motivo: e.message };
+  }
+}
+
+// Los links que no son fichas. `imagen` va siempre: si la portada muere, el
+// card queda con el placeholder 📸, que es lo más visible de todo.
+const ETIQUETA_CAMPO = { fotos: 'el link de fotos', fichaUrl: 'el link de la publicación', imagen: 'la portada' };
+
+function enlacesSueltosDe(p) {
+  const links = [];
+  const fotos = typeof p.fotos === 'string' ? p.fotos.trim() : '';
+  if (fotos && !esUrlDeFicha(fotos) && !esUrlDeFichaprop(fotos)) links.push({ campo: 'fotos', url: fotos });
+  const ficha = (p.fichaUrl || '').trim();
+  if (ficha && !esUrlDeFicha(ficha) && !esUrlDeFichaprop(ficha)) links.push({ campo: 'fichaUrl', url: ficha });
+  const imagen = (p.imagen || '').trim();
+  if (imagen) links.push({ campo: 'imagen', url: imagen });
+  return links;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const jsonIdx = args.indexOf('--json');
   const jsonOut = jsonIdx >= 0 ? args[jsonIdx + 1] : null;
 
   const catalogo = await leerCatalogo('alquileres');
-  const conFicha = catalogo.filter(p => /ficha\.info/i.test(p.fotos || '') || /ficha\.info/i.test(p.fichaUrl || ''));
-
-  if (conFicha.length === 0) {
-    console.log('No hay propiedades con links de ficha.info en el catálogo.');
-    return;
-  }
-
-  console.log(`Revisando ${conFicha.length} ficha(s) de Tokko...\n`);
-
   const resultados = [];
+
+  // ── 1. Fichas de Tokko ─────────────────────────────────────────────────────
+  const conFicha = catalogo.filter(p => /ficha\.info/i.test(p.fotos || '') || /ficha\.info/i.test(p.fichaUrl || ''));
+  console.log(`Revisando ${conFicha.length} ficha(s) de Tokko...\n`);
 
   for (const p of conFicha) {
     const url = (p.fichaUrl && /ficha\.info/i.test(p.fichaUrl)) ? p.fichaUrl : p.fotos;
@@ -96,11 +132,69 @@ async function main() {
     await sleep(DELAY_MS);
   }
 
+  // ── 2. Fichas de Tencery ───────────────────────────────────────────────────
+  const conFichaprop = catalogo.filter(p => esUrlDeFichaprop(p.fotos || '') || esUrlDeFichaprop(p.fichaUrl || ''));
+  if (conFichaprop.length) {
+    console.log(`\nRevisando ${conFichaprop.length} ficha(s) de Tencery...\n`);
+  }
+
+  for (const p of conFichaprop) {
+    const url = esUrlDeFichaprop(p.fichaUrl || '') ? p.fichaUrl : p.fotos;
+    const r = await revisarFichaprop(url, p.disponibilidad);
+    resultados.push({ id: p.id, titulo: p.titulo, barrio: p.barrio, url, ...r });
+
+    if (!r.ok) {
+      console.log(`⚠️  ${p.id} — "${p.titulo}"`);
+      console.log(`    ${url}`);
+      console.log(`    No se pudo verificar: ${r.motivo}\n`);
+    } else if (r.problemas.length > 0) {
+      console.log(`🚩 ${p.id} — "${p.titulo}" (${p.barrio})`);
+      console.log(`    ${url}`);
+      r.problemas.forEach(m => console.log(`    - ${m}`));
+      console.log(`    Estado local actual: ${p.disponibilidad}\n`);
+    } else {
+      console.log(`✅ ${p.id} — OK (fichaprop: ${r.status}${r.company ? ', ' + r.company : ''})`);
+    }
+
+    await sleep(DELAY_MS);
+  }
+
+  // ── 3. El resto de los links ───────────────────────────────────────────────
+  // Un problema por propiedad, no uno por link: si a la misma se le cayeron la
+  // portada y el álbum, en el Issue tiene que aparecer una sola vez.
+  const conEnlaces = catalogo.map(p => ({ p, links: enlacesSueltosDe(p) })).filter(x => x.links.length);
+  const totalLinks = conEnlaces.reduce((n, x) => n + x.links.length, 0);
+  console.log(`\nRevisando ${totalLinks} link(s) sueltos (álbumes, avisos y portadas)...\n`);
+
+  let rotos = 0;
+  for (const { p, links } of conEnlaces) {
+    const problemas = [];
+    for (const { campo, url } of links) {
+      const { estado, motivo } = await estadoDeEnlace(url);
+      if (estado === 'roto' || estado === 'sospechoso') {
+        problemas.push(`${ETIQUETA_CAMPO[campo]} ${estado === 'roto' ? 'no responde' : 'quedó raro'}: ${motivo} — ${url}`);
+      }
+      await sleep(DELAY_MS);
+    }
+
+    if (problemas.length) {
+      rotos++;
+      console.log(`🔗 ${p.id} — "${p.titulo}" (${p.barrio})`);
+      problemas.forEach(m => console.log(`    - ${m}`));
+      console.log('');
+      const yaEstaba = resultados.find(r => r.id === p.id && r.ok);
+      if (yaEstaba) yaEstaba.problemas.push(...problemas);
+      else resultados.push({ id: p.id, titulo: p.titulo, barrio: p.barrio, url: links[0].url, ok: true, problemas });
+    }
+  }
+  if (!rotos) console.log('✅ Todos los links sueltos responden.');
+
   const aRevisar = resultados.filter(r => !r.ok || (r.problemas && r.problemas.length > 0));
 
   console.log('\n=== Resumen ===');
-  console.log(`Total revisadas: ${resultados.length}`);
-  console.log(`A revisar:       ${aRevisar.length}`);
+  console.log(`Fichas revisadas: ${conFicha.length + conFichaprop.length}`);
+  console.log(`Links revisados:  ${totalLinks}`);
+  console.log(`A revisar:        ${aRevisar.length}`);
 
   if (aRevisar.length > 0) {
     console.log('\nIDs a revisar: ' + aRevisar.map(r => r.id).join(', '));

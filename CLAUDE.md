@@ -222,7 +222,7 @@ Hay dos caminos:
 | `scripts/add-property.js` | Valida y agrega/actualiza una propiedad de alquiler ya en formato BairesRental |
 | `scripts/add-property-venta.js` | Valida y agrega/actualiza una propiedad en venta |
 | `scripts/upload-fotos.js` | Sube fotos locales a Firebase Storage y devuelve las URLs públicas |
-| `scripts/check-ficha-links.js` | Solo lectura: audita fichas de Tokko caídas o cedidas a otra inmobiliaria |
+| `scripts/check-ficha-links.js` | Solo lectura: audita fichas caídas o cedidas a otra inmobiliaria, y los links que dejaron de responder |
 | `scripts/resolve-map-coords.js` | Completa `lat`/`lng` para los pines del mapa |
 | `scripts/fix-share-google-urls.js` | Repara `direccionUrl` con links `share.google` rotos |
 | `scripts/backfill-revision.js` | Marca `revision: 'aprobada'` en las propiedades viejas (dry-run; escribe con `--apply`) |
@@ -508,8 +508,26 @@ Notas:
 
 ---
 
-## Auditoría de fichas de Tokko
+## Auditoría de links del catálogo
 
-`scripts/check-ficha-links.js` recorre las fichas de ficha.info enlazadas en `rentals` y marca dos cosas: las que Tokko pasó a "No disponible" y las que aparecen bajo **otra inmobiliaria** (o sea, la propiedad se fue a otra agencia). Es de solo lectura.
+`scripts/check-ficha-links.js` recorre `rentals` en tres pasadas, todas de solo lectura:
 
-Corre todos los lunes desde `.github/workflows/check-ficha-links.yml` y abre/actualiza un Issue con los IDs a revisar. A mano: `npm run catalogo:fichas`.
+1. **Fichas de ficha.info** — se lee la ficha entera, así que marca las que Tokko pasó a "No
+   disponible" y las que aparecen bajo **otra inmobiliaria** (o sea, la propiedad se fue a otra
+   agencia).
+2. **Fichas de fichaprop.tech** — lo mismo contra la API de Tencery: si la propiedad dejó de ser
+   pública o figura alquilada y acá sigue "disponible".
+3. **El resto de los links** — álbumes, avisos de otros portales y la portada (`imagen`) de cada
+   propiedad. De esos no se puede leer un estado, sólo si siguen en pie.
+
+**Un status 200 no alcanza para la pasada 3**, y no es teoría: `listadopropiedadesba.com`, donde
+vivían los álbumes de dos alquileres, venció como dominio y el registrador sirve una página de
+parking que responde **200** con `<title>Your domain is expired</title>`. Por eso
+`scripts/lib/enlaces.js` mira cuatro señales —conexión que no abre (DNS/TLS), 4xx/5xx, redirect a
+otro dominio, y el `<title>` de un 200 con cara de error— y separa lo roto (certeza) de lo
+sospechoso (para mirar). Los álbumes de **Google Photos y Drive quedan afuera a propósito**: uno
+revocado devuelve 200 y una app de JS, así que cualquier veredicto sería adivinado y son la mayoría
+de los links del catálogo.
+
+Corre todos los lunes desde `.github/workflows/check-ficha-links.yml` y abre/actualiza un Issue con
+los IDs a revisar. A mano: `npm run catalogo:fichas`.

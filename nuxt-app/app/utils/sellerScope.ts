@@ -65,9 +65,9 @@ export function ownFirst<T extends SellerScoped & { titulo?: string }>(uid: stri
 
 /**
  * Como ownFirst(), pero antes le da prioridad a lo que administra BairesRental
- * (`esPropio`) — a pedido, para que la lista del panel del vendedor muestre
- * primero el inventario propio y recién después lo suyo y lo de sus colegas.
- * Sólo la usa esa lista; la página compartida (/l/:code) sigue con ownFirst().
+ * (`esPropio`) — a pedido, para que la lista del panel del vendedor y la
+ * página compartida (/l/:code) muestren primero el inventario propio y recién
+ * después lo suyo y lo de sus colegas, igual que el catálogo público.
  */
 export function catalogOrder<T extends SellerScoped & { titulo?: string; esPropio?: boolean }>(
   uid: string | null | undefined,

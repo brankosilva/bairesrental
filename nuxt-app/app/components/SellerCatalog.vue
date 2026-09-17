@@ -58,6 +58,7 @@ interface Row {
   direccion: string
   direccionUrl: string
   disponibleDesde: string
+  esPropio: boolean
   /** Sólo alquileres: null en ventas, para no dibujar el tag. */
   serviciosIncluidos: boolean | null
   /** Sólo alquileres con mínimo > 1 mes: 0 en ventas, para no dibujar el tag. */
@@ -87,16 +88,18 @@ function toRow(p: Record<string, unknown>, kind: Kind): Row {
     direccion: r.direccion || '',
     direccionUrl: r.direccionUrl || '',
     disponibleDesde: kind === 'rental' && r.disponibilidad === 'disponible' ? r.disponibleDesde || '' : '',
+    esPropio: !!r.esPropio,
     serviciosIncluidos: kind === 'rental' ? !!r.serviciosIncluidos : null,
     minimoMeses: kind === 'rental' && Number(r.minimoMeses) > 1 ? Number(r.minimoMeses) : 0,
   }
 }
 
-// El orden que trae el payload ya pone primero las del vendedor (ownFirst en
-// server/api/l/[code].get.ts). Lo único que se reordena acá es mandar las
-// reservadas al final, como hace el catálogo público: siguen estando —el
-// cliente puede preguntar igual— pero no arriba de todo. El sort de JS es
-// estable, así que dentro de cada grupo se conserva el orden del servidor.
+// El orden que trae el payload ya pone primero lo de BairesRental y después
+// lo del vendedor (catalogOrder en server/api/l/[code].get.ts), igual que el
+// catálogo público. Lo único que se reordena acá es mandar las reservadas al
+// final: siguen estando —el cliente puede preguntar igual— pero no arriba de
+// todo. El sort de JS es estable, así que dentro de cada grupo se conserva el
+// orden del servidor.
 const rows = computed<Row[]>(() => {
   const all = [...props.rentals.map((r) => toRow(r, 'rental')), ...props.sales.map((s) => toRow(s, 'sale'))]
   return all.sort((a, b) => Number(a.disponibilidad === 'reservado') - Number(b.disponibilidad === 'reservado'))
@@ -535,6 +538,7 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                 <img v-if="p.imagen" :src="p.imagen" :alt="p.titulo" loading="lazy" />
                 <span v-else>📷</span>
                 <div class="br-brand-card-tags">
+                  <span v-if="p.esPropio" class="br-brand-tag br-brand-tag-propio">BairesRental</span>
                   <span v-if="p.kind === 'sale'" class="br-brand-tag br-brand-tag-venta">Venta</span>
                   <span
                     class="br-brand-tag"
@@ -569,13 +573,13 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                 <strong class="br-brand-card-title">{{ p.titulo }}</strong>
                 <span v-if="disponibleDesdeLabel(p)" class="br-brand-card-desde">Disponible desde {{ disponibleDesdeLabel(p) }}</span>
                 <span class="br-brand-card-price-row">
-                  <span class="br-brand-card-price">{{ precioLabel(p)
-                    }}<template v-if="p.kind === 'rental' && p.precio > 0">/mes</template></span>
+                  <span class="br-brand-card-price">{{ precioLabel(p) }}</span>
+                  <span v-if="p.kind === 'rental' && p.precio > 0" class="br-brand-card-price-suffix">/mes</span>
                   <span
                     v-if="p.serviciosIncluidos !== null"
                     :class="p.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'"
                   >
-                    {{ p.serviciosIncluidos ? 'Expensas y servicios incluidos!' : 'Servicios aparte' }}
+                    {{ p.serviciosIncluidos ? 'Paquete completo' : 'Servicios aparte' }}
                   </span>
                   <span v-if="p.minimoMeses > 0" class="br-tag-minimo">
                     Mínimo {{ p.minimoMeses }} {{ p.minimoMeses === 1 ? 'mes' : 'meses' }}

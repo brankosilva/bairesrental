@@ -94,8 +94,8 @@ export function useSharedLinkSeo(payload: () => SharedLinkPayload | null | undef
   })
 
   // Portada de la publicación; en un link de catálogo, la de la primera de la
-  // lista — que además es una de las del vendedor, porque el endpoint las
-  // ordena con ownFirst().
+  // lista — hoy lo que administra BairesRental, porque el endpoint las ordena
+  // con catalogOrder(), igual que el catálogo público.
   const cover = computed(() => {
     const p = property.value
     if (p) return payload()?.propertyKind === 'sale' ? p.fotos?.[0] : p.imagen

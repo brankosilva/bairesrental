@@ -1,5 +1,5 @@
 import type { SellerProfile, TrackableLink } from '~/types/link'
-import { isShareableBySeller, ownFirst } from '~/utils/sellerScope'
+import { catalogOrder, isShareableBySeller } from '~/utils/sellerScope'
 import type { EstadoRevision } from '~/utils/revision'
 
 // Payload de la página con la marca del vendedor (/l/:code).
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
   // Los dos campos que este endpoint mira por nombre salen del índice de
   // strings: con `Record<string, unknown>` a secas, `sellerUid` es `unknown` y
   // no entra en SellerScoped.
-  type Row = Record<string, unknown> & { sellerUid?: string | null; titulo?: string; revision?: EstadoRevision }
+  type Row = Record<string, unknown> & { sellerUid?: string | null; titulo?: string; esPropio?: boolean; revision?: EstadoRevision }
 
   let property: Row | null = null
   let propertyKind: 'rental' | 'sale' | null = null
@@ -96,15 +96,16 @@ export default defineEventHandler(async (event) => {
       snap.docs.map((d) => ({ id: d.id, ...plain(d.data()) }) as Row).filter((p) => isShareableBySeller(p, link.sellerUid))
     // Se esconde lo no disponible/vendido, igual que en el catálogo público:
     // mandarle a un cliente una lista con cosas que ya no están es peor que
-    // mandarle una lista más corta. Las del vendedor van primero: son las
-    // únicas de la lista que son suyas de verdad.
+    // mandarle una lista más corta. El orden es el mismo que el catálogo
+    // público: primero lo que administra BairesRental (esPropio), después lo
+    // del vendedor y recién después lo de sus colegas.
     catalog = {
       rentals: rows(r)
         .filter((p) => p.disponibilidad !== 'no disponible')
-        .sort(ownFirst(link.sellerUid)),
+        .sort(catalogOrder(link.sellerUid)),
       sales: rows(s)
         .filter((p) => p.disponibilidad !== 'vendido')
-        .sort(ownFirst(link.sellerUid)),
+        .sort(catalogOrder(link.sellerUid)),
     }
   } else if (targetId) {
     // Cuando viene ?p= (ficha dentro de un link de catálogo) no se sabe de

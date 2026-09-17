@@ -602,6 +602,9 @@
 .br-brand-tag-venta {
   background: color-mix(in srgb, var(--br-brand-accent) 88%, transparent);
 }
+.br-brand-tag-propio {
+  background: rgba(17, 17, 17, 0.72);
+}
 .br-brand-tag-disponible {
   background: rgba(22, 163, 74, 0.9);
 }
@@ -684,7 +687,14 @@
 .br-brand-card-price {
   font-size: 17px;
   font-weight: 700;
-  color: var(--br-brand-accent);
+  letter-spacing: -0.02em;
+  color: #111;
+}
+
+.br-brand-card-price-suffix {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--br-brand-mute);
 }
 
 /* ── Estados ─────────────────────────────────────────── */

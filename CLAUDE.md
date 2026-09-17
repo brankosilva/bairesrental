@@ -45,8 +45,9 @@ Las URLs viejas del sitio estático (`/departamentos.html`, `/departamento.html?
 ├── docs/           # Documentación del negocio y la marca
 ├── marketing/      # Brand guide y estrategia de Meta Ads
 └── .github/workflows/
-    ├── deploy-nuxt.yml        # deploy a Firebase (se dispara con un tag v*)
-    └── check-ficha-links.yml  # auditoría semanal de fichas de Tokko
+    ├── deploy-nuxt.yml             # deploy a Firebase (se dispara con un tag v*)
+    ├── check-ficha-links.yml       # auditoría semanal de fichas de Tokko
+    └── catalogo-mantenimiento.yml  # corre a mano un script de scripts/ contra Firestore
 ```
 
 ## Panel interno (`/app/*`) y links de vendedores
@@ -230,6 +231,13 @@ Hay dos caminos:
 | `scripts/reset-link-stats.js` | Deja en cero la actividad de los links de vendedores — contadores y eventos, nunca los leads (dry-run; escribe con `--apply`) |
 
 Requieren Node.js y `npm install` en la raíz (usan `firebase-admin`). Las credenciales salen de `nuxt-app/serviceAccountKey.json` en local, o de la variable `FIREBASE_SERVICE_ACCOUNT` en CI — ver `scripts/lib/firestore.js`.
+
+**Sin la service account bajada también se pueden correr**: Actions → *Catálogo — mantenimiento* →
+*Run workflow* elige el script, y el checkbox `apply` viene destildado, o sea que la corrida por
+default es dry-run. La salida completa queda en el resumen del run, así que el uso normal es
+correrlo una vez para leer qué iba a hacer y otra con `apply` tildado. El workflow
+(`.github/workflows/catalogo-mantenimiento.yml`) no tiene schedule a propósito: una escritura
+masiva se dispara cuando alguien la está mirando.
 
 ---
 

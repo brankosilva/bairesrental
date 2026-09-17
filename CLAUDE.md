@@ -395,6 +395,8 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
   "lat": -34.6, "lng": -58.4,
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "esPropio": false,
+  "propietarioNombre": "Nombre del dueño real (opcional, uso interno del equipo)",
+  "propietarioContacto": "Teléfono o email del dueño (opcional, uso interno del equipo)",
   "revision": "aprobada"
 }
 ```
@@ -405,6 +407,10 @@ Notas:
 - Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en lugar de la ficha interna
 - `lat`/`lng` son los pines del mapa. Si no los ponés, `scripts/resolve-map-coords.js` los completa después
 - `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
+- `propietarioNombre`/`propietarioContacto` son sólo un dato de texto para uso interno del equipo —no
+  tienen nada que ver con `ownerUid` (el portal de dueños, `/app/owner`, que necesita una cuenta). Sólo
+  los ve el admin: en el formulario del panel están en la sección "Propietario", que no le sale a un
+  vendedor.
 
 ---
 
@@ -493,6 +499,8 @@ necesita bajar y volver a subir hasta 20 fotos, que es justo lo que el panel ya 
   "whatsappMsg": "Mensaje pre-completado para WhatsApp",
   "fichaUrl": "https://... (opcional — Zonaprop/Argenprop, botón secundario en la ficha)",
   "esPropio": false,
+  "propietarioNombre": "Nombre del dueño real (opcional, uso interno del equipo)",
+  "propietarioContacto": "Teléfono o email del dueño (opcional, uso interno del equipo)",
   "revision": "aprobada"
 }
 ```
@@ -505,6 +513,8 @@ Notas:
 - `fichaUrl` es opcional y solo agrega un botón secundario "Ver publicación completa" — no reemplaza la galería nativa
 - Reutiliza el mismo catálogo de `amenities` que los alquileres
 - `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
+- `propietarioNombre`/`propietarioContacto`: mismo campo de uso interno que en alquileres, ver la nota
+  en el schema de alquiler
 
 ---
 

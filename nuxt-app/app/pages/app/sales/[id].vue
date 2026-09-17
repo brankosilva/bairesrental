@@ -62,6 +62,8 @@ const form = reactive<
     sellerUid: string | null
     sellerNombre: string | null
     ownerUid: string | null
+    propietarioNombre: string | null
+    propietarioContacto: string | null
     // De qué ficha salió. No se edita: se reenvía tal cual vino para que una
     // edición a mano no le borre a la propiedad el link con el que se la puede
     // volver a leer.
@@ -102,6 +104,8 @@ const form = reactive<
   sellerUid: null,
   sellerNombre: null,
   ownerUid: null,
+  propietarioNombre: null,
+  propietarioContacto: null,
   origen: null,
   // Default de admin; si el que entra es vendedor, el onMounted lo baja.
   revision: 'aprobada',
@@ -154,6 +158,8 @@ onMounted(async () => {
     sellerUid: existing.sellerUid ?? null,
     sellerNombre: existing.sellerNombre ?? null,
     ownerUid: existing.ownerUid ?? null,
+    propietarioNombre: existing.propietarioNombre ?? null,
+    propietarioContacto: existing.propietarioContacto ?? null,
     origen: existing.origen ?? null,
     revision: revisionDe(existing),
     motivoRechazo: existing.motivoRechazo ?? null,
@@ -638,6 +644,15 @@ async function onDelete() {
           <option :value="null">— (gestiona BairesRental)</option>
           <option v-for="s in sellers" :key="s.id" :value="s.id">{{ s.email || s.id }} ({{ s.id.slice(0, 8) }}…)</option>
         </select>
+      </AdminSection>
+
+      <!-- Dato de contacto interno del equipo, sin cuenta ni login — no
+           confundir con `ownerUid` (portal de dueños). Sólo lo ve el admin. -->
+      <AdminSection v-if="isAdmin" title="Propietario">
+        <label class="form-label small">Nombre del dueño</label>
+        <input v-model="form.propietarioNombre" type="text" class="form-control mb-2" placeholder="Ej: María Gómez" />
+        <label class="form-label small">Contacto del dueño</label>
+        <input v-model="form.propietarioContacto" type="text" class="form-control" placeholder="Teléfono o email" />
       </AdminSection>
 
       <p v-if="formError" class="text-danger small mb-2">{{ formError }}</p>

@@ -56,6 +56,14 @@ export interface ListingMeta {
   sellerNombre?: string | null
   /** El propietario (portal de dueños, sólo lectura). */
   ownerUid?: string | null
+  /**
+   * Nombre y contacto del dueño real del depto, para uso interno del equipo
+   * (mantenimiento, consultas) — no tiene nada que ver con `ownerUid`: éste
+   * es sólo un dato de texto, sin cuenta ni login. Sólo lo ve el admin, nunca
+   * sale al catálogo público ni al panel del vendedor.
+   */
+  propietarioNombre?: string | null
+  propietarioContacto?: string | null
   /** El link del que se importó, si entró por una ficha. Ver OrigenImport. */
   origen?: OrigenImport | null
   revision?: EstadoRevision

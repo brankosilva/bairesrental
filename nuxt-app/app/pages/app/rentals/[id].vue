@@ -129,6 +129,12 @@ const isAdmin = computed(() => role.value === 'admin')
 const listRoute = computed(() => (isAdmin.value ? '/app/admin/rentals' : '/app/seller/listings'))
 const sellers = ref<SellerOption[]>([])
 
+// El vendedor la carga sólo al dar de alta (es quien tiene el dato del dueño
+// de primera mano), pero no vuelve a verla al editar después: una vez
+// cargada queda de uso interno del admin. `isNew` no es reactivo, pero no
+// hace falta — no cambia en la vida del componente (viene del id de la ruta).
+const puedeCargarPropietario = computed(() => isAdmin.value || (isNew && role.value === 'seller'))
+
 onMounted(async () => {
   // Resolved inline (not via a separate onMounted-based composable) so the
   // isNew branch below can rely on it being settled before deciding
@@ -594,8 +600,9 @@ async function onDelete() {
       </AdminSection>
 
       <!-- Dato de contacto interno del equipo, sin cuenta ni login — no
-           confundir con `ownerUid` (portal de dueños). Sólo lo ve el admin. -->
-      <AdminSection v-if="isAdmin" title="Propietario">
+           confundir con `ownerUid` (portal de dueños). El vendedor la carga
+           al dar de alta y no la vuelve a ver después (puedeCargarPropietario). -->
+      <AdminSection v-if="puedeCargarPropietario" title="Propietario">
         <label class="form-label small">Nombre del dueño</label>
         <input v-model="form.propietarioNombre" type="text" class="form-control mb-2" placeholder="Ej: María Gómez" />
         <label class="form-label small">Contacto del dueño</label>

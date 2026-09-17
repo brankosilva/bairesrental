@@ -408,9 +408,10 @@ Notas:
 - `lat`/`lng` son los pines del mapa. Si no los ponés, `scripts/resolve-map-coords.js` los completa después
 - `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
 - `propietarioNombre`/`propietarioContacto` son sólo un dato de texto para uso interno del equipo —no
-  tienen nada que ver con `ownerUid` (el portal de dueños, `/app/owner`, que necesita una cuenta). Sólo
-  los ve el admin: en el formulario del panel están en la sección "Propietario", que no le sale a un
-  vendedor.
+  tienen nada que ver con `ownerUid` (el portal de dueños, `/app/owner`, que necesita una cuenta). El
+  admin los ve y edita siempre; un vendedor sólo los ve al dar de alta (`/app/rentals/new`), porque es
+  quien tiene el dato de primera mano — al volver a editar esa publicación ya no le aparece la sección
+  "Propietario" (`puedeCargarPropietario` en el formulario), aunque el valor cargado se preserva.
 
 ---
 

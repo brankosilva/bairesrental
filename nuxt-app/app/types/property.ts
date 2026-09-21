@@ -100,6 +100,10 @@ export interface RentalProperty {
   mascotas: boolean
   serviciosIncluidos: boolean
   minimoMeses: number
+  // Sólo para el puñado de propiedades que se alquilan por día (quintas,
+  // fines de semana) en vez de por mes. Si está presente, manda por sobre
+  // minimoMeses en toda pantalla que muestre la estadía mínima.
+  minimoDias?: number
   amenities: string[]
   descripcion: string
   imagen: string

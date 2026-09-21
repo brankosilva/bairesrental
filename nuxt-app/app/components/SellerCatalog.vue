@@ -74,6 +74,8 @@ interface Row {
   serviciosIncluidos: boolean | null
   /** Sólo alquileres con mínimo > 1 mes: 0 en ventas, para no dibujar el tag. */
   minimoMeses: number
+  /** Sólo alquileres que se cotizan por día (quintas, fines de semana). */
+  minimoDias: number
   /** Sólo ventas: 0 en alquileres. */
   ambientes: number
   /** Sólo ventas: 0 en alquileres o si no hay más de 1 foto. */
@@ -105,6 +107,7 @@ function toRow(p: Record<string, unknown>, kind: Kind): Row {
     esPropio: !!r.esPropio,
     serviciosIncluidos: kind === 'rental' ? !!r.serviciosIncluidos : null,
     minimoMeses: kind === 'rental' && Number(r.minimoMeses) > 1 ? Number(r.minimoMeses) : 0,
+    minimoDias: kind === 'rental' ? Number(r.minimoDias) || 0 : 0,
     ambientes: kind === 'sale' ? Number(r.ambientes) || 0 : 0,
     fotosCount: kind === 'sale' && Array.isArray(r.fotos) ? r.fotos.length : 0,
   }
@@ -587,11 +590,14 @@ const { open: panelOpen, toggle: togglePanel, close: closePanel } = useFilterPan
                   <div class="br-prop-precio-row">
                     <span class="br-precio">{{ precioLabel(p) }}</span>
                     <span v-if="p.kind === 'rental' && p.precio > 0" class="br-precio-sub">
-                      /mes
+                      /{{ p.minimoDias > 0 ? 'día' : 'mes' }}
                       <span :class="p.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'">
                         {{ p.serviciosIncluidos ? 'Paquete completo' : 'Servicios aparte' }}
                       </span>
-                      <span v-if="p.minimoMeses > 0" class="br-tag-minimo">
+                      <span v-if="p.minimoDias > 0" class="br-tag-minimo">
+                        Mínimo {{ p.minimoDias }} {{ p.minimoDias === 1 ? 'día' : 'días' }}
+                      </span>
+                      <span v-else-if="p.minimoMeses > 0" class="br-tag-minimo">
                         Mínimo {{ p.minimoMeses }} {{ p.minimoMeses === 1 ? 'mes' : 'meses' }}
                       </span>
                     </span>

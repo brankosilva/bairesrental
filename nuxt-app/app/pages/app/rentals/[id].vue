@@ -55,10 +55,13 @@ const AMENITIES = Object.keys(AMENITY_EMOJI)
 // Firestore rechaza el undefined y el formulario los escribe siempre, aunque
 // no se haya podido ubicar la dirección (ver PropertyLocationFields.vue).
 const form = reactive<
-  Omit<RentalProperty, 'id' | 'lat' | 'lng'> & {
+  Omit<RentalProperty, 'id' | 'lat' | 'lng' | 'minimoDias'> & {
     id: string
     lat: number | null
     lng: number | null
+    // Mismo motivo que lat/lng: Firestore rechaza `undefined`, así que un
+    // alquiler normal (sin cotizar por día) lo manda en null, no ausente.
+    minimoDias: number | null
     sellerUid: string | null
     sellerNombre: string | null
     ownerUid: string | null
@@ -90,6 +93,7 @@ const form = reactive<
   mascotas: false,
   serviciosIncluidos: false,
   minimoMeses: 1,
+  minimoDias: null,
   amenities: [],
   descripcion: '',
   imagen: '',
@@ -303,8 +307,14 @@ async function onSubmit() {
     }
 
     // lat/lng explícitos: si nunca se pudo ubicar la dirección van como null.
-    // Firestore tira error si le llega un undefined.
-    const { id: _drop, ...data } = { ...form, lat: form.lat ?? null, lng: form.lng ?? null }
+    // Firestore tira error si le llega un undefined. minimoDias igual: si se
+    // deja el campo vacío, v-model.number lo deja como '' en vez de null.
+    const { id: _drop, ...data } = {
+      ...form,
+      lat: form.lat ?? null,
+      lng: form.lng ?? null,
+      minimoDias: form.minimoDias || null,
+    }
     // Save the doc first — firestore.rules needs it to already exist (with
     // the right sellerUid) before it'll allow the image upload below.
     //
@@ -508,9 +518,16 @@ async function onDelete() {
           </div>
         </div>
 
-        <div style="max-width: 160px">
-          <label class="form-label small">Mínimo de meses</label>
-          <input v-model.number="form.minimoMeses" type="number" min="1" class="form-control" />
+        <div class="row g-2">
+          <div class="col-auto" style="max-width: 160px">
+            <label class="form-label small">Mínimo de meses</label>
+            <input v-model.number="form.minimoMeses" type="number" min="1" class="form-control" />
+          </div>
+          <div class="col-auto" style="max-width: 200px">
+            <label class="form-label small">Mínimo de días</label>
+            <input v-model.number="form.minimoDias" type="number" min="1" class="form-control" placeholder="—" />
+            <div class="form-text">Para quintas o fines de semana que se cotizan por día. Dejalo vacío si se alquila por mes.</div>
+          </div>
         </div>
       </AdminSection>
 

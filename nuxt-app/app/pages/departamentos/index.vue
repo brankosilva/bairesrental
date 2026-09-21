@@ -535,11 +535,14 @@ async function share(r: RentalProperty) {
                 <template v-if="r.precio > 0">
                   <span class="br-precio">{{ r.moneda || 'USD' }} {{ r.precio.toLocaleString('es-AR') }}</span>
                   <span class="br-precio-sub">
-                    /{{ locale === 'en' ? 'mo' : 'mes' }}
+                    /{{ r.minimoDias ? (locale === 'en' ? 'day' : 'día') : (locale === 'en' ? 'mo' : 'mes') }}
                     <span :class="r.serviciosIncluidos ? 'br-tag-servicios' : 'br-tag-servicios-aparte'">
                       {{ r.serviciosIncluidos ? t('departamentos.card.serviciosIncluidos') : t('departamentos.card.serviciosAparte') }}
                     </span>
-                    <span v-if="r.minimoMeses > 1" class="br-tag-minimo">
+                    <span v-if="r.minimoDias" class="br-tag-minimo">
+                      {{ t('departamentos.card.minimo') }} {{ r.minimoDias }} {{ r.minimoDias === 1 ? t('departamentos.card.dia') : t('departamentos.card.dias') }}
+                    </span>
+                    <span v-else-if="r.minimoMeses > 1" class="br-tag-minimo">
                       {{ t('departamentos.card.minimo') }} {{ r.minimoMeses }} {{ r.minimoMeses === 1 ? t('departamentos.card.mes') : t('departamentos.card.meses') }}
                     </span>
                   </span>

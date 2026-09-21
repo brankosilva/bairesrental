@@ -243,6 +243,7 @@
     "title": "Experience Buenos Aires",
     "subtitle": "Verified apartments, clear pricing, and real support.",
     "perMonth": "/ month",
+    "perDay": "/ day",
     "filtros": {
       "busqueda": "Search",
       "busquedaPlaceholder": "Title, neighborhood, description...",
@@ -300,6 +301,8 @@
       "minimo": "Min.",
       "meses": "months",
       "mes": "month",
+      "dias": "days",
+      "dia": "day",
       "compartir": "Share"
     },
     "noResults": {
@@ -387,6 +390,8 @@
     "minStay": "Minimum stay",
     "month": "month",
     "months": "months",
+    "day": "day",
+    "days": "days",
     "viewOnMap": "View on map",
     "whatsapp": "WhatsApp",
     "contactWhatsapp": "Contact via WhatsApp",

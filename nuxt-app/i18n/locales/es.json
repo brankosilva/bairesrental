@@ -243,6 +243,7 @@
     "title": "Viví Buenos Aires",
     "subtitle": "Departamentos verificados, precio claro y soporte real.",
     "perMonth": "/ mes",
+    "perDay": "/ día",
     "filtros": {
       "busqueda": "Buscar",
       "busquedaPlaceholder": "Título, barrio, descripción...",
@@ -300,6 +301,8 @@
       "minimo": "Mín.",
       "meses": "meses",
       "mes": "mes",
+      "dias": "días",
+      "dia": "día",
       "compartir": "Compartir"
     },
     "noResults": {
@@ -387,6 +390,8 @@
     "minStay": "Mínimo de estadía",
     "month": "mes",
     "months": "meses",
+    "day": "día",
+    "days": "días",
     "viewOnMap": "Ver en el mapa",
     "whatsapp": "WhatsApp",
     "contactWhatsapp": "Consultar por WhatsApp",

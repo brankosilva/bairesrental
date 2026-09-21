@@ -126,7 +126,7 @@ function onShare() {
         <div class="depto-precio-row">
           <template v-if="rental.precio">
             <span class="depto-precio">{{ rental.moneda || 'USD' }} {{ Number(rental.precio).toLocaleString('es-AR') }}</span>
-            <span class="depto-moneda">{{ t('departamentos.perMonth') }}</span>
+            <span class="depto-moneda">{{ rental.minimoDias ? t('departamentos.perDay') : t('departamentos.perMonth') }}</span>
           </template>
           <span v-else class="depto-consultar">{{ t('departamentos.card.consultarPrecio') }}</span>
         </div>
@@ -161,7 +161,12 @@ function onShare() {
           </div>
           <div class="depto-carac-item">
             <span class="depto-carac-label">{{ t('detail.minStay') }}</span>
-            <span class="depto-carac-value">{{ rental.minimoMeses }} {{ rental.minimoMeses === 1 ? t('detail.month') : t('detail.months') }}</span>
+            <span v-if="rental.minimoDias" class="depto-carac-value">
+              {{ rental.minimoDias }} {{ rental.minimoDias === 1 ? t('detail.day') : t('detail.days') }}
+            </span>
+            <span v-else class="depto-carac-value">
+              {{ rental.minimoMeses }} {{ rental.minimoMeses === 1 ? t('detail.month') : t('detail.months') }}
+            </span>
           </div>
         </div>
 

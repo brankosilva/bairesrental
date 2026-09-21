@@ -385,6 +385,7 @@ El usuario pega texto extraído de un PDF (descripción de la propiedad) y puede
   "mascotas": false,
   "serviciosIncluidos": false,
   "minimoMeses": 1,
+  "minimoDias": null,
   "amenities": ["pileta","gimnasio","laundry","parrilla","terraza","cochera","sauna","solárium","seguridad 24hs","jacuzzi","lavarropas"],
   "descripcion": "Texto sin HTML",
   "imagen": "https://... ← URL de Storage, de Tokko CDN o de la plataforma",
@@ -406,6 +407,7 @@ Notas:
 - `serviciosIncluidos: true` = incluye luz **y** wifi
 - Si hay `fichaUrl`, el botón "Ver detalle" abre esa URL en lugar de la ficha interna
 - `lat`/`lng` son los pines del mapa. Si no los ponés, `scripts/resolve-map-coords.js` los completa después
+- `minimoDias` es sólo para lo que se cotiza por día (quintas, fines de semana): si está, manda por sobre `minimoMeses` en toda la web (ficha, card del catálogo, catálogo de vendedores) — precio "/ día" en vez de "/ mes". Dejarlo en `null`/vacío en cualquier alquiler normal
 - `origen` no se escribe a mano: lo sella el importador con el link del que salió la propiedad
 - `propietarioNombre`/`propietarioContacto` son sólo un dato de texto para uso interno del equipo —no
   tienen nada que ver con `ownerUid` (el portal de dueños, `/app/owner`, que necesita una cuenta). El

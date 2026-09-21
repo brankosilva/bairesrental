@@ -37,7 +37,15 @@ interface UserDoc {
   role?: string | null
 }
 
-const { linkUrl } = useLinkUrl()
+const { linkUrl, origin } = useLinkUrl()
+const { qrDataUrl } = useLinkQr()
+
+// Las dos URLs de marca, no de un vendedor — las que van en META y en
+// cualquier pieza que hable de BairesRental en general, no de una persona.
+const officialQrs = computed(() => [
+  { label: 'Home', url: `${origin.value}/`, file: 'bairesrental-home' },
+  { label: 'Catálogo general', url: `${origin.value}/departamentos`, file: 'bairesrental-catalogo' },
+])
 const links = ref<LinkRow[]>([])
 const users = ref<UserDoc[]>([])
 const loading = ref(true)
@@ -136,6 +144,23 @@ async function copyLink(code: string) {
   }
 }
 
+function triggerDownload(dataUrl: string, filename: string) {
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = filename
+  a.click()
+}
+
+// Se genera al toque, no de entrada: son muchos vendedores en la lista y
+// nadie mira 20 QR a la vez.
+async function downloadQr(l: LinkRow) {
+  triggerDownload(await qrDataUrl(linkUrl(l.id)), `bairesrental-${l.id}.png`)
+}
+
+async function downloadOfficialQr(url: string, file: string) {
+  triggerDownload(await qrDataUrl(url), `${file}.png`)
+}
+
 function propertyLabel(l: LinkRow) {
   if (l.target === 'catalog' || !l.propertyId) return 'Todo el catálogo'
   return l.propertyTitulo || l.propertyId
@@ -148,6 +173,18 @@ function propertyLabel(l: LinkRow) {
       <h1 class="h4 mb-0">Links</h1>
     </div>
     <p class="text-muted small">Actividad de los links compartidos por todos los vendedores.</p>
+
+    <!-- QR de marca: home y catálogo general, para META y publicidad que no
+         es de un vendedor en particular. -->
+    <div class="br-official-qrs">
+      <div v-for="q in officialQrs" :key="q.url" class="br-official-qr">
+        <span class="br-official-qr-label">{{ q.label }}</span>
+        <code class="br-app-truncate">{{ q.url }}</code>
+        <button class="btn btn-sm btn-outline-secondary" @click="downloadOfficialQr(q.url, q.file)">
+          <i class="bi bi-qr-code"></i> Descargar QR
+        </button>
+      </div>
+    </div>
 
     <div v-if="feedback" class="alert alert-warning py-2 small">{{ feedback }}</div>
     <p v-if="loading">Cargando…</p>
@@ -257,6 +294,16 @@ function propertyLabel(l: LinkRow) {
                 @click="copyLink(l.id)"
               >
                 <i :class="copiedCode === l.id ? 'bi bi-clipboard-check' : 'bi bi-clipboard'"></i>
+              </button>
+              <!-- Para armar las tarjetas de cada vendedor sin entrar a su cuenta. -->
+              <button
+                v-if="l.primary"
+                class="btn btn-sm btn-outline-secondary br-app-icon-btn"
+                title="Descargar QR"
+                aria-label="Descargar QR"
+                @click="downloadQr(l)"
+              >
+                <i class="bi bi-qr-code"></i>
               </button>
               <!-- El link personal no se apaga: es el que el vendedor tiene
                    puesto en su bio y en su firma, y nadie lo vuelve a crear. -->

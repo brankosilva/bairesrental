@@ -1224,6 +1224,46 @@
   margin-top: 10px;
 }
 
+.br-my-link-qr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.br-my-link-qr img {
+  border: 1px solid var(--br-app-borde);
+  border-radius: 8px;
+}
+
+.br-official-qrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.br-official-qr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--br-app-borde);
+  border-radius: 10px;
+  background: var(--br-app-fondo);
+}
+
+.br-official-qr-label {
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.br-official-qr code {
+  font-size: 13px;
+  max-width: 220px;
+}
+
 /* ---------------------------------------------------------------------
    Fila de KPIs del panel admin.
    --------------------------------------------------------------------- */

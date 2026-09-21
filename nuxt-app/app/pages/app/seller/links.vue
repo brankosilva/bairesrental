@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { collection, getDocs, query, where, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { useFirestore } from 'vuefire'
 import type { RentalProperty, SaleProperty } from '~/types/property'
@@ -58,6 +58,7 @@ useHead({ title: 'BairesRental — Mis links', meta: [{ name: 'robots', content:
 
 const user = useCurrentUser()
 const { linkUrl } = useLinkUrl()
+const { qrDataUrl } = useLinkQr()
 
 type RentalRow = RentalProperty & { id: string; sellerUid?: string | null }
 type SaleRow = SaleProperty & { id: string; sellerUid?: string | null }
@@ -102,6 +103,17 @@ if (route.query.kind === 'rental' || route.query.kind === 'sale') {
 // El link personal se muestra aparte, arriba de todo: no es uno más de la
 // lista y no se desactiva ni se reemplaza.
 const primaryLink = computed(() => links.value.find((l) => l.primary) ?? null)
+const primaryQr = ref<string | null>(null)
+
+// Se genera una sola vez, no en cada render: es siempre el mismo link.
+watch(
+  primaryLink,
+  async (link) => {
+    if (!link || !import.meta.client) return
+    primaryQr.value = await qrDataUrl(linkUrl(link.id))
+  },
+  { immediate: true },
+)
 const extraLinks = computed(() =>
   links.value
     .filter((l) => !l.primary)
@@ -297,6 +309,14 @@ const canSubmit = computed(() => targetKind.value === 'catalog' || !!selectedPro
             <i class="bi bi-activity"></i> {{ openFor === primaryLink.id ? 'Ocultar actividad' : 'Ver actividad' }}
           </button>
         </div>
+      </div>
+
+      <!-- Para tarjetas y publicidad propia: el mismo link de arriba, en QR. -->
+      <div v-if="primaryQr" class="br-my-link-qr">
+        <img :src="primaryQr" alt="Código QR de tu link" width="96" height="96" />
+        <a :href="primaryQr" :download="`bairesrental-${primaryLink.id}.png`" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-qr-code"></i> Descargar QR
+        </a>
       </div>
 
       <div class="br-link-stats">

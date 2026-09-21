@@ -26,6 +26,7 @@ export interface FilterableProperty {
   id: string
   titulo: string
   barrio: string
+  direccion?: string
   tipo: string
   disponibilidad: Availability
   esPropio?: boolean
@@ -50,7 +51,7 @@ export function usePropertyFilters<T extends FilterableProperty>(kind: PropertyK
 
   function matches(p: T): boolean {
     const q = search.value.trim().toLowerCase()
-    if (q && !`${p.titulo} ${p.barrio} ${p.id}`.toLowerCase().includes(q)) return false
+    if (q && !`${p.titulo} ${p.barrio} ${p.direccion ?? ''} ${p.id}`.toLowerCase().includes(q)) return false
     if (tipos.value.length && !tipos.value.includes(p.tipo)) return false
     if (disponibilidad.value && p.disponibilidad !== disponibilidad.value) return false
     if (propio.value === 'si' && !p.esPropio) return false

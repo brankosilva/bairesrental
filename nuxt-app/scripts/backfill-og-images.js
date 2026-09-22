@@ -57,8 +57,8 @@ function storagePath(url) {
 }
 
 function derivado(objectPath) {
-  const ext = path.extname(objectPath).toLowerCase()
-  if (!EXT_VALIDAS.has(ext)) return null
+  const ext = path.extname(objectPath)
+  if (!EXT_VALIDAS.has(ext.toLowerCase())) return null
   return `${objectPath.slice(0, -ext.length)}${SUFFIX}${ext}`
 }
 

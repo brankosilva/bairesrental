@@ -77,8 +77,14 @@ export function ogImage(src?: string): OgImage | undefined {
   // propio distinto al del original y arrastrarlo daría un 403. Sin token
   // funciona igual porque storage.rules deja `allow read: if true` en
   // rentals/** y sales/**.
+  //
+  // Lo que sí se arrastra es el `t=` que el panel le pone a la portada al
+  // reemplazarla: el derivado conserva el path, y WhatsApp/Facebook cachean la
+  // preview por URL de imagen — sin esto, cambiar la portada no cambia el
+  // preview. Storage ignora el parámetro.
+  const version = src.match(/[?&]t=([^&#]+)/)?.[1]
   return {
-    url: `${base}${encodedPath.slice(0, dot)}${OG_IMAGE_SUFFIX}${encodedPath.slice(dot)}?alt=media`,
+    url: `${base}${encodedPath.slice(0, dot)}${OG_IMAGE_SUFFIX}${encodedPath.slice(dot)}?alt=media${version ? `&t=${version}` : ''}`,
     width: OG_IMAGE_WIDTH,
     height: OG_IMAGE_HEIGHT,
     type: MIME_BY_EXT[ext],

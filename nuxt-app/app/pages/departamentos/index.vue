@@ -46,11 +46,9 @@ const db = getFirestore()
 // filtro no llegan "menos propiedades": rebota la query entera y el catálogo
 // queda vacío. Ver el encabezado de utils/revision.ts.
 const allRentals = useCollection<RentalProperty>(query(collection(db, 'rentals'), where('revision', '==', 'aprobada')))
-// Que el HTML del servidor salga con el catálogo adentro, igual que la ficha.
-// Sin esto, un render que salía vacío dejaba al que entraba desde una
-// publicidad mirando "no encontramos propiedades" hasta que el navegador
-// (el in-app de Instagram, lento) terminaba de traer los datos.
-await allRentals.promise.value.catch(() => {})
+// Ojo: NO hacer `await allRentals.promise.value` acá como en la ficha. Esta
+// página es keepalive y un setup asíncrono congela la navegación desde otra
+// página (v1.0.39). En el servidor vuefire ya espera los datos solo.
 // "no disponible" listings are kept in the data for internal use but never shown publicly.
 const visibleRentals = computed(() => (allRentals.value ?? []).filter((r) => r.disponibilidad !== 'no disponible'))
 // El catálogo nunca está vacío de verdad: sin propiedades es que todavía está

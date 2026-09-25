@@ -37,9 +37,8 @@ const db = getFirestore()
 const salesRef = useCollection<SaleProperty>(query(collection(db, 'sales'), where('revision', '==', 'aprobada')))
 // "vendido" listings are kept in the data for internal use but never shown publicly.
 const sales = computed(() => (salesRef.value ?? []).filter((s) => s.disponibilidad !== 'vendido'))
-// Mismo criterio que departamentos/index.vue: HTML del servidor con los datos
-// adentro, y sin propiedades es que está cargando — skeleton, no "sin resultados".
-await salesRef.promise.value.catch(() => {})
+// Mismo criterio que departamentos/index.vue: sin propiedades es que está
+// cargando — skeleton, no "sin resultados".
 const cargando = computed(() => !sales.value.length)
 
 const AMENITY_META: Record<string, { icon: string; key: string }> = {

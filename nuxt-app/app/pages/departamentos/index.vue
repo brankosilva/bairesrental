@@ -46,8 +46,16 @@ const db = getFirestore()
 // filtro no llegan "menos propiedades": rebota la query entera y el catálogo
 // queda vacío. Ver el encabezado de utils/revision.ts.
 const allRentals = useCollection<RentalProperty>(query(collection(db, 'rentals'), where('revision', '==', 'aprobada')))
+// Que el HTML del servidor salga con el catálogo adentro, igual que la ficha.
+// Sin esto, un render que salía vacío dejaba al que entraba desde una
+// publicidad mirando "no encontramos propiedades" hasta que el navegador
+// (el in-app de Instagram, lento) terminaba de traer los datos.
+await allRentals.promise.value.catch(() => {})
 // "no disponible" listings are kept in the data for internal use but never shown publicly.
 const visibleRentals = computed(() => (allRentals.value ?? []).filter((r) => r.disponibilidad !== 'no disponible'))
+// El catálogo nunca está vacío de verdad: sin propiedades es que todavía está
+// cargando, y se muestra el skeleton en vez del cartel de "sin resultados".
+const cargando = computed(() => !visibleRentals.value.length)
 
 // Card icon + i18n key for each amenity value stored on a listing. `lavarropas`
 // only ever shows on cards — it isn't one of the filter checkboxes below,
@@ -333,7 +341,7 @@ async function share(r: RentalProperty) {
         </button>
 
         <div class="br-filtros-bar-end">
-          <span class="br-contador-inline">
+          <span v-show="!cargando" class="br-contador-inline">
             {{ t('departamentos.filtros.propsCorto', { count: filtered.length, total: visibleRentals.length }) }}
           </span>
           <button v-show="activeFilterCount > 0" type="button" class="br-btn-limpiar" @click="clearFilters">
@@ -474,7 +482,18 @@ async function share(r: RentalProperty) {
     <div class="br-catalogo-section">
       <div class="br-catalogo-split">
         <div class="br-catalogo-list" :class="{ 'br-lista-oculta': catalogView === 'map' }">
-          <div v-if="!filtered.length" class="text-center py-5">
+          <div v-if="cargando" id="catalogo-grid" aria-busy="true">
+            <div v-for="i in 6" :key="i" class="br-prop-card br-prop-skeleton" aria-hidden="true">
+              <div class="br-sk-img"></div>
+              <div class="br-sk-body">
+                <div class="br-sk-line" style="width: 45%"></div>
+                <div class="br-sk-line br-sk-line-lg" style="width: 85%"></div>
+                <div class="br-sk-line" style="width: 35%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="!filtered.length" class="text-center py-5">
             <div class="mb-3" style="font-size: 3rem">🔍</div>
             <h4 class="mb-2" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.title') }}</h4>
             <p class="text-muted mb-4" style="font-family: 'DM Sans', sans-serif">{{ t('departamentos.noResults.sub') }}</p>

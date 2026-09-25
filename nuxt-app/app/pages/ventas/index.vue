@@ -37,6 +37,10 @@ const db = getFirestore()
 const salesRef = useCollection<SaleProperty>(query(collection(db, 'sales'), where('revision', '==', 'aprobada')))
 // "vendido" listings are kept in the data for internal use but never shown publicly.
 const sales = computed(() => (salesRef.value ?? []).filter((s) => s.disponibilidad !== 'vendido'))
+// Mismo criterio que departamentos/index.vue: HTML del servidor con los datos
+// adentro, y sin propiedades es que está cargando — skeleton, no "sin resultados".
+await salesRef.promise.value.catch(() => {})
+const cargando = computed(() => !sales.value.length)
 
 const AMENITY_META: Record<string, { icon: string; key: string }> = {
   pileta: { icon: '🏊', key: 'pileta' },
@@ -275,7 +279,7 @@ async function share(s: SaleProperty) {
         </button>
 
         <div class="br-filtros-bar-end">
-          <span class="br-contador-inline">
+          <span v-show="!cargando" class="br-contador-inline">
             {{ t('ventas.filtros.propsCorto', { count: filtered.length, total: sales.length }) }}
           </span>
           <button v-show="activeFilterCount > 0" type="button" class="br-btn-limpiar" @click="clearFilters">
@@ -415,7 +419,18 @@ async function share(s: SaleProperty) {
     <section class="br-catalogo-section">
       <div class="br-catalogo-split">
         <div class="br-catalogo-list" :class="{ 'br-lista-oculta': catalogView === 'map' }">
-          <div v-if="!filtered.length" class="br-sin-resultados">
+          <div v-if="cargando" id="catalogo-grid" aria-busy="true">
+            <div v-for="i in 6" :key="i" class="br-prop-card br-prop-skeleton" aria-hidden="true">
+              <div class="br-sk-img"></div>
+              <div class="br-sk-body">
+                <div class="br-sk-line" style="width: 45%"></div>
+                <div class="br-sk-line br-sk-line-lg" style="width: 85%"></div>
+                <div class="br-sk-line" style="width: 35%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="!filtered.length" class="br-sin-resultados">
             <div style="font-size: 3rem; margin-bottom: 0.5rem">🔍</div>
             <h2>{{ t('ventas.noResultsTitle') }}</h2>
             <p>{{ t('ventas.noResultsSub') }}</p>

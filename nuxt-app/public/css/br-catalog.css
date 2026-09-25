@@ -722,6 +722,29 @@ input[type="range"].br-range::-webkit-slider-thumb {
 }
 .br-prop-card:hover { box-shadow: var(--br-sombra-h); transform: translateY(-3px); }
 
+/* Skeleton mientras carga el catálogo (departamentos y ventas). El catálogo
+   nunca está vacío de verdad, así que en vez del cartel de "sin resultados"
+   se muestran cards grises con brillo hasta que llegan los datos. */
+.br-prop-skeleton { cursor: default; }
+.br-prop-skeleton:hover { box-shadow: var(--br-sombra); transform: none; }
+.br-sk-img,
+.br-sk-line {
+  background: linear-gradient(90deg, #e9eaf0 25%, #f5f6f9 50%, #e9eaf0 75%);
+  background-size: 200% 100%;
+  animation: brShimmer 1.3s ease-in-out infinite;
+}
+.br-sk-img { height: var(--br-card-img-h); flex-shrink: 0; }
+.br-sk-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.br-sk-line { height: 12px; border-radius: 6px; }
+.br-sk-line-lg { height: 18px; }
+@keyframes brShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .br-sk-img, .br-sk-line { animation: none; }
+}
+
 .br-prop-img {
   display: block;
   position: relative;

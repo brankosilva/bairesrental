@@ -93,6 +93,8 @@ const db = getFirestore()
 // filtro la query rebota entera y la home se queda sin el mosaico de
 // propiedades. Ver el encabezado de utils/revision.ts.
 const allRentals = useCollection<RentalProperty>(query(collection(db, 'rentals'), where('revision', '==', 'aprobada')))
+// Que el HTML del servidor salga con los destacados, igual que el catálogo.
+await allRentals.promise.value.catch(() => {})
 const featuredRentals = computed(() =>
   (allRentals.value ?? [])
     .filter((r) => r.disponibilidad === 'disponible')

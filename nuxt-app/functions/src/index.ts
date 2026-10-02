@@ -973,8 +973,13 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
     const { prop, avisos } = collectionName === 'sales' ? fichapropToSale(ficha) : fichapropToRental(ficha)
     prop.origen = { fuente: 'fichaprop.tech', url: ficha.url, leidoEn: new Date().toISOString() }
 
-    const snap = await db.collection(collectionName).select().get()
-    return { prop, avisos, sugerencias: { id: proximoIdDeSerie(snap.docs.map((d) => d.id), 'tenc') } }
+    const snap = await db.collection(collectionName).select('titulo', 'origen', 'fotos', 'fichaUrl').get()
+    return {
+      prop,
+      avisos,
+      sugerencias: { id: proximoIdDeSerie(snap.docs.map((d) => d.id), 'tenc') },
+      duplicados: duplicadosDeFicha(snap.docs, ficha.url),
+    }
   }
 
   let ficha
@@ -992,17 +997,37 @@ export const importFromFicha = onCall<ImportFromFichaRequest>(async (request) =>
   // adelante. Lo guarda el formulario junto con el resto de los campos.
   prop.origen = { fuente: 'ficha.info', url: urlCanonica(url), leidoEn: new Date().toISOString() }
 
-  // select() sin campos trae solo los ids, que es lo único que hace falta para
-  // saber qué números de la serie están tomados.
-  const snap = await db.collection(collectionName).select().get()
+  // Los ids alcanzan para la serie; los otros campos son para avisar si la
+  // ficha ya está cargada.
+  const snap = await db.collection(collectionName).select('titulo', 'origen', 'fotos', 'fichaUrl').get()
   const ids = snap.docs.map((d) => d.id)
 
   return {
     prop,
     avisos,
     sugerencias: { id: collectionName === 'sales' ? proximoIdVen(ids) : proximoIdAlq(ids) },
+    duplicados: duplicadosDeFicha(snap.docs, url),
   }
 })
+
+// Las propiedades del catálogo que ya salieron de esta misma ficha. Se compara
+// por el último tramo del path —el hash de ficha.info, el UUID de fichaprop—
+// y no por la URL entera: las de Tokko viajan con o sin `?v=…`, y lo cargado
+// antes de que existiera `origen` sólo tiene el link en `fotos` o `fichaUrl`.
+function duplicadosDeFicha(
+  docs: FirebaseFirestore.QueryDocumentSnapshot[],
+  url: string,
+): { id: string; titulo: string }[] {
+  const clave = new URL(url).pathname.split('/').filter(Boolean).pop()
+  if (!clave) return []
+  return docs
+    .filter((d) => {
+      const f = d.data()
+      const links = [f.origen?.url, f.fichaUrl, ...(Array.isArray(f.fotos) ? f.fotos : [f.fotos])]
+      return links.some((l) => typeof l === 'string' && l.includes(clave))
+    })
+    .map((d) => ({ id: d.id, titulo: String(d.data().titulo || '') }))
+}
 
 // --- M8: old→new URL redirect map ---
 //

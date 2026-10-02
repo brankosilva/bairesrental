@@ -209,16 +209,18 @@ async function checkId() {
 const fichaUrlInput = ref('')
 const importando = ref(false)
 const importAvisos = ref<string[]>([])
+const importDuplicados = ref<{ id: string; titulo: string }[]>([])
 const importError = ref('')
 
 async function onImportarFicha() {
   importError.value = ''
   importAvisos.value = []
+  importDuplicados.value = []
   importando.value = true
   try {
     const importFromFicha = callable<
       { url: string; collectionName: 'rentals' | 'sales' },
-      { prop: Record<string, unknown>; avisos: string[]; sugerencias: { id: string } }
+      { prop: Record<string, unknown>; avisos: string[]; sugerencias: { id: string }; duplicados?: { id: string; titulo: string }[] }
     >('importFromFicha')
     const { data } = await importFromFicha({ url: fichaUrlInput.value.trim(), collectionName: 'rentals' })
 
@@ -234,6 +236,7 @@ async function onImportarFicha() {
     form.id = data.sugerencias.id
     idError.value = ''
     importAvisos.value = data.avisos
+    importDuplicados.value = data.duplicados || []
   } catch (e) {
     importError.value = (e as Error).message
   } finally {
@@ -415,6 +418,14 @@ async function onDelete() {
           </button>
         </div>
         <p v-if="importError" class="text-danger small mt-2 mb-0">{{ importError }}</p>
+        <div v-if="importDuplicados.length" class="alert alert-warning br-app-notice mt-2 mb-0" role="alert">
+          <strong class="small">Esta ficha ya está cargada en el catálogo:</strong>
+          <ul class="small mb-0 mt-1 ps-3">
+            <li v-for="d in importDuplicados" :key="d.id">
+              <NuxtLink :to="`/app/rentals/${d.id}`">{{ d.id }}</NuxtLink><template v-if="d.titulo"> — {{ d.titulo }}</template>
+            </li>
+          </ul>
+        </div>
         <div v-if="importAvisos.length" class="alert alert-info br-app-notice mt-2 mb-0">
           <strong class="small">Listo. Revisá esto antes de guardar:</strong>
           <ul class="small mb-0 mt-1 ps-3">
